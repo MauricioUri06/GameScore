@@ -32,3 +32,4 @@ appsettings.*.local.json
 # SO
 .DS_Store
 Thumbs.db
+.neon
