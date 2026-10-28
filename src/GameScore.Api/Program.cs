@@ -22,10 +22,11 @@ builder.Services.Configure<RawgOptions>(config.GetSection(RawgOptions.Section));
 builder.Services.Configure<RankingOptions>(config.GetSection(RankingOptions.Section));
 
 // ---------- Base de datos (PostgreSQL en Neon) ----------
-var connectionString = config.GetConnectionString("Default");
-if (string.IsNullOrWhiteSpace(connectionString))
-    throw new InvalidOperationException(
-        "Falta ConnectionStrings:Default. Configúrala con User Secrets (ver README).");
+// La app usa la URL "pooled" de Neon; las migraciones, la directa (ver Data/NeonConnection.cs).
+var connectionString = NeonConnection.ForApp(config, builder.Environment.ContentRootPath)
+    ?? throw new InvalidOperationException(
+        "No se encontró la conexión a la base de datos. Ejecuta `neon env pull` en la raíz del repo " +
+        "o define ConnectionStrings:Default en User Secrets (ver README).");
 
 builder.Services.AddDbContext<GameScoreDbContext>(options => options.UseNpgsql(connectionString));
 
@@ -101,9 +102,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 
-    // Aplica migraciones pendientes al iniciar (solo en desarrollo)
-    using var scope = app.Services.CreateScope();
-    scope.ServiceProvider.GetRequiredService<GameScoreDbContext>().Database.Migrate();
+    // Aplica migraciones pendientes al iniciar (solo en desarrollo), por la conexión directa
+    var migrationConnection = NeonConnection.ForMigrations(config, app.Environment.ContentRootPath)!;
+    var migrationOptions = new DbContextOptionsBuilder<GameScoreDbContext>().UseNpgsql(migrationConnection).Options;
+    using (var migrationDb = new GameScoreDbContext(migrationOptions))
+        migrationDb.Database.Migrate();
 }
 
 app.UseExceptionHandler();

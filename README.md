@@ -62,12 +62,20 @@ Un juego con una sola nota de 5 no supera a uno con veinte notas de 4.5.
 
 ### 1. Base de datos (Neon)
 
-1. Crea una cuenta gratis en [neon.com](https://neon.com) y un proyecto llamado `gamescore`.
-2. En **Connect**, copia la cadena de conexión en formato .NET (o la URL `postgresql://…`).
-   El formato que espera Npgsql es:
-   ```
-   Host=ep-xxxx.us-east-2.aws.neon.tech;Database=neondb;Username=neondb_owner;Password=xxxx;SSL Mode=Require
-   ```
+El proyecto ya está enlazado a Neon (`neon.ts` + `.neon`). Para traer las credenciales a tu máquina, desde la raíz del repo:
+
+```bash
+npx neon@latest login
+npx neon@latest env pull     # o `neon deploy`; escribe .env.local
+```
+
+Eso crea `.env.local` (ignorado por git) con:
+
+- `DATABASE_URL` — conexión *pooled* (host con `-pooler`): la usa la API.
+- `DATABASE_URL_UNPOOLED` — conexión directa: la usan las migraciones de EF Core.
+
+La API las lee sola (ver `Data/NeonConnection.cs`) y las convierte al formato de Npgsql. Prioridad:
+`ConnectionStrings:Default` (User Secrets) → variables de entorno `DATABASE_URL*` → `.env.local`.
 
 ### 2. API key de RAWG
 
@@ -78,7 +86,6 @@ Regístrate en [rawg.io/apidocs](https://rawg.io/apidocs) y copia tu API key.
 Desde la carpeta `src/GameScore.Api`:
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:Default" "Host=...;Database=...;Username=...;Password=...;SSL Mode=Require"
 dotnet user-secrets set "Rawg:ApiKey" "tu-api-key"
 ```
 
@@ -92,7 +99,7 @@ dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
-(En desarrollo, la API también aplica las migraciones pendientes al iniciar.)
+Las migraciones usan `DATABASE_URL_UNPOOLED` (vía `GameScoreDbContextFactory`). En desarrollo la API también aplica las migraciones pendientes al iniciar.
 
 ### 5. Ejecutar
 
