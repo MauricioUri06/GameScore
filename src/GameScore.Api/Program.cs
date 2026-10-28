@@ -4,7 +4,8 @@ using GameScore.Api.Data;
 using GameScore.Api.Entities;
 using GameScore.Api.Infrastructure;
 using GameScore.Api.Options;
-using GameScore.Api.Rawg;
+using GameScore.Api.Catalog;
+using GameScore.Api.Catalog.Igdb;
 using GameScore.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -18,7 +19,8 @@ var config = builder.Configuration;
 
 // ---------- Opciones (appsettings + User Secrets) ----------
 builder.Services.Configure<JwtOptions>(config.GetSection(JwtOptions.Section));
-builder.Services.Configure<RawgOptions>(config.GetSection(RawgOptions.Section));
+builder.Services.Configure<CatalogOptions>(config.GetSection(CatalogOptions.Section));
+builder.Services.Configure<IgdbOptions>(config.GetSection(IgdbOptions.Section));
 builder.Services.Configure<RankingOptions>(config.GetSection(RankingOptions.Section));
 
 // ---------- Base de datos (PostgreSQL en Neon) ----------
@@ -69,10 +71,13 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // ---------- Servicios de la app ----------
-builder.Services.AddHttpClient<RawgClient>((sp, http) =>
+// Catálogo de juegos: IGDB (Twitch). Para cambiar de proveedor basta con otra implementación de IGameCatalog.
+builder.Services.AddHttpClient(IgdbTokenProvider.HttpClientName, http => http.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddSingleton<IgdbTokenProvider>();
+builder.Services.AddHttpClient<IGameCatalog, IgdbCatalog>((sp, http) =>
 {
-    var rawg = sp.GetRequiredService<IOptions<RawgOptions>>().Value;
-    http.BaseAddress = new Uri(rawg.BaseUrl);
+    var igdb = sp.GetRequiredService<IOptions<IgdbOptions>>().Value;
+    http.BaseAddress = new Uri(igdb.BaseUrl);
     http.Timeout = TimeSpan.FromSeconds(15);
     http.DefaultRequestHeaders.UserAgent.ParseAdd("GameScore/1.0");
 });
@@ -80,7 +85,7 @@ builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<RankingService>();
 builder.Services.AddSingleton<TokenService>();
 
-builder.Services.AddExceptionHandler<RawgExceptionHandler>();
+builder.Services.AddExceptionHandler<CatalogExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddControllers();

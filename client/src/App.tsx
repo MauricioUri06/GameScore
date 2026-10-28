@@ -40,7 +40,7 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="ranking" element={<RankingPage />} />
-            <Route path="games/:rawgId" element={<GamePage />} />
+            <Route path="games/:gameId" element={<GamePage />} />
             <Route path="u/:userName" element={<ProfilePage />} />
             <Route
               path="settings/profile"

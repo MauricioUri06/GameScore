@@ -1,4 +1,5 @@
 // Tipos que reflejan los DTOs del backend (GameScore.Api/Dtos/Dtos.cs)
+// gameId = id del juego en IGDB
 
 export interface CurrentUser {
   id: string
@@ -21,10 +22,10 @@ export interface Genre {
 }
 
 export interface GameSummary {
-  rawgId: number
+  gameId: number
   slug: string
   name: string
-  backgroundImage: string | null
+  coverUrl: string | null
   released: string | null
   genres: string[]
   averageScore: number | null
@@ -47,10 +48,11 @@ export interface MyRating {
 }
 
 export interface GameDetail {
-  rawgId: number
+  gameId: number
   slug: string
   name: string
-  backgroundImage: string | null
+  coverUrl: string | null
+  backgroundUrl: string | null
   released: string | null
   description: string | null
   genres: Genre[]
@@ -63,10 +65,10 @@ export interface GameDetail {
 
 export interface RankedGame {
   position: number
-  rawgId: number
+  gameId: number
   slug: string
   name: string
-  backgroundImage: string | null
+  coverUrl: string | null
   released: string | null
   averageScore: number
   weightedScore: number
@@ -77,9 +79,9 @@ export interface Activity {
   userName: string
   displayName: string
   avatarUrl: string | null
-  rawgId: number
+  gameId: number
   gameName: string
-  gameImage: string | null
+  gameCover: string | null
   score: number
   review: string | null
   updatedAt: string
@@ -87,16 +89,16 @@ export interface Activity {
 
 export interface TopGame {
   position: number
-  rawgId: number
+  gameId: number
   slug: string
   name: string
-  backgroundImage: string | null
+  coverUrl: string | null
 }
 
 export interface ProfileRating {
-  rawgId: number
+  gameId: number
   gameName: string
-  gameImage: string | null
+  gameCover: string | null
   score: number
   review: string | null
   updatedAt: string

@@ -106,10 +106,10 @@ export const api = {
   popularGames: () => request<GameSummary[]>('/games/popular'),
   ranking: (limit = 50, genre?: string) =>
     request<RankedGame[]>(`/games/ranking?limit=${limit}${genre ? `&genre=${encodeURIComponent(genre)}` : ''}`),
-  game: (rawgId: number) => request<GameDetail>(`/games/${rawgId}`),
-  rateGame: (rawgId: number, score: number, review: string | null) =>
-    request<MyRating>(`/games/${rawgId}/rating`, { method: 'PUT', body: json({ score, review }) }),
-  deleteRating: (rawgId: number) => request<void>(`/games/${rawgId}/rating`, { method: 'DELETE' }),
+  game: (gameId: number) => request<GameDetail>(`/games/${gameId}`),
+  rateGame: (gameId: number, score: number, review: string | null) =>
+    request<MyRating>(`/games/${gameId}/rating`, { method: 'PUT', body: json({ score, review }) }),
+  deleteRating: (gameId: number) => request<void>(`/games/${gameId}/rating`, { method: 'DELETE' }),
 
   // Comunidad
   activity: (limit = 12) => request<Activity[]>(`/activity?limit=${limit}`),
@@ -119,8 +119,8 @@ export const api = {
   profile: (userName: string) => request<Profile>(`/users/${encodeURIComponent(userName)}`),
   updateProfile: (body: { displayName: string; bio: string | null; avatarUrl: string | null }) =>
     request<void>('/me/profile', { method: 'PUT', body: json(body) }),
-  updateTopGames: (rawgIds: number[]) =>
-    request<void>('/me/top-games', { method: 'PUT', body: json({ rawgIds }) }),
+  updateTopGames: (gameIds: number[]) =>
+    request<void>('/me/top-games', { method: 'PUT', body: json({ gameIds }) }),
   updateFavoriteGenres: (genreIds: number[]) =>
     request<void>('/me/favorite-genres', { method: 'PUT', body: json({ genreIds }) }),
 }

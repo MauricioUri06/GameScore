@@ -1,35 +1,35 @@
+using GameScore.Api.Catalog;
 using GameScore.Api.Data;
 using GameScore.Api.Dtos;
 using GameScore.Api.Entities;
 using GameScore.Api.Options;
-using GameScore.Api.Rawg;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace GameScore.Api.Services;
 
 /// <summary>
-/// Lógica de juegos: búsqueda en RAWG, copia local en la BD y armado de la ficha.
+/// Lógica de juegos: búsqueda en el catálogo externo (IGDB), copia local en la BD y armado de la ficha.
 /// </summary>
-public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOptions> rawgOptions)
+public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<CatalogOptions> catalogOptions)
 {
-    private readonly RawgOptions _rawgOptions = rawgOptions.Value;
+    private readonly CatalogOptions _catalogOptions = catalogOptions.Value;
 
     public async Task<List<GameSummaryDto>> SearchAsync(string query, int page, CancellationToken ct)
     {
-        var result = await rawg.SearchGamesAsync(query, page, 20, ct);
-        return await ToSummariesAsync(result.Results, ct);
+        var games = await catalog.SearchAsync(query, page, 20, ct);
+        return await ToSummariesAsync(games, ct);
     }
 
     public async Task<List<GameSummaryDto>> GetPopularAsync(CancellationToken ct)
     {
-        var result = await rawg.GetPopularGamesAsync(12, ct);
-        return await ToSummariesAsync(result.Results, ct);
+        var games = await catalog.GetPopularAsync(12, ct);
+        return await ToSummariesAsync(games, ct);
     }
 
-    public async Task<GameDetailDto?> GetDetailAsync(int rawgId, string? currentUserId, CancellationToken ct)
+    public async Task<GameDetailDto?> GetDetailAsync(int externalId, string? currentUserId, CancellationToken ct)
     {
-        var game = await EnsureCachedAsync(rawgId, ct);
+        var game = await EnsureCachedAsync(externalId, ct);
         if (game is null) return null;
 
         var scores = await db.Ratings
@@ -63,9 +63,10 @@ public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOp
             .ToListAsync(ct);
 
         return new GameDetailDto(
-            game.RawgId,
+            game.ExternalId,
             game.Slug,
             game.Name,
+            game.CoverImage,
             game.BackgroundImage,
             game.Released,
             game.Description,
@@ -78,28 +79,28 @@ public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOp
     }
 
     /// <summary>
-    /// Devuelve el juego desde la BD; si no existe o está desactualizado, lo trae de RAWG y lo guarda.
-    /// Devuelve null si RAWG no conoce ese id.
+    /// Devuelve el juego desde la BD; si no existe o está desactualizado, lo trae del catálogo y lo guarda.
+    /// Devuelve null si el catálogo no conoce ese id.
     /// </summary>
-    public async Task<Game?> EnsureCachedAsync(int rawgId, CancellationToken ct)
+    public async Task<Game?> EnsureCachedAsync(int externalId, CancellationToken ct)
     {
         var game = await db.Games
             .Include(g => g.Genres)
-            .FirstOrDefaultAsync(g => g.RawgId == rawgId, ct);
+            .FirstOrDefaultAsync(g => g.ExternalId == externalId, ct);
 
         var isFresh = game is not null
                       && game.Description is not null
-                      && game.CachedAt > DateTime.UtcNow.AddDays(-_rawgOptions.CacheDays);
+                      && game.CachedAt > DateTime.UtcNow.AddDays(-_catalogOptions.CacheDays);
         if (isFresh) return game;
 
-        RawgGameDetail? detail;
+        CatalogGame? detail;
         try
         {
-            detail = await rawg.GetGameAsync(rawgId, ct);
+            detail = await catalog.GetGameAsync(externalId, ct);
         }
-        catch (RawgException) when (game is not null)
+        catch (CatalogException) when (game is not null)
         {
-            // Si RAWG falla pero ya tenemos una copia, usamos la copia vieja
+            // Si el catálogo falla pero ya tenemos una copia, usamos la copia vieja
             return game;
         }
 
@@ -107,19 +108,20 @@ public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOp
 
         if (game is null)
         {
-            game = new Game { RawgId = detail.Id };
+            game = new Game { ExternalId = detail.Id };
             db.Games.Add(game);
         }
 
         game.Slug = detail.Slug;
         game.Name = detail.Name;
-        game.BackgroundImage = detail.BackgroundImage;
-        game.Released = ParseDate(detail.Released);
-        game.Description = detail.DescriptionRaw ?? string.Empty;
+        game.CoverImage = detail.CoverUrl;
+        game.BackgroundImage = detail.BackgroundUrl;
+        game.Released = detail.Released;
+        game.Description = detail.Summary ?? string.Empty;
         game.CachedAt = DateTime.UtcNow;
 
         game.Genres.Clear();
-        foreach (var genre in await UpsertGenresAsync(detail.Genres ?? [], ct))
+        foreach (var genre in await UpsertGenresAsync(detail.Genres, ct))
             game.Genres.Add(genre);
 
         try
@@ -130,19 +132,19 @@ public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOp
         {
             // Otra petición guardó el mismo juego al mismo tiempo: descartamos y leemos el que quedó
             db.ChangeTracker.Clear();
-            return await db.Games.Include(g => g.Genres).FirstOrDefaultAsync(g => g.RawgId == rawgId, ct);
+            return await db.Games.Include(g => g.Genres).FirstOrDefaultAsync(g => g.ExternalId == externalId, ct);
         }
 
         return game;
     }
 
-    /// <summary>Sincroniza la lista de géneros de RAWG si la tabla está vacía.</summary>
+    /// <summary>Sincroniza la lista de géneros del catálogo si la tabla está vacía.</summary>
     public async Task<List<GenreDto>> GetGenresAsync(CancellationToken ct)
     {
         if (!await db.Genres.AnyAsync(ct))
         {
-            var rawgGenres = await rawg.GetGenresAsync(ct);
-            await UpsertGenresAsync(rawgGenres.Results, ct);
+            var catalogGenres = await catalog.GetGenresAsync(ct);
+            await UpsertGenresAsync(catalogGenres, ct);
             await db.SaveChangesAsync(ct);
         }
 
@@ -152,42 +154,42 @@ public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOp
             .ToListAsync(ct);
     }
 
-    private async Task<List<Genre>> UpsertGenresAsync(IEnumerable<RawgGenre> rawgGenres, CancellationToken ct)
+    private async Task<List<Genre>> UpsertGenresAsync(IEnumerable<CatalogGenre> catalogGenres, CancellationToken ct)
     {
-        var list = rawgGenres.DistinctBy(g => g.Id).ToList();
+        var list = catalogGenres.DistinctBy(g => g.Id).ToList();
         var ids = list.Select(g => g.Id).ToList();
 
         var existing = await db.Genres
-            .Where(g => ids.Contains(g.RawgId))
-            .ToDictionaryAsync(g => g.RawgId, ct);
+            .Where(g => ids.Contains(g.ExternalId))
+            .ToDictionaryAsync(g => g.ExternalId, ct);
 
         var result = new List<Genre>();
-        foreach (var rg in list)
+        foreach (var cg in list)
         {
-            if (!existing.TryGetValue(rg.Id, out var genre))
+            if (!existing.TryGetValue(cg.Id, out var genre))
             {
-                genre = new Genre { RawgId = rg.Id };
+                genre = new Genre { ExternalId = cg.Id };
                 db.Genres.Add(genre);
             }
 
-            genre.Name = rg.Name;
-            genre.Slug = rg.Slug;
+            genre.Name = cg.Name;
+            genre.Slug = cg.Slug;
             result.Add(genre);
         }
 
         return result;
     }
 
-    private async Task<List<GameSummaryDto>> ToSummariesAsync(List<RawgGameListItem> items, CancellationToken ct)
+    private async Task<List<GameSummaryDto>> ToSummariesAsync(List<CatalogGame> items, CancellationToken ct)
     {
-        var rawgIds = items.Select(i => i.Id).ToList();
+        var externalIds = items.Select(i => i.Id).ToList();
 
         // Estadísticas locales (promedio y cantidad) de los juegos que ya fueron calificados aquí
         var stats = await db.Ratings
-            .Where(r => rawgIds.Contains(r.Game.RawgId))
-            .GroupBy(r => r.Game.RawgId)
-            .Select(g => new { RawgId = g.Key, Avg = g.Average(r => (double)r.Score), Count = g.Count() })
-            .ToDictionaryAsync(x => x.RawgId, ct);
+            .Where(r => externalIds.Contains(r.Game.ExternalId))
+            .GroupBy(r => r.Game.ExternalId)
+            .Select(g => new { ExternalId = g.Key, Avg = g.Average(r => (double)r.Score), Count = g.Count() })
+            .ToDictionaryAsync(x => x.ExternalId, ct);
 
         return items.Select(i =>
         {
@@ -196,14 +198,11 @@ public class GameService(GameScoreDbContext db, RawgClient rawg, IOptions<RawgOp
                 i.Id,
                 i.Slug,
                 i.Name,
-                i.BackgroundImage,
-                ParseDate(i.Released),
-                (i.Genres ?? []).Select(g => g.Name).ToList(),
+                i.CoverUrl,
+                i.Released,
+                i.Genres.Select(g => g.Name).ToList(),
                 s is null ? null : Math.Round(s.Avg, 2),
                 s?.Count ?? 0);
         }).ToList();
     }
-
-    private static DateOnly? ParseDate(string? value) =>
-        DateOnly.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : null;
 }

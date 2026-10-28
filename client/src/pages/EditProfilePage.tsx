@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Genre, Profile } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { resizeRawgImage } from '../components/GameCard'
+import { igdbSize } from '../components/GameCard'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 
 interface PickedGame {
-  rawgId: number
+  gameId: number
   name: string
-  backgroundImage: string | null
+  coverUrl: string | null
 }
 
 export function EditProfilePage() {
@@ -142,7 +142,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
 
 function TopGamesEditor({ profile }: { profile: Profile }) {
   const [games, setGames] = useState<PickedGame[]>(
-    profile.topGames.map((t) => ({ rawgId: t.rawgId, name: t.name, backgroundImage: t.backgroundImage })),
+    profile.topGames.map((t) => ({ gameId: t.gameId, name: t.name, coverUrl: t.coverUrl })),
   )
   const { saving, run, feedback } = useSaveState()
 
@@ -154,7 +154,7 @@ function TopGamesEditor({ profile }: { profile: Profile }) {
   }
 
   const add = (game: PickedGame) => {
-    if (games.length >= 5 || games.some((g) => g.rawgId === game.rawgId)) return
+    if (games.length >= 5 || games.some((g) => g.gameId === game.gameId)) return
     setGames([...games, game])
   }
 
@@ -168,10 +168,10 @@ function TopGamesEditor({ profile }: { profile: Profile }) {
 
       <div className="top5-editor">
         {games.map((g, i) => (
-          <div key={g.rawgId} className="top5-editor-row">
+          <div key={g.gameId} className="top5-editor-row">
             <strong style={{ width: 24 }}>#{i + 1}</strong>
-            {g.backgroundImage ? (
-              <img className="picker-thumb" src={resizeRawgImage(g.backgroundImage, 420)} alt="" />
+            {g.coverUrl ? (
+              <img className="picker-thumb" src={igdbSize(g.coverUrl, 'cover_small')} alt="" />
             ) : (
               <span className="picker-thumb" />
             )}
@@ -191,7 +191,7 @@ function TopGamesEditor({ profile }: { profile: Profile }) {
             <button
               type="button"
               className="icon-btn"
-              onClick={() => setGames(games.filter((x) => x.rawgId !== g.rawgId))}
+              onClick={() => setGames(games.filter((x) => x.gameId !== g.gameId))}
               aria-label="Quitar"
             >
               ✕
@@ -200,13 +200,13 @@ function TopGamesEditor({ profile }: { profile: Profile }) {
         ))}
       </div>
 
-      {games.length < 5 && <GamePicker onPick={add} exclude={games.map((g) => g.rawgId)} />}
+      {games.length < 5 && <GamePicker onPick={add} exclude={games.map((g) => g.gameId)} />}
 
       <button
         className="btn btn-primary"
         style={{ marginTop: 16 }}
         disabled={saving}
-        onClick={() => run(() => api.updateTopGames(games.map((g) => g.rawgId)))}
+        onClick={() => run(() => api.updateTopGames(games.map((g) => g.gameId)))}
       >
         {saving ? 'Guardando…' : 'Guardar top 5'}
       </button>
@@ -240,7 +240,7 @@ function GamePicker({ onPick, exclude }: { onPick: (g: PickedGame) => void; excl
     }
   }, [q])
 
-  const visible = results.filter((r) => !exclude.includes(r.rawgId)).slice(0, 8)
+  const visible = results.filter((r) => !exclude.includes(r.gameId)).slice(0, 8)
 
   return (
     <div style={{ marginTop: 12 }}>
@@ -256,16 +256,16 @@ function GamePicker({ onPick, exclude }: { onPick: (g: PickedGame) => void; excl
         <div className="picker-results">
           {visible.map((g) => (
             <button
-              key={g.rawgId}
+              key={g.gameId}
               type="button"
               className="picker-item"
               onClick={() => {
-                onPick({ rawgId: g.rawgId, name: g.name, backgroundImage: g.backgroundImage })
+                onPick({ gameId: g.gameId, name: g.name, coverUrl: g.coverUrl })
                 setQ('')
                 setResults([])
               }}
             >
-              {g.backgroundImage ? <img src={resizeRawgImage(g.backgroundImage, 420)} alt="" /> : <span className="picker-thumb" />}
+              {g.coverUrl ? <img src={igdbSize(g.coverUrl, 'cover_small')} alt="" /> : <span className="picker-thumb" />}
               <span>{g.name}</span>
             </button>
           ))}

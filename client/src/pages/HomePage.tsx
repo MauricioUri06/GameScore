@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
-import { GameCard, GameGridSkeleton, resizeRawgImage } from '../components/GameCard'
+import { GameCard, GameGridSkeleton, igdbSize } from '../components/GameCard'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -52,7 +52,7 @@ export function HomePage() {
           <GameGridSkeleton count={12} />
         ) : (
           <div className="game-grid">
-            {popular.data?.map((g) => <GameCard key={g.rawgId} game={g} />)}
+            {popular.data?.map((g) => <GameCard key={g.gameId} game={g} />)}
           </div>
         )}
       </section>
@@ -70,10 +70,10 @@ export function HomePage() {
           ) : ranking.loading ? null : ranking.data?.length ? (
             <div className="ranking-list">
               {ranking.data.map((g) => (
-                <Link key={g.rawgId} to={`/games/${g.rawgId}`} className="ranking-row">
+                <Link key={g.gameId} to={`/games/${g.gameId}`} className="ranking-row">
                   <span className={`ranking-pos${g.position <= 3 ? ' podium' : ''}`}>{g.position}</span>
-                  {g.backgroundImage ? (
-                    <img className="ranking-thumb" src={resizeRawgImage(g.backgroundImage, 420)} alt="" />
+                  {g.coverUrl ? (
+                    <img className="ranking-thumb" src={igdbSize(g.coverUrl, 'cover_small')} alt="" />
                   ) : (
                     <span className="ranking-thumb" />
                   )}
@@ -103,12 +103,12 @@ export function HomePage() {
             <div className="ranking-list">
               {activity.data.map((a) => (
                 <Link
-                  key={`${a.userName}-${a.rawgId}`}
-                  to={`/games/${a.rawgId}`}
+                  key={`${a.userName}-${a.gameId}`}
+                  to={`/games/${a.gameId}`}
                   className="activity-item"
                 >
-                  {a.gameImage ? (
-                    <img className="activity-thumb" src={resizeRawgImage(a.gameImage, 420)} alt="" />
+                  {a.gameCover ? (
+                    <img className="activity-thumb" src={igdbSize(a.gameCover, 'cover_small')} alt="" />
                   ) : (
                     <span className="activity-thumb" />
                   )}

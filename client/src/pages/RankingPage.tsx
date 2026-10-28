@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { resizeRawgImage } from '../components/GameCard'
+import { igdbSize } from '../components/GameCard'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -43,11 +43,11 @@ export function RankingPage() {
       ) : (
         <ol className="ranking-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {ranking.data.map((g) => (
-            <li key={g.rawgId}>
-              <Link to={`/games/${g.rawgId}`} className="ranking-row">
+            <li key={g.gameId}>
+              <Link to={`/games/${g.gameId}`} className="ranking-row">
                 <span className={`ranking-pos${g.position <= 3 ? ' podium' : ''}`}>{g.position}</span>
-                {g.backgroundImage ? (
-                  <img className="ranking-thumb" src={resizeRawgImage(g.backgroundImage, 420)} alt="" />
+                {g.coverUrl ? (
+                  <img className="ranking-thumb" src={igdbSize(g.coverUrl, 'cover_small')} alt="" />
                 ) : (
                   <span className="ranking-thumb" />
                 )}

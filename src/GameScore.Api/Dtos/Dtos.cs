@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GameScore.Api.Dtos;
 
+// Nota: "GameId" en los DTOs es el id del juego en el catálogo externo (IGDB),
+// el mismo que aparece en las rutas /api/games/{gameId}.
+
 // ---------- Auth ----------
 
 public record RegisterRequest(
@@ -25,10 +28,10 @@ public record CurrentUserDto(string Id, string UserName, string DisplayName, str
 public record GenreDto(int Id, string Name, string Slug);
 
 public record GameSummaryDto(
-    int RawgId,
+    int GameId,
     string Slug,
     string Name,
-    string? BackgroundImage,
+    string? CoverUrl,
     DateOnly? Released,
     IReadOnlyList<string> Genres,
     double? AverageScore,
@@ -45,10 +48,11 @@ public record ReviewDto(
 public record MyRatingDto(decimal Score, string? Review, DateTime UpdatedAt);
 
 public record GameDetailDto(
-    int RawgId,
+    int GameId,
     string Slug,
     string Name,
-    string? BackgroundImage,
+    string? CoverUrl,
+    string? BackgroundUrl,
     DateOnly? Released,
     string? Description,
     IReadOnlyList<GenreDto> Genres,
@@ -61,10 +65,10 @@ public record GameDetailDto(
 
 public record RankedGameDto(
     int Position,
-    int RawgId,
+    int GameId,
     string Slug,
     string Name,
-    string? BackgroundImage,
+    string? CoverUrl,
     DateOnly? Released,
     double AverageScore,
     double WeightedScore,
@@ -80,18 +84,18 @@ public record ActivityDto(
     string UserName,
     string DisplayName,
     string? AvatarUrl,
-    int RawgId,
+    int GameId,
     string GameName,
-    string? GameImage,
+    string? GameCover,
     decimal Score,
     string? Review,
     DateTime UpdatedAt);
 
 // ---------- Perfiles ----------
 
-public record TopGameDto(int Position, int RawgId, string Slug, string Name, string? BackgroundImage);
+public record TopGameDto(int Position, int GameId, string Slug, string Name, string? CoverUrl);
 
-public record ProfileRatingDto(int RawgId, string GameName, string? GameImage, decimal Score, string? Review, DateTime UpdatedAt);
+public record ProfileRatingDto(int GameId, string GameName, string? GameCover, decimal Score, string? Review, DateTime UpdatedAt);
 
 public record ProfileDto(
     string UserName,
@@ -110,6 +114,6 @@ public record UpdateProfileRequest(
     [StringLength(300)] string? Bio,
     [StringLength(500), Url] string? AvatarUrl);
 
-public record UpdateTopGamesRequest([MaxLength(5)] List<int> RawgIds);
+public record UpdateTopGamesRequest([MaxLength(5)] List<int> GameIds);
 
 public record UpdateFavoriteGenresRequest([MaxLength(5)] List<int> GenreIds);

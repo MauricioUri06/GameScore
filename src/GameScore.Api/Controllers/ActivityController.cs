@@ -19,9 +19,9 @@ public class ActivityController(GameScoreDbContext db) : ControllerBase
                 r.User.UserName!,
                 r.User.DisplayName,
                 r.User.AvatarUrl,
-                r.Game.RawgId,
+                r.Game.ExternalId,
                 r.Game.Name,
-                r.Game.BackgroundImage,
+                r.Game.CoverImage,
                 r.Score,
                 r.Review,
                 r.UpdatedAt))

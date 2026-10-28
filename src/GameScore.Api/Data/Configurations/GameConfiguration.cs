@@ -10,11 +10,12 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
     {
         builder.HasKey(g => g.Id);
 
-        builder.HasIndex(g => g.RawgId).IsUnique();
+        builder.HasIndex(g => g.ExternalId).IsUnique();
         builder.HasIndex(g => g.Slug);
 
         builder.Property(g => g.Name).HasMaxLength(250).IsRequired();
         builder.Property(g => g.Slug).HasMaxLength(250).IsRequired();
+        builder.Property(g => g.CoverImage).HasMaxLength(500);
         builder.Property(g => g.BackgroundImage).HasMaxLength(500);
 
         // Relación muchos a muchos Game <-> Genre con tabla intermedia "GameGenres"

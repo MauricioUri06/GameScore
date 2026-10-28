@@ -1,16 +1,25 @@
 namespace GameScore.Api.Entities;
 
 /// <summary>
-/// Copia local de un juego de RAWG. Solo guardamos lo necesario para mostrar
+/// Copia local de un juego del catálogo externo (IGDB). Solo guardamos lo necesario para mostrar
 /// listas, rankings y perfiles sin depender de la API externa en cada consulta.
 /// </summary>
 public class Game
 {
     public int Id { get; set; }
-    public int RawgId { get; set; }
+
+    /// <summary>Id del juego en el catálogo externo (IGDB). Es el id que viaja al frontend.</summary>
+    public int ExternalId { get; set; }
+
     public string Slug { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Portada vertical (3:4).</summary>
+    public string? CoverImage { get; set; }
+
+    /// <summary>Imagen horizontal grande para el fondo de la ficha.</summary>
     public string? BackgroundImage { get; set; }
+
     public DateOnly? Released { get; set; }
     public string? Description { get; set; }
     public DateTime CachedAt { get; set; } = DateTime.UtcNow;

@@ -65,10 +65,10 @@ public class RankingService(GameScoreDbContext db, IOptions<RankingOptions> opti
             var game = games[t.GameId];
             return new RankedGameDto(
                 i + 1,
-                game.RawgId,
+                game.ExternalId,
                 game.Slug,
                 game.Name,
-                game.BackgroundImage,
+                game.CoverImage,
                 game.Released,
                 Math.Round(t.Avg, 2),
                 Math.Round(t.Weighted, 3),

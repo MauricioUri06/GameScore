@@ -66,7 +66,7 @@ export function SearchPage() {
       ) : (
         <div className="game-grid">
           {results.map((g) => (
-            <GameCard key={g.rawgId} game={g} />
+            <GameCard key={g.gameId} game={g} />
           ))}
         </div>
       )}

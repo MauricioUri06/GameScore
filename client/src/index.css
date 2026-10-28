@@ -693,7 +693,7 @@ button.tag {
 }
 .ranking-row {
   display: grid;
-  grid-template-columns: 48px 64px 1fr auto;
+  grid-template-columns: 48px 48px 1fr auto;
   align-items: center;
   gap: 16px;
   padding: 10px 16px 10px 10px;
@@ -720,7 +720,7 @@ button.tag {
   color: transparent;
 }
 .ranking-thumb {
-  width: 64px;
+  width: 48px;
   height: 64px;
   border-radius: 8px;
   object-fit: cover;
@@ -839,8 +839,8 @@ button.tag {
 }
 .picker-item img,
 .picker-thumb {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 48px;
   object-fit: cover;
   border-radius: 6px;
   background: var(--surface);

@@ -8,7 +8,7 @@ Una red social para calificar videojuegos, al estilo Letterboxd: puntúa los jue
 |---|---|
 | Backend | ASP.NET Core 10 Web API, EF Core 10, ASP.NET Identity + JWT |
 | Base de datos | PostgreSQL (Neon, plan gratuito) |
-| Datos de juegos | [RAWG API](https://rawg.io/apidocs) |
+| Datos de juegos | [IGDB API](https://api-docs.igdb.com) (Twitch) |
 | Frontend | React 19 + TypeScript + Vite + React Router |
 | Docs de la API | OpenAPI + Scalar (`/scalar` en desarrollo) |
 
@@ -22,7 +22,7 @@ GameScore/
 │   ├── Data/                     ← DbContext + configuraciones Fluent API
 │   ├── Dtos/                     ← objetos que viajan al frontend
 │   ├── Entities/                 ← modelo de datos
-│   ├── Rawg/                     ← cliente de la API de RAWG
+│   ├── Catalog/                  ← catálogo de juegos (interfaz + cliente IGDB)
 │   └── Services/                 ← lógica (juegos, ranking, tokens)
 └── client/                       ← frontend React
     └── src/
@@ -35,7 +35,7 @@ GameScore/
 ## Modelo de datos
 
 - **AppUser** (Identity) — nombre visible, bio, avatar.
-- **Game** — copia local de un juego de RAWG (se guarda la primera vez que alguien lo abre o califica, y se refresca cada 7 días).
+- **Game** — copia local de un juego de IGDB (se guarda la primera vez que alguien lo abre o califica, y se refresca cada 7 días).
 - **Genre** y **GameGenres** — géneros (muchos a muchos con juegos).
 - **Rating** — puntaje 0.5–5 + reseña opcional. Único por (usuario, juego).
 - **TopGame** — top 5 del perfil, PK (usuario, posición).
@@ -77,16 +77,21 @@ Eso crea `.env.local` (ignorado por git) con:
 La API las lee sola (ver `Data/NeonConnection.cs`) y las convierte al formato de Npgsql. Prioridad:
 `ConnectionStrings:Default` (User Secrets) → variables de entorno `DATABASE_URL*` → `.env.local`.
 
-### 2. API key de RAWG
+### 2. Credenciales de IGDB (Twitch)
 
-Regístrate en [rawg.io/apidocs](https://rawg.io/apidocs) y copia tu API key.
+1. Crea una cuenta en twitch.tv y activa la verificación en dos pasos.
+2. En [dev.twitch.tv/console](https://dev.twitch.tv/console) registra una aplicación (URL de redirección `http://localhost`, categoría *Website Integration*, cliente *Confidencial*).
+3. Copia el **Client ID** y genera un **Client Secret**.
+
+La API pide el token de acceso a Twitch sola y lo renueva cuando vence.
 
 ### 3. Secretos (nunca van al repositorio)
 
 Desde la carpeta `src/GameScore.Api`:
 
 ```bash
-dotnet user-secrets set "Rawg:ApiKey" "tu-api-key"
+dotnet user-secrets set "Igdb:ClientId" "tu-client-id"
+dotnet user-secrets set "Igdb:ClientSecret" "tu-client-secret"
 ```
 
 En Rider también puedes hacerlo con clic derecho en el proyecto → **Tools → .NET User Secrets**.
@@ -121,12 +126,12 @@ Las migraciones usan `DATABASE_URL_UNPOOLED` (vía `GameScoreDbContextFactory`).
 | POST | `/api/auth/register` | Crear cuenta |
 | POST | `/api/auth/login` | Iniciar sesión (usuario o correo) |
 | GET | `/api/auth/me` | Usuario actual 🔒 |
-| GET | `/api/games/search?q=` | Buscar juegos en RAWG |
+| GET | `/api/games/search?q=` | Buscar juegos en IGDB |
 | GET | `/api/games/popular` | Populares recientes |
 | GET | `/api/games/ranking?genre=` | Ranking de la comunidad |
-| GET | `/api/games/{rawgId}` | Ficha, promedio, distribución y reseñas |
-| PUT | `/api/games/{rawgId}/rating` | Calificar / editar calificación 🔒 |
-| DELETE | `/api/games/{rawgId}/rating` | Quitar calificación 🔒 |
+| GET | `/api/games/{gameId}` | Ficha, promedio, distribución y reseñas |
+| PUT | `/api/games/{gameId}/rating` | Calificar / editar calificación 🔒 |
+| DELETE | `/api/games/{gameId}/rating` | Quitar calificación 🔒 |
 | GET | `/api/activity` | Últimas calificaciones de la comunidad |
 | GET | `/api/genres` | Géneros |
 | GET | `/api/users/{userName}` | Perfil público |
@@ -136,10 +141,16 @@ Las migraciones usan `DATABASE_URL_UNPOOLED` (vía `GameScoreDbContextFactory`).
 
 🔒 = requiere token JWT (`Authorization: Bearer …`).
 
+## Cambiar de proveedor de datos
+
+La app solo habla con la interfaz `IGameCatalog` (`Catalog/IGameCatalog.cs`). Para usar otra fuente (RAWG, Giant Bomb…) basta con escribir otra implementación y registrarla en `Program.cs`.
+
+> Uso comercial: IGDB es gratis, pero si la página se monetiza hay que pedir un acuerdo de partnership a IGDB.
+
 ## Personalizar colores
 
 Todo el tema está en las variables de `client/src/index.css` (bloque `:root`). Cambiando `--bg`, `--primary` y `--gradient` cambia el look completo.
 
 ---
 
-Datos de videojuegos proporcionados por [RAWG](https://rawg.io).
+Datos de videojuegos proporcionados por [IGDB](https://www.igdb.com).

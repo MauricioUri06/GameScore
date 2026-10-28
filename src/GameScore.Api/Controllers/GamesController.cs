@@ -13,7 +13,7 @@ namespace GameScore.Api.Controllers;
 [Route("api/games")]
 public class GamesController(GameService games, RankingService ranking, GameScoreDbContext db) : ControllerBase
 {
-    /// <summary>Busca juegos en RAWG. Incluye el promedio local si ya fueron calificados en GameScore.</summary>
+    /// <summary>Busca juegos en el catálogo (IGDB). Incluye el promedio local si ya fueron calificados en GameScore.</summary>
     [HttpGet("search")]
     public async Task<ActionResult<List<GameSummaryDto>>> Search(
         [FromQuery] string? q, [FromQuery] int page = 1, CancellationToken ct = default)
@@ -24,7 +24,7 @@ public class GamesController(GameService games, RankingService ranking, GameScor
         return await games.SearchAsync(q.Trim(), Math.Max(1, page), ct);
     }
 
-    /// <summary>Juegos populares recientes (desde RAWG), para la portada.</summary>
+    /// <summary>Juegos populares recientes (desde IGDB), para la portada.</summary>
     [HttpGet("popular")]
     public async Task<ActionResult<List<GameSummaryDto>>> Popular(CancellationToken ct) =>
         await games.GetPopularAsync(ct);
@@ -36,18 +36,18 @@ public class GamesController(GameService games, RankingService ranking, GameScor
         await ranking.GetTopAsync(Math.Clamp(limit, 1, 100), genre, ct);
 
     /// <summary>Ficha de un juego: datos, promedio, distribución, tu calificación y reseñas recientes.</summary>
-    [HttpGet("{rawgId:int}")]
-    public async Task<ActionResult<GameDetailDto>> Get(int rawgId, CancellationToken ct)
+    [HttpGet("{gameId:int}")]
+    public async Task<ActionResult<GameDetailDto>> Get(int gameId, CancellationToken ct)
     {
-        var detail = await games.GetDetailAsync(rawgId, User.GetUserId(), ct);
+        var detail = await games.GetDetailAsync(gameId, User.GetUserId(), ct);
         if (detail is null) return NotFound();
         return detail;
     }
 
     /// <summary>Crea o actualiza tu calificación de un juego.</summary>
     [Authorize]
-    [HttpPut("{rawgId:int}/rating")]
-    public async Task<ActionResult<MyRatingDto>> Rate(int rawgId, RateGameRequest request, CancellationToken ct)
+    [HttpPut("{gameId:int}/rating")]
+    public async Task<ActionResult<MyRatingDto>> Rate(int gameId, RateGameRequest request, CancellationToken ct)
     {
         if (request.Score * 2 != Math.Floor(request.Score * 2))
         {
@@ -55,7 +55,7 @@ public class GamesController(GameService games, RankingService ranking, GameScor
             return ValidationProblem(ModelState);
         }
 
-        var game = await games.EnsureCachedAsync(rawgId, ct);
+        var game = await games.EnsureCachedAsync(gameId, ct);
         if (game is null) return NotFound();
 
         var userId = User.GetRequiredUserId();
@@ -76,12 +76,12 @@ public class GamesController(GameService games, RankingService ranking, GameScor
 
     /// <summary>Elimina tu calificación de un juego.</summary>
     [Authorize]
-    [HttpDelete("{rawgId:int}/rating")]
-    public async Task<IActionResult> DeleteRating(int rawgId, CancellationToken ct)
+    [HttpDelete("{gameId:int}/rating")]
+    public async Task<IActionResult> DeleteRating(int gameId, CancellationToken ct)
     {
         var userId = User.GetRequiredUserId();
         var deleted = await db.Ratings
-            .Where(r => r.UserId == userId && r.Game.RawgId == rawgId)
+            .Where(r => r.UserId == userId && r.Game.ExternalId == gameId)
             .ExecuteDeleteAsync(ct);
 
         return deleted == 0 ? NotFound() : NoContent();

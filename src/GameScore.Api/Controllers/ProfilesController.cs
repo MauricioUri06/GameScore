@@ -23,7 +23,7 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
         var topGames = await db.TopGames
             .Where(t => t.UserId == user.Id)
             .OrderBy(t => t.Position)
-            .Select(t => new TopGameDto(t.Position, t.Game.RawgId, t.Game.Slug, t.Game.Name, t.Game.BackgroundImage))
+            .Select(t => new TopGameDto(t.Position, t.Game.ExternalId, t.Game.Slug, t.Game.Name, t.Game.CoverImage))
             .ToListAsync(ct);
 
         var favoriteGenres = await db.UserFavoriteGenres
@@ -42,7 +42,7 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
             .OrderByDescending(r => r.UpdatedAt)
             .Take(12)
             .Select(r => new ProfileRatingDto(
-                r.Game.RawgId, r.Game.Name, r.Game.BackgroundImage, r.Score, r.Review, r.UpdatedAt))
+                r.Game.ExternalId, r.Game.Name, r.Game.CoverImage, r.Score, r.Review, r.UpdatedAt))
             .ToListAsync(ct);
 
         return new ProfileDto(
@@ -79,22 +79,22 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
     [HttpPut("api/me/top-games")]
     public async Task<IActionResult> UpdateTopGames(UpdateTopGamesRequest request, CancellationToken ct)
     {
-        var rawgIds = request.RawgIds ?? [];
-        if (rawgIds.Count > 5 || rawgIds.Distinct().Count() != rawgIds.Count)
+        var gameIds = request.GameIds ?? [];
+        if (gameIds.Count > 5 || gameIds.Distinct().Count() != gameIds.Count)
         {
-            ModelState.AddModelError(nameof(request.RawgIds), "Máximo 5 juegos y sin repetir.");
+            ModelState.AddModelError(nameof(request.GameIds), "Máximo 5 juegos y sin repetir.");
             return ValidationProblem(ModelState);
         }
 
         var userId = User.GetRequiredUserId();
 
         var newEntries = new List<TopGame>();
-        for (var i = 0; i < rawgIds.Count; i++)
+        for (var i = 0; i < gameIds.Count; i++)
         {
-            var game = await games.EnsureCachedAsync(rawgIds[i], ct);
+            var game = await games.EnsureCachedAsync(gameIds[i], ct);
             if (game is null)
             {
-                ModelState.AddModelError(nameof(request.RawgIds), $"No existe el juego {rawgIds[i]}.");
+                ModelState.AddModelError(nameof(request.GameIds), $"No existe el juego {gameIds[i]}.");
                 return ValidationProblem(ModelState);
             }
 

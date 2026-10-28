@@ -1,31 +1,30 @@
 import { Link } from 'react-router-dom'
 import type { GameSummary } from '../api/types'
 
+/**
+ * Las imágenes de IGDB llevan el tamaño en la URL (/t_cover_big/, /t_1080p/…).
+ * Esta función cambia el tamaño para descargar versiones más livianas en miniaturas.
+ * Tamaños: cover_small (90x128), cover_big (264x374), 720p, 1080p.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function igdbSize(url: string, size: 'cover_small' | 'cover_big' | '720p' | '1080p'): string {
+  return url.replace(/\/t_[a-z0-9_]+\//, `/t_${size}/`)
+}
+
 export function GameCover({ src, name }: { src: string | null; name: string }) {
   return src ? (
-    <img src={resizeRawgImage(src, 420)} alt="" loading="lazy" />
+    <img src={src} alt="" loading="lazy" />
   ) : (
     <div className="game-cover-placeholder">{name.charAt(0)}</div>
   )
 }
 
-/**
- * RAWG sirve imágenes grandes; su CDN acepta un tamaño en la ruta
- * (media/crop/600/400/...) para descargar versiones más livianas.
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function resizeRawgImage(url: string, width: 420 | 640): string {
-  if (!url.includes('media.rawg.io/media/')) return url
-  const size = width === 420 ? 'crop/600/400' : 'resize/640/-'
-  return url.replace('media.rawg.io/media/', `media.rawg.io/media/${size}/`)
-}
-
 export function GameCard({ game }: { game: GameSummary }) {
   const year = game.released?.slice(0, 4)
   return (
-    <Link to={`/games/${game.rawgId}`} className="game-card">
+    <Link to={`/games/${game.gameId}`} className="game-card">
       <div className="game-cover">
-        <GameCover src={game.backgroundImage} name={game.name} />
+        <GameCover src={game.coverUrl} name={game.name} />
         {game.averageScore !== null && (
           <span className="score-pill overlay">★ {game.averageScore.toFixed(1)}</span>
         )}

@@ -4,14 +4,14 @@ import { api } from '../api/client'
 import type { GameDetail } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
-import { GameCover, resizeRawgImage } from '../components/GameCard'
+import { GameCover } from '../components/GameCard'
 import { StarInput, Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 
 export function GamePage() {
-  const rawgId = Number(useParams().rawgId)
-  const { data: game, error, loading, reload } = useAsync(() => api.game(rawgId), [rawgId])
+  const gameId = Number(useParams().gameId)
+  const { data: game, error, loading, reload } = useAsync(() => api.game(gameId), [gameId])
 
   if (loading && !game) return <Spinner />
   if (error) {
@@ -26,16 +26,13 @@ export function GamePage() {
   return (
     <>
       <div className="game-hero">
-        {game.backgroundImage && (
-          <div
-            className="game-hero-bg"
-            style={{ backgroundImage: `url(${resizeRawgImage(game.backgroundImage, 640)})` }}
-          />
+        {game.backgroundUrl && (
+          <div className="game-hero-bg" style={{ backgroundImage: `url(${game.backgroundUrl})` }} />
         )}
         <div className="container game-hero-content">
           <div className="game-layout">
             <div className="game-poster">
-              <GameCover src={game.backgroundImage} name={game.name} />
+              <GameCover src={game.coverUrl} name={game.name} />
             </div>
 
             <div>
@@ -174,7 +171,7 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
     setSaving(true)
     setError(null)
     try {
-      await api.rateGame(game.rawgId, score, review.trim() || null)
+      await api.rateGame(game.gameId, score, review.trim() || null)
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
       onSaved()
@@ -189,7 +186,7 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
     setSaving(true)
     setError(null)
     try {
-      await api.deleteRating(game.rawgId)
+      await api.deleteRating(game.gameId)
       onSaved()
     } catch (e) {
       setError(e)

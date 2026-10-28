@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
-import { GameCover, resizeRawgImage } from '../components/GameCard'
+import { GameCover, igdbSize } from '../components/GameCard'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -57,9 +57,9 @@ export function ProfilePage() {
         <div className="top5">
           {slots.map((game, i) =>
             game ? (
-              <Link key={i} to={`/games/${game.rawgId}`} className="game-card">
+              <Link key={i} to={`/games/${game.gameId}`} className="game-card">
                 <div className="game-cover">
-                  <GameCover src={game.backgroundImage} name={game.name} />
+                  <GameCover src={game.coverUrl} name={game.name} />
                   <span className="score-pill overlay">#{game.position}</span>
                 </div>
                 <div className="game-card-body">
@@ -101,9 +101,9 @@ export function ProfilePage() {
         ) : (
           <div className="activity-list">
             {profile.recentRatings.map((r) => (
-              <Link key={r.rawgId} to={`/games/${r.rawgId}`} className="activity-item">
-                {r.gameImage ? (
-                  <img className="activity-thumb" src={resizeRawgImage(r.gameImage, 420)} alt="" />
+              <Link key={r.gameId} to={`/games/${r.gameId}`} className="activity-item">
+                {r.gameCover ? (
+                  <img className="activity-thumb" src={igdbSize(r.gameCover, 'cover_small')} alt="" />
                 ) : (
                   <span className="activity-thumb" />
                 )}

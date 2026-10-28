@@ -95,8 +95,8 @@ export function Layout() {
           <span>GameScore — califica, rankea y comparte tus juegos.</span>
           <span>
             Datos de juegos por{' '}
-            <a href="https://rawg.io" target="_blank" rel="noreferrer">
-              RAWG
+            <a href="https://www.igdb.com" target="_blank" rel="noreferrer">
+              IGDB
             </a>
           </span>
         </div>
