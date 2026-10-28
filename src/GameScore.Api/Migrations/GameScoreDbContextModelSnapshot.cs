@@ -132,16 +132,20 @@ namespace GameScore.Api.Migrations
                     b.Property<DateTime>("CachedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CoverImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.Property<int>("ExternalId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
-
-                    b.Property<int>("RawgId")
-                        .HasColumnType("integer");
 
                     b.Property<DateOnly?>("Released")
                         .HasColumnType("date");
@@ -153,7 +157,7 @@ namespace GameScore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RawgId")
+                    b.HasIndex("ExternalId")
                         .IsUnique();
 
                     b.HasIndex("Slug");
@@ -169,13 +173,13 @@ namespace GameScore.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ExternalId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<int>("RawgId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -184,7 +188,7 @@ namespace GameScore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RawgId")
+                    b.HasIndex("ExternalId")
                         .IsUnique();
 
                     b.ToTable("Genres");
