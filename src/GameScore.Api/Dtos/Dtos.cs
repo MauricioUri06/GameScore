@@ -141,7 +141,17 @@ public record ProfileDto(
     int MedalsEarned,
     int MedalsTotal,
     int ReviewsCount,
-    int FinishedCount);
+    int FinishedCount,
+    int OlderNewerBest);
+
+// ---------- Older/Newer ----------
+/// <summary>Year = null en el juego que hay que adivinar.</summary>
+public record OlderNewerGameDto(int GameId, string Name, string? CoverUrl, int? Year);
+public record OlderNewerStateDto(Guid RunId, int Score, OlderNewerGameDto Left, OlderNewerGameDto Right, int? Best);
+public record OlderNewerGuessRequest([Required] string Guess);
+public record OlderNewerGuessResultDto(bool Correct, int RightYear, int Score, bool GameOver,
+    OlderNewerGameDto? NextRight, int? Best, bool NewRecord);
+public record OlderNewerLeaderDto(string UserName, string? AvatarUrl, int Best);
 
 public record UpdatePlayingRequest(List<int> GameIds);
 

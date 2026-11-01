@@ -87,6 +87,24 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         return games.Where(IsAllowed).Select(ToCatalog).ToList();
     }
 
+    public async Task<List<CatalogGame>> GetMostRatedAsync(int count, CancellationToken ct)
+    {
+        // IGDB devuelve máx. 500 por consulta: pedimos por tandas, una tras otra (límite de 4 por segundo)
+        var result = new List<CatalogGame>();
+        for (var offset = 0; offset < count; offset += MaxResults)
+        {
+            var limit = Math.Min(MaxResults, count - offset);
+            var games = await WithTypeFallback(type => QueryAsync<IgdbGame>("games",
+                $"fields name,slug,first_release_date,total_rating_count,cover.image_id,themes.slug; " +
+                $"where {BaseFilter(type, null)} & first_release_date != null & total_rating_count >= 50; " +
+                $"sort total_rating_count desc; limit {limit}; offset {offset};", ct));
+            result.AddRange(games.Where(IsAllowed).Select(ToCatalog));
+            if (games.Count < limit) break;
+        }
+
+        return result;
+    }
+
     /// <summary>
     /// Filtro común: juegos "de verdad" (sin DLC, updates, mods, versiones), con portada,
     /// sin contenido adulto y, si se pide, de un género o temática.

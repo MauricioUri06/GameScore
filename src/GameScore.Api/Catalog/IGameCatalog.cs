@@ -18,6 +18,9 @@ public interface IGameCatalog
     /// <summary>Juegos populares recientes.</summary>
     Task<List<CatalogGame>> GetPopularAsync(int count, CancellationToken ct);
 
+    /// <summary>Los juegos más calificados de todos los tiempos (con fecha de lanzamiento), para Older/Newer.</summary>
+    Task<List<CatalogGame>> GetMostRatedAsync(int count, CancellationToken ct);
+
     /// <summary>Un juego por su id en el catálogo, o null si no existe.</summary>
     Task<CatalogGame?> GetGameAsync(int id, CancellationToken ct);
 

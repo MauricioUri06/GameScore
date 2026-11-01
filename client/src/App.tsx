@@ -11,6 +11,7 @@ import { GamePage } from './pages/GamePage'
 import { GamesPage } from './pages/GamesPage'
 import { HomePage } from './pages/HomePage'
 import { MedalsPage } from './pages/MedalsPage'
+import { OlderNewerPage } from './pages/OlderNewerPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RankingPage } from './pages/RankingPage'
 
@@ -52,6 +53,7 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="ranking" element={<RankingPage />} />
             <Route path="juegos" element={<GamesPage />} />
+            <Route path="older-newer" element={<OlderNewerPage />} />
             {/* Ruta vieja */}
             <Route path="search" element={<Navigate to="/juegos" replace />} />
             <Route path="games/:gameId" element={<GamePage />} />

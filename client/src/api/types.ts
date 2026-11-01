@@ -137,6 +137,7 @@ export interface Profile {
   medalsEarned: number
   medalsTotal: number
   finishedCount: number
+  olderNewerBest: number
   reviewsCount: number
 }
 
@@ -196,6 +197,38 @@ export interface PlayingGame {
   hoursPlayed: number
   lastEntry: JournalEntry | null
   journalCount: number
+}
+
+export interface OlderNewerGame {
+  gameId: number
+  name: string
+  coverUrl: string | null
+  /** null en el juego que hay que adivinar */
+  year: number | null
+}
+
+export interface OlderNewerState {
+  runId: string
+  score: number
+  left: OlderNewerGame
+  right: OlderNewerGame
+  best: number | null
+}
+
+export interface OlderNewerGuessResult {
+  correct: boolean
+  rightYear: number
+  score: number
+  gameOver: boolean
+  nextRight: OlderNewerGame | null
+  best: number | null
+  newRecord: boolean
+}
+
+export interface OlderNewerLeader {
+  userName: string
+  avatarUrl: string | null
+  best: number
 }
 
 export interface FinishedGame {

@@ -18,7 +18,8 @@ public record UserStats(
     int FiveStarRatings,
     int ProfileChecks,
     int Playing,
-    int Finished);
+    int Finished,
+    int OlderNewerBest);
 
 /// <summary>
 /// Medallas: se calculan a partir de la actividad del usuario (no se guardan), así que
@@ -89,6 +90,10 @@ public class MedalService(GameScoreDbContext db)
         new("finished-1", "Créditos finales", "Marca un juego como terminado.", "🏁", "Especiales", 1, s => s.Finished),
         new("finished-10", "Completista", "Termina 10 juegos.", "🏆", "Especiales", 10, s => s.Finished),
         new("finished-25", "Leyenda del mando", "Termina 25 juegos.", "🎮", "Especiales", 25, s => s.Finished),
+        new("older-10", "Historiador", "Consigue 10 aciertos seguidos en Older/Newer.", "📜", "Especiales", 10,
+            s => s.OlderNewerBest),
+        new("older-25", "Cronista del gaming", "Consigue 25 aciertos seguidos en Older/Newer.", "⏳", "Especiales", 25,
+            s => s.OlderNewerBest),
     ];
 
     /// <summary>Todas las medallas con el progreso del usuario (obtenidas y por obtener).</summary>
@@ -138,6 +143,7 @@ public class MedalService(GameScoreDbContext db)
 
         var likesReceived = await db.ReviewVotes.CountAsync(v => v.Rating.UserId == userId && v.Value == 1, ct);
         var votesGiven = await db.ReviewVotes.CountAsync(v => v.UserId == userId, ct);
+        var olderNewerBest = await db.OlderNewerRuns.Where(r => r.UserId == userId).MaxAsync(r => (int?)r.Score, ct) ?? 0;
 
         var profileChecks = (user.HasAvatar ? 1 : 0) + (user.TopGames >= 5 ? 1 : 0)
                             + (user.FavoriteGenres > 0 ? 1 : 0) + (user.Platforms > 0 ? 1 : 0);
@@ -155,6 +161,7 @@ public class MedalService(GameScoreDbContext db)
             five,
             profileChecks,
             user.Playing,
-            user.Finished);
+            user.Finished,
+            olderNewerBest);
     }
 }

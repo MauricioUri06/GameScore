@@ -134,6 +134,32 @@ namespace GameScore.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.FinishedGame", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("HoursPlayed")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("UserId", "GameId");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("UserId", "FinishedAt");
+
+                    b.ToTable("FinishedGames", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FinishedGames_Hours", "\"HoursPlayed\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.Game", b =>
                 {
                     b.Property<int>("Id")
@@ -936,6 +962,25 @@ namespace GameScore.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.FinishedGame", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany("FinishedGames")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.PlayingJournalEntry", b =>
                 {
                     b.HasOne("GameScore.Api.Entities.Game", "Game")
@@ -1135,6 +1180,8 @@ namespace GameScore.Api.Migrations
                     b.Navigation("CurrentlyPlaying");
 
                     b.Navigation("FavoriteGenres");
+
+                    b.Navigation("FinishedGames");
 
                     b.Navigation("Platforms");
 

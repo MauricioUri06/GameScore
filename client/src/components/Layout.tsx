@@ -45,6 +45,7 @@ export function Layout() {
             </NavLink>
             <NavLink to="/ranking">Ranking</NavLink>
             <NavLink to="/juegos">Juegos</NavLink>
+            <NavLink to="/older-newer">Older/Newer</NavLink>
           </nav>
           <NavSearch />
           <div className="nav-user">

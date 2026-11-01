@@ -11,6 +11,9 @@ import type {
   Medal,
   Genre,
   MyRating,
+  OlderNewerGuessResult,
+  OlderNewerLeader,
+  OlderNewerState,
   PagedResult,
   UserSearchResult,
   Platform,
@@ -167,6 +170,10 @@ export const api = {
   finished: (userName: string) => request<FinishedGame[]>(`/users/${encodeURIComponent(userName)}/finished`),
   finishPlaying: (gameId: number) => request<void>(`/me/playing/${gameId}/finish`, { method: 'POST' }),
   deleteFinished: (gameId: number) => request<void>(`/me/finished/${gameId}`, { method: 'DELETE' }),
+  olderNewerStart: () => request<OlderNewerState>('/older-newer/start', { method: 'POST' }),
+  olderNewerGuess: (runId: string, guess: 'older' | 'newer') =>
+    request<OlderNewerGuessResult>(`/older-newer/${runId}/guess`, { method: 'POST', body: json({ guess }) }),
+  olderNewerLeaderboard: () => request<OlderNewerLeader[]>('/older-newer/leaderboard'),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),

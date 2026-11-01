@@ -64,6 +64,10 @@ export function ProfilePage() {
             <strong>{finishedCount}</strong>
             <span>Terminados</span>
           </Link>
+          <Link to="/older-newer" className="stat stat-link" title="Récord en Older/Newer">
+            <strong>{profile.olderNewerBest}</strong>
+            <span>Older/Newer</span>
+          </Link>
           <div className="stat">
             <strong>{profile.averageGiven?.toFixed(1) ?? '–'}</strong>
             <span>Promedio</span>
