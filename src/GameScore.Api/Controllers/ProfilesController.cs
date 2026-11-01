@@ -83,6 +83,14 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
 
         var reviewsCount = await ratingsQuery.CountAsync(r => r.Review != null, ct);
         var allMedals = await medals.GetMedalsAsync(user.Id, ct);
+        var earnedById = allMedals.Where(m => m.Earned).ToDictionary(m => m.Id);
+        var showcaseIds = await db.UserShowcaseMedals
+            .Where(m => m.UserId == user.Id)
+            .OrderBy(m => m.Position)
+            .Select(m => m.MedalId)
+            .ToListAsync(ct);
+        // Solo las elegidas que sigan obtenidas
+        var showcase = showcaseIds.Where(earnedById.ContainsKey).Select(id => earnedById[id]).ToList();
 
         return new ProfileDto(
             user.UserName!,
@@ -95,7 +103,8 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
             platforms,
             recent,
             playing,
-            allMedals.Where(m => m.Earned).ToList(),
+            showcase,
+            earnedById.Count,
             allMedals.Count,
             reviewsCount);
     }
@@ -108,6 +117,35 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
         var userId = await db.Users.Where(u => u.NormalizedUserName == normalized).Select(u => u.Id).FirstOrDefaultAsync(ct);
         if (userId is null) return NotFound();
         return await medals.GetMedalsAsync(userId, ct);
+    }
+
+    /// <summary>Elige qué medallas obtenidas se muestran en el perfil (máximo 10, en el orden recibido).</summary>
+    [Authorize]
+    [HttpPut("api/me/medals")]
+    public async Task<IActionResult> UpdateShowcaseMedals(UpdateShowcaseMedalsRequest request, CancellationToken ct)
+    {
+        const int max = 10;
+        var ids = (request.MedalIds ?? []).Distinct().ToList();
+        if (ids.Count > max)
+        {
+            ModelState.AddModelError(nameof(request.MedalIds), $"Puedes mostrar hasta {max} medallas.");
+            return ValidationProblem(ModelState);
+        }
+
+        var userId = User.GetRequiredUserId();
+        var earned = (await medals.GetMedalsAsync(userId, ct)).Where(m => m.Earned).Select(m => m.Id).ToHashSet();
+        var notEarned = ids.FirstOrDefault(id => !earned.Contains(id));
+        if (notEarned is not null)
+        {
+            ModelState.AddModelError(nameof(request.MedalIds), "Solo puedes mostrar medallas que ya obtuviste.");
+            return ValidationProblem(ModelState);
+        }
+
+        await db.UserShowcaseMedals.Where(m => m.UserId == userId).ExecuteDeleteAsync(ct);
+        db.UserShowcaseMedals.AddRange(ids.Select((id, i) =>
+            new UserShowcaseMedal { UserId = userId, MedalId = id, Position = i + 1 }));
+        await db.SaveChangesAsync(ct);
+        return NoContent();
     }
 
     /// <summary>Reemplaza la lista de "Jugando ahora" (máximo 10, en el orden recibido).</summary>

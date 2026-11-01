@@ -156,6 +156,8 @@ export const api = {
   updatePlaying: (gameIds: number[]) =>
     request<void>('/me/playing', { method: 'PUT', body: json({ gameIds }) }),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
+  updateShowcaseMedals: (medalIds: string[]) =>
+    request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),
   updateTopGames: (gameIds: number[]) =>
     request<void>('/me/top-games', { method: 'PUT', body: json({ gameIds }) }),
   updateFavoriteGenres: (genreIds: number[]) =>

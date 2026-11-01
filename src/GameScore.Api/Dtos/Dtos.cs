@@ -131,12 +131,15 @@ public record ProfileDto(
     IReadOnlyList<PlatformDto> Platforms,
     IReadOnlyList<ProfileRatingDto> RecentRatings,
     IReadOnlyList<PlayingGameDto> Playing,
-    // Solo las medallas obtenidas; MedalsTotal = cuántas existen en total
+    // Medallas que el usuario eligió mostrar (máx. 10, en su orden)
     IReadOnlyList<MedalDto> Medals,
+    int MedalsEarned,
     int MedalsTotal,
     int ReviewsCount);
 
 public record UpdatePlayingRequest(List<int> GameIds);
+
+public record UpdateShowcaseMedalsRequest(List<string> MedalIds);
 
 public record UpdatePlatformsRequest(List<int> PlatformIds);
 

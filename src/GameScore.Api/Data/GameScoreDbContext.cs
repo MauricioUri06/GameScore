@@ -17,6 +17,7 @@ public class GameScoreDbContext(DbContextOptions<GameScoreDbContext> options)
     public DbSet<UserAvatar> UserAvatars => Set<UserAvatar>();
     public DbSet<ReviewVote> ReviewVotes => Set<ReviewVote>();
     public DbSet<CurrentlyPlaying> CurrentlyPlaying => Set<CurrentlyPlaying>();
+    public DbSet<UserShowcaseMedal> UserShowcaseMedals => Set<UserShowcaseMedal>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

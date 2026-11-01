@@ -1710,3 +1710,127 @@ img.avatar {
     display: none;
   }
 }
+
+/* ---------- Medallas en círculo con descripción al pasar el cursor ---------- */
+.profile-medals {
+  flex-direction: column;
+}
+.medal-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.medal-circle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-light);
+  background: var(--surface);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: default;
+}
+.medal-circle.lg {
+  width: 58px;
+  height: 58px;
+  font-size: 1.8rem;
+}
+.medal-circle:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+.medal-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: max-content;
+  max-width: 220px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--primary-strong);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+}
+.medal-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: var(--primary-light);
+}
+.medal-tooltip strong {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+}
+.medal-circle:hover .medal-tooltip,
+.medal-circle:focus-visible .medal-tooltip {
+  display: flex;
+}
+
+/* Selector de medallas en Editar perfil */
+.medal-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+}
+.medal-pick {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.medal-pick:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+.medal-pick.selected {
+  border-color: var(--gold-light);
+  background: rgba(224, 178, 60, 0.08);
+  color: var(--text);
+}
+.medal-pick:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.medal-pick-name {
+  text-align: center;
+  line-height: 1.2;
+}
+.medal-pick-order {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--on-gold);
+  font-size: 0.72rem;
+  font-weight: 700;
+}

@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
+import { MedalCircle } from '../components/MedalCircle'
 import { GameCover, igdbSize } from '../components/GameCard'
 import { PlatformList } from '../components/PlatformList'
 import { Stars } from '../components/Stars'
@@ -59,7 +60,7 @@ export function ProfilePage() {
           </div>
           <div className="stat">
             <strong>
-              {profile.medals.length}/{profile.medalsTotal}
+              {profile.medalsEarned}/{profile.medalsTotal}
             </strong>
             <span>Medallas</span>
           </div>
@@ -68,15 +69,16 @@ export function ProfilePage() {
 
       <div className="profile-medals">
         {profile.medals.length > 0 ? (
-          profile.medals.map((m) => (
-            <span key={m.id} className="medal-badge" title={`${m.name}: ${m.description}`}>
-              <span aria-hidden="true">{m.icon}</span>
-              <span className="medal-badge-name">{m.name}</span>
-            </span>
-          ))
-        ) : (
-          <span className="small faint">Aún sin medallas.</span>
-        )}
+          <div className="medal-row">
+            {profile.medals.map((m) => (
+              <MedalCircle key={m.id} medal={m} />
+            ))}
+          </div>
+        ) : isMe && profile.medalsEarned > 0 ? (
+          <span className="small faint">
+            Elige qué medallas mostrar en <Link to="/settings/profile">Editar perfil</Link>.
+          </span>
+        ) : null}
         <Link to={`/u/${profile.userName}/medallas`} className="small">
           Ver todas las medallas →
         </Link>

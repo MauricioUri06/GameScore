@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { Genre, Platform, Profile } from '../api/types'
+import type { Genre, Medal, Platform, Profile } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
 import { AvatarCropper } from '../components/AvatarCropper'
+import { MedalCircle } from '../components/MedalCircle'
 import { igdbSize } from '../components/GameCard'
 import { groupPlatforms } from '../components/PlatformList'
 import { ErrorMessage, Spinner } from '../components/Status'
@@ -20,6 +21,7 @@ interface PickedGame {
 interface Draft {
   games: PickedGame[]
   playing: PickedGame[]
+  medalIds: string[]
   platformIds: number[]
   genreIds: number[]
 }
@@ -32,9 +34,10 @@ export function EditProfilePage() {
   const profile = useAsync(() => api.profile(user!.userName), [user?.userName])
   const genres = useAsync(() => api.genres(), [])
   const platforms = useAsync(() => api.platforms(), [])
+  const medals = useAsync(() => api.medals(user!.userName), [user?.userName])
 
-  if (profile.loading || genres.loading || platforms.loading) return <Spinner />
-  const error = profile.error ?? genres.error ?? platforms.error
+  if (profile.loading || genres.loading || platforms.loading || medals.loading) return <Spinner />
+  const error = profile.error ?? genres.error ?? platforms.error ?? medals.error
   if (error || !profile.data) {
     return (
       <div className="container page">
@@ -44,7 +47,12 @@ export function EditProfilePage() {
   }
 
   return (
-    <ProfileEditor profile={profile.data} allGenres={genres.data ?? []} allPlatforms={platforms.data ?? []} />
+    <ProfileEditor
+      profile={profile.data}
+      allGenres={genres.data ?? []}
+      allPlatforms={platforms.data ?? []}
+      earnedMedals={(medals.data ?? []).filter((m) => m.earned)}
+    />
   )
 }
 
@@ -52,6 +60,7 @@ function draftFrom(profile: Profile): Draft {
   return {
     games: profile.topGames.map((t) => ({ gameId: t.gameId, name: t.name, coverUrl: t.coverUrl })),
     playing: profile.playing.map((p) => ({ gameId: p.gameId, name: p.name, coverUrl: p.coverUrl })),
+    medalIds: profile.medals.map((m) => m.id),
     platformIds: profile.platforms.map((p) => p.id),
     genreIds: profile.favoriteGenres.map((g) => g.id),
   }
@@ -64,6 +73,7 @@ function sameDraft(a: Draft, b: Draft) {
   return (
     ids(a.games) === ids(b.games) &&
     ids(a.playing) === ids(b.playing) &&
+    a.medalIds.join(',') === b.medalIds.join(',') &&
     sorted(a.platformIds) === sorted(b.platformIds) &&
     sorted(a.genreIds) === sorted(b.genreIds)
   )
@@ -73,10 +83,12 @@ function ProfileEditor({
   profile,
   allGenres,
   allPlatforms,
+  earnedMedals,
 }: {
   profile: Profile
   allGenres: Genre[]
   allPlatforms: Platform[]
+  earnedMedals: Medal[]
 }) {
   const { user, refresh } = useAuth()
   const [saved, setSaved] = useState<Draft>(() => draftFrom(profile))
@@ -112,6 +124,7 @@ function ProfileEditor({
       const changedPlaying =
         draft.playing.map((g) => g.gameId).join(',') !== saved.playing.map((g) => g.gameId).join(',')
       if (changedPlaying) await api.updatePlaying(draft.playing.map((g) => g.gameId))
+      if (draft.medalIds.join(',') !== saved.medalIds.join(',')) await api.updateShowcaseMedals(draft.medalIds)
       await Promise.all([api.updatePlatforms(draft.platformIds), api.updateFavoriteGenres(draft.genreIds)])
 
       if (avatar.kind !== 'none') await refresh()
@@ -179,6 +192,7 @@ function ProfileEditor({
         onChange={(platformIds) => update({ platformIds })}
       />
       <GenresSection all={allGenres} selected={draft.genreIds} onChange={(genreIds) => update({ genreIds })} />
+      <MedalsSection earned={earnedMedals} selected={draft.medalIds} onChange={(medalIds) => update({ medalIds })} />
 
       <div className="save-bar">
         <div className="save-bar-status">
@@ -480,6 +494,58 @@ function GenresSection({
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+function MedalsSection({
+  earned,
+  selected,
+  onChange,
+}: {
+  earned: Medal[]
+  selected: string[]
+  onChange: (ids: string[]) => void
+}) {
+  const max = 10
+  const toggle = (id: string) => {
+    if (selected.includes(id)) onChange(selected.filter((x) => x !== id))
+    else if (selected.length < max) onChange([...selected, id])
+  }
+
+  return (
+    <div className="card section">
+      <h2>Medallas en tu perfil</h2>
+      <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
+        Elige hasta {max} de tus medallas para mostrar ({selected.length}/{max}). Se muestran en el orden en que las
+        marques.
+      </p>
+      {earned.length === 0 ? (
+        <p className="faint small" style={{ textAlign: 'center', margin: 0 }}>
+          Todavía no tienes medallas. ¡Califica juegos y escribe reseñas para ganarlas!
+        </p>
+      ) : (
+        <div className="medal-picker">
+          {earned.map((m) => {
+            const index = selected.indexOf(m.id)
+            const isSelected = index >= 0
+            return (
+              <button
+                key={m.id}
+                type="button"
+                className={`medal-pick${isSelected ? ' selected' : ''}`}
+                aria-pressed={isSelected}
+                disabled={!isSelected && selected.length >= max}
+                onClick={() => toggle(m.id)}
+              >
+                <MedalCircle medal={m} />
+                <span className="medal-pick-name">{m.name}</span>
+                {isSelected && <span className="medal-pick-order">{index + 1}</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

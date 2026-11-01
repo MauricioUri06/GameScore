@@ -132,8 +132,9 @@ export interface Profile {
   platforms: Platform[]
   recentRatings: ProfileRating[]
   playing: PlayingGame[]
-  /** Solo las medallas obtenidas */
+  /** Medallas que el usuario eligió mostrar (máx. 10) */
   medals: Medal[]
+  medalsEarned: number
   medalsTotal: number
   reviewsCount: number
 }
