@@ -17,6 +17,10 @@ public class Rating
     public decimal Score { get; set; }
     public string? Review { get; set; }
 
+    /// <summary>Plataforma en la que lo jugó (PC, PlayStation…). Null en calificaciones antiguas.</summary>
+    public int? PlatformId { get; set; }
+    public Platform? Platform { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -6,9 +6,13 @@ namespace GameScore.Api.Catalog;
 /// </summary>
 public interface IGameCatalog
 {
-    Task<List<CatalogGame>> SearchAsync(string query, int page, int pageSize, CancellationToken ct);
+    /// <summary>Busca por nombre. Devuelve todos los resultados, ordenados por relevancia y popularidad.</summary>
+    Task<List<CatalogGame>> SearchAsync(string query, CatalogGenreFilter? genre, CancellationToken ct);
 
-    /// <summary>Juegos populares recientes, para la portada.</summary>
+    /// <summary>Recorre el catálogo completo por páginas, del más popular al menos popular.</summary>
+    Task<CatalogPage> BrowseAsync(int page, int pageSize, CatalogGenreFilter? genre, CancellationToken ct);
+
+    /// <summary>Juegos populares recientes.</summary>
     Task<List<CatalogGame>> GetPopularAsync(int count, CancellationToken ct);
 
     /// <summary>Un juego por su id en el catálogo, o null si no existe.</summary>

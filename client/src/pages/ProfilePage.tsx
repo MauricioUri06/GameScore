@@ -135,6 +135,7 @@ export function ProfilePage() {
                   <strong>{r.gameName}</strong>
                   <br />
                   <Stars value={r.score} size="0.95rem" />
+                  {r.platformName && <span className="small muted"> · {r.platformName}</span>}
                   {r.review && (
                     <p className="small muted" style={{ margin: '4px 0 0' }}>
                       {r.review.length > 110 ? `${r.review.slice(0, 110)}…` : r.review}

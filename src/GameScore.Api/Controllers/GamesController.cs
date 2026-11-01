@@ -13,21 +13,34 @@ namespace GameScore.Api.Controllers;
 [Route("api/games")]
 public class GamesController(GameService games, RankingService ranking, GameScoreDbContext db) : ControllerBase
 {
-    /// <summary>Busca juegos en el catálogo (IGDB). Incluye el promedio local si ya fueron calificados en GameScore.</summary>
+    /// <summary>
+    /// Todos los juegos, de 50 en 50 y del más popular al menos popular.
+    /// Filtros opcionales: <c>genre</c> (slug de categoría) y <c>q</c> (nombre).
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<PagedResultDto<GameSummaryDto>>> Browse(
+        [FromQuery] int page = 1, [FromQuery] string? genre = null, [FromQuery] string? q = null,
+        CancellationToken ct = default)
+    {
+        var query = q?.Trim();
+        if (query is { Length: < 2 }) query = null;
+        return await games.BrowseAsync(page, genre, query, ct);
+    }
+
+    /// <summary>Busca juegos por nombre (para sugerencias). Devuelve todos los resultados.</summary>
     [HttpGet("search")]
-    public async Task<ActionResult<List<GameSummaryDto>>> Search(
-        [FromQuery] string? q, [FromQuery] int page = 1, CancellationToken ct = default)
+    public async Task<ActionResult<List<GameSummaryDto>>> Search([FromQuery] string? q, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
             return Ok(new List<GameSummaryDto>());
 
-        return await games.SearchAsync(q.Trim(), Math.Max(1, page), ct);
+        return await games.SearchAsync(q.Trim(), null, ct);
     }
 
-    /// <summary>Juegos populares recientes (desde IGDB), para la portada.</summary>
+    /// <summary>Juegos populares recientes (desde IGDB).</summary>
     [HttpGet("popular")]
-    public async Task<ActionResult<List<GameSummaryDto>>> Popular(CancellationToken ct) =>
-        await games.GetPopularAsync(ct);
+    public async Task<ActionResult<List<GameSummaryDto>>> Popular([FromQuery] int count = 12, CancellationToken ct = default) =>
+        await games.GetPopularAsync(Math.Clamp(count, 1, 100), ct);
 
     /// <summary>Ranking de los mejores juegos calificados por la comunidad.</summary>
     [HttpGet("ranking")]
@@ -55,6 +68,12 @@ public class GamesController(GameService games, RankingService ranking, GameScor
             return ValidationProblem(ModelState);
         }
 
+        if (!await db.Platforms.AnyAsync(p => p.Id == request.PlatformId, ct))
+        {
+            ModelState.AddModelError(nameof(request.PlatformId), "Esa plataforma no existe.");
+            return ValidationProblem(ModelState);
+        }
+
         var game = await games.EnsureCachedAsync(gameId, ct);
         if (game is null) return NotFound();
 
@@ -68,10 +87,11 @@ public class GamesController(GameService games, RankingService ranking, GameScor
 
         rating.Score = request.Score;
         rating.Review = string.IsNullOrWhiteSpace(request.Review) ? null : request.Review.Trim();
+        rating.PlatformId = request.PlatformId;
         rating.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
-        return new MyRatingDto(rating.Score, rating.Review, rating.UpdatedAt);
+        return new MyRatingDto(rating.Score, rating.Review, rating.PlatformId, rating.UpdatedAt);
     }
 
     /// <summary>Elimina tu calificación de un juego.</summary>

@@ -48,7 +48,8 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
             .OrderByDescending(r => r.UpdatedAt)
             .Take(12)
             .Select(r => new ProfileRatingDto(
-                r.Game.ExternalId, r.Game.Name, r.Game.CoverImage, r.Score, r.Review, r.UpdatedAt))
+                r.Game.ExternalId, r.Game.Name, r.Game.CoverImage, r.Score, r.Review,
+                r.Platform != null ? r.Platform.Name : null, r.UpdatedAt))
             .ToListAsync(ct);
 
         return new ProfileDto(

@@ -48,7 +48,7 @@ Write-Host "       primer resultado: $($game.name) (gameId $($game.gameId))"
 # 5. Calificar: guarda el juego (Games/GameGenres) y la calificación (Ratings) en Neon
 Step "Calificar con 4.5 estrellas (INSERT en Ratings)" {
     Invoke-RestMethod "$Base/games/$($game.gameId)/rating" -Method Put -Headers $headers -ContentType "application/json" `
-        -Body (@{ score = 4.5; review = "Prueba automática" } | ConvertTo-Json)
+        -Body (@{ score = 4.5; review = "Prueba automática"; platformId = 1 } | ConvertTo-Json)
 } | Out-Null
 
 # 6. Releer desde Neon

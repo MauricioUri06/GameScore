@@ -20,18 +20,67 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
 
     private readonly CatalogOptions _catalogOptions = catalogOptions.Value;
 
-    public async Task<List<GameSummaryDto>> SearchAsync(string query, int page, CancellationToken ct)
+    /// <summary>Juegos por página en la sección "Juegos".</summary>
+    public const int PageSize = 50;
+
+    /// <summary>
+    /// Páginas máximas al recorrer el catálogo completo (200 × 50 = los 10.000 juegos más populares).
+    /// Más allá casi todo son juegos sin calificaciones; a esos se llega con el buscador.
+    /// </summary>
+    public const int MaxPages = 200;
+
+    /// <summary>Busca por nombre (sin límite propio: todo lo que devuelve el catálogo).</summary>
+    public async Task<List<GameSummaryDto>> SearchAsync(string query, string? genreSlug, CancellationToken ct)
     {
-        // Sin límite propio: devolvemos todo lo que encuentra el catálogo (IGDB da hasta 500 por consulta)
-        const int allResults = 500;
-        var games = await catalog.SearchAsync(query, page, allResults, ct);
+        var games = await catalog.SearchAsync(query, await ResolveGenreAsync(genreSlug, ct), ct);
         return await ToSummariesAsync(games, ct);
     }
 
-    public async Task<List<GameSummaryDto>> GetPopularAsync(CancellationToken ct)
+    /// <summary>
+    /// Lista de juegos por páginas de 50, opcionalmente filtrada por categoría y/o por nombre.
+    /// </summary>
+    public async Task<PagedResultDto<GameSummaryDto>> BrowseAsync(
+        int page, string? genreSlug, string? query, CancellationToken ct)
     {
-        var games = await catalog.GetPopularAsync(12, ct);
+        page = Math.Clamp(page, 1, MaxPages);
+        var genre = await ResolveGenreAsync(genreSlug, ct);
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            // Con búsqueda, el catálogo devuelve todos los resultados juntos: los paginamos aquí
+            var all = await catalog.SearchAsync(query.Trim(), genre, ct);
+            var pageItems = all.Skip((page - 1) * PageSize).Take(PageSize).ToList();
+            return Paged(await ToSummariesAsync(pageItems, ct), page, all.Count);
+        }
+
+        var result = await catalog.BrowseAsync(page, PageSize, genre, ct);
+        var total = Math.Min(result.TotalCount, MaxPages * PageSize);
+        return Paged(await ToSummariesAsync(result.Items, ct), page, total);
+    }
+
+    public async Task<List<GameSummaryDto>> GetPopularAsync(int count, CancellationToken ct)
+    {
+        var games = await catalog.GetPopularAsync(count, ct);
         return await ToSummariesAsync(games, ct);
+    }
+
+    private static PagedResultDto<GameSummaryDto> Paged(List<GameSummaryDto> items, int page, int total) =>
+        new(items, page, PageSize, total, Math.Max(1, (int)Math.Ceiling(total / (double)PageSize)));
+
+    /// <summary>Convierte el slug de una categoría (ej. "horror") en el filtro del catálogo.</summary>
+    private async Task<CatalogGenreFilter?> ResolveGenreAsync(string? slug, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(slug)) return null;
+
+        var genre = await db.Genres.AsNoTracking().FirstOrDefaultAsync(g => g.Slug == slug, ct);
+        if (genre is null)
+        {
+            // Puede que la lista de géneros aún no se haya sincronizado
+            await GetGenresAsync(ct);
+            genre = await db.Genres.AsNoTracking().FirstOrDefaultAsync(g => g.Slug == slug, ct);
+        }
+
+        return genre is null ? null : new CatalogGenreFilter(genre.Kind, genre.ExternalId);
     }
 
     public async Task<GameDetailDto?> GetDetailAsync(int externalId, string? currentUserId, CancellationToken ct)
@@ -57,7 +106,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
         {
             myRating = await db.Ratings
                 .Where(r => r.GameId == game.Id && r.UserId == currentUserId)
-                .Select(r => new MyRatingDto(r.Score, r.Review, r.UpdatedAt))
+                .Select(r => new MyRatingDto(r.Score, r.Review, r.PlatformId, r.UpdatedAt))
                 .FirstOrDefaultAsync(ct);
         }
 
@@ -66,7 +115,8 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             .OrderByDescending(r => r.UpdatedAt)
             .Take(10)
             .Select(r => new ReviewDto(
-                r.User.UserName!, AvatarUrls.For(r.User.UserName!, r.User.AvatarUpdatedAt), r.Score, r.Review, r.UpdatedAt))
+                r.User.UserName!, AvatarUrls.For(r.User.UserName!, r.User.AvatarUpdatedAt), r.Score, r.Review,
+                r.Platform != null ? r.Platform.Name : null, r.UpdatedAt))
             .ToListAsync(ct);
 
         return new GameDetailDto(

@@ -2,64 +2,99 @@ import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { GameCard, GameGridSkeleton } from '../components/GameCard'
+import { GenreSelect } from '../components/GenreSelect'
+import { Pagination } from '../components/Pagination'
 import { Empty, ErrorMessage } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 
-/** Lista de juegos disponibles: populares por defecto, o resultados de búsqueda con ?q=. */
+/** Todos los juegos, de 50 en 50, con buscador y filtro de categoría (todo en la URL: ?q=&genre=&page=). */
 export function GamesPage() {
   const [params, setParams] = useSearchParams()
   const q = (params.get('q') ?? '').trim()
-  const isSearch = q.length >= 2
+  const genre = params.get('genre') ?? ''
+  const page = Math.max(1, Number(params.get('page')) || 1)
 
-  const { data: games, error, loading } = useAsync(
-    () => (isSearch ? api.searchGames(q) : api.popularGames()),
-    [q],
+  const genres = useAsync(() => api.genres(), [])
+  const result = useAsync(
+    () => api.games({ page, genre: genre || undefined, q: q.length >= 2 ? q : undefined }),
+    [page, genre, q],
   )
+
+  /** Cambia filtros manteniendo los demás; al cambiar búsqueda o categoría se vuelve a la página 1. */
+  const update = (changes: { q?: string; genre?: string; page?: number }) => {
+    const next = { q, genre, page: 1, ...changes }
+    const out: Record<string, string> = {}
+    if (next.q) out.q = next.q
+    if (next.genre) out.genre = next.genre
+    if (next.page > 1) out.page = String(next.page)
+    setParams(out)
+  }
+
+  const goToPage = (p: number) => {
+    update({ page: p })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const value = String(new FormData(e.currentTarget).get('q') ?? '').trim()
-    setParams(value ? { q: value } : {})
+    update({ q: String(new FormData(e.currentTarget).get('q') ?? '').trim() })
   }
+
+  const data = result.data
+  const first = data ? (data.page - 1) * data.pageSize + 1 : 0
+  const last = data ? first + data.items.length - 1 : 0
 
   return (
     <div className="container page">
       <h1>Juegos</h1>
-      <form key={q} onSubmit={submit} className="row" style={{ marginBottom: 28 }} role="search">
+      <form key={q} onSubmit={submit} className="row search-row" role="search">
         <input
           className="input"
           style={{ flex: 1, minWidth: 220 }}
           type="search"
           name="q"
-          placeholder="Busca cualquier juego para calificarlo…"
+          placeholder="Busca un juego por nombre…"
           defaultValue={q}
         />
         <button className="btn btn-primary" type="submit">
           Buscar
         </button>
-        {isSearch && (
-          <button className="btn btn-ghost" type="button" onClick={() => setParams({})}>
-            Ver populares
+        {q && (
+          <button className="btn btn-ghost" type="button" onClick={() => update({ q: '' })}>
+            Quitar búsqueda
           </button>
         )}
       </form>
 
-      <div className="section-header">
-        <h2>{isSearch ? `Resultados para “${q}”` : 'Populares ahora'}</h2>
-      </div>
+      <GenreSelect
+        genres={genres.data}
+        value={genre}
+        onChange={(slug) => update({ genre: slug })}
+        disabled={genres.loading}
+      />
 
-      {error ? (
-        <ErrorMessage error={error} />
-      ) : loading ? (
-        <GameGridSkeleton count={12} />
-      ) : !games?.length ? (
-        <Empty>{isSearch ? `No encontramos juegos para “${q}”.` : 'No hay juegos para mostrar.'}</Empty>
+      {data && data.totalCount > 0 && (
+        <p className="muted small results-info">
+          {q ? `Resultados para “${q}”` : 'Del más popular al menos popular'} · {first}–{last} de{' '}
+          {data.totalCount.toLocaleString('es')}
+        </p>
+      )}
+
+      {result.error ? (
+        <ErrorMessage error={result.error} />
+      ) : result.loading ? (
+        <GameGridSkeleton count={20} />
+      ) : !data?.items.length ? (
+        <Empty>{q ? `No encontramos juegos para “${q}”.` : 'No hay juegos en esta categoría.'}</Empty>
       ) : (
-        <div className="game-grid">
-          {games.map((g) => (
-            <GameCard key={g.gameId} game={g} />
-          ))}
-        </div>
+        <>
+          <div className="game-grid">
+            {data.items.map((g) => (
+              <GameCard key={g.gameId} game={g} />
+            ))}
+          </div>
+          <Pagination page={data.page} totalPages={data.totalPages} onChange={goToPage} />
+        </>
       )}
     </div>
   )

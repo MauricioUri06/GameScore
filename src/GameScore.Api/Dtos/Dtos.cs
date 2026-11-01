@@ -41,9 +41,10 @@ public record ReviewDto(
     string? AvatarUrl,
     decimal Score,
     string? Review,
+    string? PlatformName,
     DateTime UpdatedAt);
 
-public record MyRatingDto(decimal Score, string? Review, DateTime UpdatedAt);
+public record MyRatingDto(decimal Score, string? Review, int? PlatformId, DateTime UpdatedAt);
 
 public record GameDetailDto(
     int GameId,
@@ -76,7 +77,8 @@ public record RankedGameDto(
 
 public record RateGameRequest(
     [Range(0.5, 5.0)] decimal Score,
-    [StringLength(2000)] string? Review);
+    [StringLength(2000)] string? Review,
+    [Required(ErrorMessage = "Elige en qué plataforma lo jugaste.")] int? PlatformId);
 
 public record ActivityDto(
     string UserName,
@@ -92,7 +94,8 @@ public record ActivityDto(
 
 public record TopGameDto(int Position, int GameId, string Slug, string Name, string? CoverUrl);
 
-public record ProfileRatingDto(int GameId, string GameName, string? GameCover, decimal Score, string? Review, DateTime UpdatedAt);
+public record ProfileRatingDto(
+    int GameId, string GameName, string? GameCover, decimal Score, string? Review, string? PlatformName, DateTime UpdatedAt);
 
 public record PlatformDto(int Id, string Name);
 
@@ -112,3 +115,7 @@ public record UpdatePlatformsRequest(List<int> PlatformIds);
 public record UpdateTopGamesRequest([MaxLength(5)] List<int> GameIds);
 
 public record UpdateFavoriteGenresRequest([MaxLength(5)] List<int> GenreIds);
+
+// ---------- Paginación ----------
+
+public record PagedResultDto<T>(IReadOnlyList<T> Items, int Page, int PageSize, int TotalCount, int TotalPages);

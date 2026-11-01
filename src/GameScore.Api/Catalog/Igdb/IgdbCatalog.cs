@@ -37,25 +37,34 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
 
     private readonly IgdbOptions _options = options.Value;
 
-    public async Task<List<CatalogGame>> SearchAsync(string query, int page, int pageSize, CancellationToken ct)
+    public async Task<List<CatalogGame>> SearchAsync(string query, CatalogGenreFilter? genre, CancellationToken ct)
     {
         var text = query.Replace("\\", "").Replace("\"", "\\\"").Trim();
 
         // IGDB no permite ordenar una búsqueda, así que pedimos todos los resultados que deja
         // en una consulta (máx. 500) y los ordenamos nosotros: nombre exacto primero, luego los más populares.
-        var games = await QueryGamesAsync(type =>
-            $"search \"{text}\"; {GameFields} " +
-            $"where version_parent = null & cover != null & {type} = {AllowedTypes} " +
-            $"& themes != ({IgdbGenreNames.EroticThemeId}); limit {MaxResults};", ct);
+        var games = await WithTypeFallback(type => QueryAsync<IgdbGame>("games",
+            $"search \"{text}\"; {GameFields} where {BaseFilter(type, genre)}; limit {MaxResults};", ct));
 
         return games
             .Where(IsAllowed)
             .OrderBy(g => string.Equals(g.Name, text, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
             .ThenByDescending(g => g.TotalRatingCount ?? 0)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .Select(ToCatalog)
             .ToList();
+    }
+
+    public async Task<CatalogPage> BrowseAsync(int page, int pageSize, CatalogGenreFilter? genre, CancellationToken ct)
+    {
+        // Dos consultas seguidas (no en paralelo) para respetar el límite de 4 por segundo de IGDB
+        var total = await WithTypeFallback(type =>
+            PostAsync<IgdbCount>("games/count", $"where {BaseFilter(type, genre)};", ct));
+
+        var games = await WithTypeFallback(type => QueryAsync<IgdbGame>("games",
+            $"{GameFields} where {BaseFilter(type, genre)}; sort total_rating_count desc; " +
+            $"limit {pageSize}; offset {(page - 1) * pageSize};", ct));
+
+        return new CatalogPage(games.Where(IsAllowed).Select(ToCatalog).ToList(), total.Count);
     }
 
     public async Task<List<CatalogGame>> GetPopularAsync(int count, CancellationToken ct)
@@ -64,12 +73,28 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         var from = now.AddYears(-2).ToUnixTimeSeconds();
         var to = now.ToUnixTimeSeconds();
 
-        var games = await QueryGamesAsync(type =>
-            $"{GameFields} where first_release_date >= {from} & first_release_date <= {to} " +
-            $"& cover != null & total_rating_count >= 5 & {type} = {AllowedTypes} " +
-            $"& themes != ({IgdbGenreNames.EroticThemeId}); sort total_rating_count desc; limit {count};", ct);
+        var games = await WithTypeFallback(type => QueryAsync<IgdbGame>("games",
+            $"{GameFields} where {BaseFilter(type, null)} & first_release_date >= {from} & first_release_date <= {to} " +
+            $"& total_rating_count >= 5; sort total_rating_count desc; limit {count};", ct));
 
         return games.Where(IsAllowed).Select(ToCatalog).ToList();
+    }
+
+    /// <summary>
+    /// Filtro común: juegos "de verdad" (sin DLC, updates, mods, versiones), con portada,
+    /// sin contenido adulto y, si se pide, de un género o temática.
+    /// </summary>
+    private static string BaseFilter(string typeField, CatalogGenreFilter? genre)
+    {
+        var filter = $"version_parent = null & cover != null & {typeField} = {AllowedTypes} " +
+                     $"& themes != ({IgdbGenreNames.EroticThemeId})";
+
+        return genre switch
+        {
+            { Kind: GenreKind.Genre, Id: var id } => filter + $" & genres = ({id})",
+            { Kind: GenreKind.Theme, Id: var id } => filter + $" & themes = ({id})",
+            _ => filter
+        };
     }
 
     public async Task<CatalogGame?> GetGameAsync(int id, CancellationToken ct)
@@ -91,20 +116,28 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
             .ToList();
     }
 
-    private async Task<List<IgdbGame>> QueryGamesAsync(Func<string, string> buildBody, CancellationToken ct)
+    /// <summary>
+    /// IGDB reemplazó "category" por "game_type". Si la API rechaza game_type, volvemos a "category".
+    /// </summary>
+    private static async Task<T> WithTypeFallback<T>(Func<string, Task<T>> query)
     {
         try
         {
-            return await QueryAsync<IgdbGame>("games", buildBody(_typeField), ct);
+            return await query(_typeField);
         }
-        catch (CatalogException ex) when (ex.StatusCode == 400 && _typeField == "game_type")
+        catch (CatalogException ex) when (ex.StatusCode == 400 && _typeField == "game_type"
+                                          && ex.Details?.Contains("game_type", StringComparison.OrdinalIgnoreCase) == true)
         {
             _typeField = "category";
-            return await QueryAsync<IgdbGame>("games", buildBody(_typeField), ct);
+            return await query(_typeField);
         }
     }
 
-    private async Task<List<T>> QueryAsync<T>(string endpoint, string body, CancellationToken ct, bool retried = false)
+    private Task<List<T>> QueryAsync<T>(string endpoint, string body, CancellationToken ct) =>
+        PostAsync<List<T>>(endpoint, body, ct);
+
+    private async Task<T> PostAsync<T>(string endpoint, string body, CancellationToken ct, bool retried = false)
+        where T : new()
     {
         var token = await tokens.GetTokenAsync(ct);
 
@@ -121,17 +154,21 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         {
             // Token vencido o revocado: pedimos otro y reintentamos una vez
             tokens.Invalidate();
-            return await QueryAsync<T>(endpoint, body, ct, retried: true);
+            return await PostAsync<T>(endpoint, body, ct, retried: true);
         }
 
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
             throw new CatalogException("IGDB está limitando las consultas (máx. 4 por segundo). Intenta de nuevo.", 429);
 
         if (!response.IsSuccessStatusCode)
-            throw new CatalogException($"IGDB respondió {(int)response.StatusCode}.", (int)response.StatusCode);
+        {
+            var details = await response.Content.ReadAsStringAsync(ct);
+            throw new CatalogException($"IGDB respondió {(int)response.StatusCode}.", (int)response.StatusCode,
+                details.Length > 500 ? details[..500] : details);
+        }
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct);
-        return await JsonSerializer.DeserializeAsync<List<T>>(stream, JsonOptions, ct) ?? [];
+        return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions, ct) ?? new T();
     }
 
     /// <summary>Segundo filtro, por si IGDB deja pasar algo con temática oculta.</summary>
@@ -170,6 +207,11 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         string.IsNullOrEmpty(imageId) ? null : $"https://images.igdb.com/igdb/image/upload/{size}/{imageId}.jpg";
 
     // ---------- Modelos de la respuesta JSON de IGDB ----------
+
+    private class IgdbCount
+    {
+        public int Count { get; set; }
+    }
 
     private class IgdbImage
     {

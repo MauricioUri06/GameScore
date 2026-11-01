@@ -76,6 +76,7 @@ export function GamePage() {
                         <strong>{r.userName}</strong>
                       </Link>
                       <Stars value={r.score} size="0.9rem" />
+                      {r.platformName && <span className="tag platform-tag">{r.platformName}</span>}
                       <span className="faint">{new Date(r.updatedAt).toLocaleDateString()}</span>
                     </div>
                     {r.review && <p className="review-text">{r.review}</p>}
@@ -144,6 +145,8 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
   const { user } = useAuth()
   const [score, setScore] = useState<number | null>(game.myRating?.score ?? null)
   const [review, setReview] = useState(game.myRating?.review ?? '')
+  const [platformId, setPlatformId] = useState<number | ''>(game.myRating?.platformId ?? '')
+  const platforms = useAsync(() => api.platforms(), [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const [saved, setSaved] = useState(false)
@@ -151,6 +154,7 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
   useEffect(() => {
     setScore(game.myRating?.score ?? null)
     setReview(game.myRating?.review ?? '')
+    setPlatformId(game.myRating?.platformId ?? '')
   }, [game.myRating])
 
   if (!user) {
@@ -168,10 +172,14 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
 
   const save = async () => {
     if (score === null) return
+    if (platformId === '') {
+      setError(new Error('Elige en qué plataforma lo jugaste.'))
+      return
+    }
     setSaving(true)
     setError(null)
     try {
-      await api.rateGame(game.gameId, score, review.trim() || null)
+      await api.rateGame(game.gameId, score, review.trim() || null, platformId)
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
       onSaved()
@@ -202,6 +210,23 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
       {saved && <div className="alert alert-success">¡Guardado!</div>}
       <StarInput value={score} onChange={setScore} disabled={saving} />
       <div className="field" style={{ marginTop: 14 }}>
+        <label htmlFor="platform">¿En qué plataforma lo jugaste?</label>
+        <select
+          id="platform"
+          className="select"
+          value={platformId}
+          onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : '')}
+          disabled={saving || platforms.loading}
+        >
+          <option value="">Elige una plataforma…</option>
+          {platforms.data?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
         <label htmlFor="review">Reseña (opcional)</label>
         <textarea
           id="review"

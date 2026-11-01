@@ -6,6 +6,7 @@ import type {
   GameSummary,
   Genre,
   MyRating,
+  PagedResult,
   Platform,
   Profile,
   RankedGame,
@@ -104,14 +105,20 @@ export const api = {
   me: () => request<CurrentUser>('/auth/me'),
 
   // Juegos
-  searchGames: (q: string, page = 1) =>
-    request<GameSummary[]>(`/games/search?q=${encodeURIComponent(q)}&page=${page}`),
-  popularGames: () => request<GameSummary[]>('/games/popular'),
+  searchGames: (q: string) => request<GameSummary[]>(`/games/search?q=${encodeURIComponent(q)}`),
+  /** Todos los juegos, de 50 en 50, con filtros opcionales de categoría y nombre. */
+  games: (params: { page: number; genre?: string; q?: string }) => {
+    const qs = new URLSearchParams({ page: String(params.page) })
+    if (params.genre) qs.set('genre', params.genre)
+    if (params.q) qs.set('q', params.q)
+    return request<PagedResult<GameSummary>>(`/games?${qs}`)
+  },
+  popularGames: (count = 12) => request<GameSummary[]>(`/games/popular?count=${count}`),
   ranking: (limit = 50, genre?: string) =>
     request<RankedGame[]>(`/games/ranking?limit=${limit}${genre ? `&genre=${encodeURIComponent(genre)}` : ''}`),
   game: (gameId: number) => request<GameDetail>(`/games/${gameId}`),
-  rateGame: (gameId: number, score: number, review: string | null) =>
-    request<MyRating>(`/games/${gameId}/rating`, { method: 'PUT', body: json({ score, review }) }),
+  rateGame: (gameId: number, score: number, review: string | null, platformId: number) =>
+    request<MyRating>(`/games/${gameId}/rating`, { method: 'PUT', body: json({ score, review, platformId }) }),
   deleteRating: (gameId: number) => request<void>(`/games/${gameId}/rating`, { method: 'DELETE' }),
 
   // Comunidad

@@ -41,12 +41,14 @@ export interface Review {
   avatarUrl: string | null
   score: number
   review: string | null
+  platformName: string | null
   updatedAt: string
 }
 
 export interface MyRating {
   score: number
   review: string | null
+  platformId: number | null
   updatedAt: string
 }
 
@@ -103,6 +105,7 @@ export interface ProfileRating {
   gameCover: string | null
   score: number
   review: string | null
+  platformName: string | null
   updatedAt: string
 }
 
@@ -116,4 +119,12 @@ export interface Profile {
   favoriteGenres: Genre[]
   platforms: Platform[]
   recentRatings: ProfileRating[]
+}
+
+export interface PagedResult<T> {
+  items: T[]
+  page: number
+  pageSize: number
+  totalCount: number
+  totalPages: number
 }

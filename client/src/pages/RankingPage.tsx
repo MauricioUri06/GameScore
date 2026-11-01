@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { igdbSize } from '../components/GameCard'
+import { GameCard, GameGridSkeleton, igdbSize } from '../components/GameCard'
+import { GenreSelect } from '../components/GenreSelect'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -10,6 +11,7 @@ export function RankingPage() {
   const genre = params.get('genre') ?? ''
   const genres = useAsync(() => api.genres(), [])
   const ranking = useAsync(() => api.ranking(100, genre || undefined), [genre])
+  const popular = useAsync(() => api.popularGames(50), [])
 
   return (
     <div className="container page">
@@ -19,25 +21,12 @@ export function RankingPage() {
         calificaciones para subir, así una sola nota perfecta no lo pone en la cima.
       </p>
 
-      <div className="filter-bar">
-        <label htmlFor="genre" className="filter-label">
-          Categoría
-        </label>
-        <select
-          id="genre"
-          className="select"
-          value={genre}
-          onChange={(e) => setParams(e.target.value ? { genre: e.target.value } : {})}
-          disabled={genres.loading}
-        >
-          <option value="">Todas las categorías</option>
-          {genres.data?.map((g) => (
-            <option key={g.id} value={g.slug}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <GenreSelect
+        genres={genres.data}
+        value={genre}
+        onChange={(slug) => setParams(slug ? { genre: slug } : {})}
+        disabled={genres.loading}
+      />
 
       {ranking.error ? (
         <ErrorMessage error={ranking.error} />
@@ -45,7 +34,7 @@ export function RankingPage() {
         <Spinner />
       ) : !ranking.data?.length ? (
         <Empty>
-          Todavía no hay juegos calificados{genre ? ' en este género' : ''}.{' '}
+          Todavía no hay juegos calificados{genre ? ' en esta categoría' : ''}.{' '}
           <Link to="/juegos">Explora los juegos</Link> y califica el primero.
         </Empty>
       ) : (
@@ -55,12 +44,12 @@ export function RankingPage() {
               <Link to={`/games/${g.gameId}`} className="ranking-row">
                 <span className={`ranking-pos${g.position <= 3 ? ' podium' : ''}`}>{g.position}</span>
                 {g.coverUrl ? (
-                  <img className="ranking-thumb" src={igdbSize(g.coverUrl, 'cover_small')} alt="" />
+                  <img className="ranking-thumb" src={igdbSize(g.coverUrl, 'cover_big')} alt="" />
                 ) : (
                   <span className="ranking-thumb" />
                 )}
                 <span>
-                  <strong>{g.name}</strong>
+                  <strong className="ranking-name">{g.name}</strong>
                   <span className="small muted"> {g.released?.slice(0, 4)}</span>
                 </span>
                 <span className="ranking-score">
@@ -74,6 +63,26 @@ export function RankingPage() {
           ))}
         </ol>
       )}
+
+      <section className="section">
+        <div className="section-header">
+          <h2>Populares ahora</h2>
+          <Link to="/juegos" className="small">
+            Ver todos los juegos →
+          </Link>
+        </div>
+        {popular.error ? (
+          <ErrorMessage error={popular.error} />
+        ) : popular.loading ? (
+          <GameGridSkeleton count={10} />
+        ) : (
+          <div className="game-grid">
+            {popular.data?.map((g) => (
+              <GameCard key={g.gameId} game={g} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

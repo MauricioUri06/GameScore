@@ -29,5 +29,11 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
             .WithMany(g => g.Ratings)
             .HasForeignKey(r => r.GameId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Si algún día se borra una plataforma, la calificación se mantiene sin plataforma
+        builder.HasOne(r => r.Platform)
+            .WithMany()
+            .HasForeignKey(r => r.PlatformId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
