@@ -1,5 +1,6 @@
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
+import { Avatar } from '../components/Avatar'
 import { GameCard, GameGridSkeleton } from '../components/GameCard'
 import { GenreSelect } from '../components/GenreSelect'
 import { Pagination } from '../components/Pagination'
@@ -15,6 +16,7 @@ export function GamesPage() {
   const page = Math.max(1, Number(params.get('page')) || 1)
 
   const genres = useAsync(() => api.genres(), [])
+  const users = useAsync(() => (q.length >= 2 ? api.searchUsers(q, 12) : Promise.resolve([])), [q])
   const result = useAsync(
     () => api.games({ page, genre: genre || undefined, q: q.length >= 2 ? q : undefined }),
     [page, genre, q],
@@ -46,7 +48,7 @@ export function GamesPage() {
         <SearchAutocomplete
           key={q}
           className="games-search"
-          placeholder="Busca un juego por nombre…"
+          placeholder="Busca un juego o un usuario…"
           defaultValue={q}
           onSearch={(text) => update({ q: text })}
           showButton
@@ -57,6 +59,20 @@ export function GamesPage() {
           </button>
         )}
       </div>
+
+      {q && users.data && users.data.length > 0 && (
+        <div className="user-results">
+          <span className="filter-label">Usuarios</span>
+          <div className="tag-list tag-list-center">
+            {users.data.map((u) => (
+              <Link key={u.userName} to={`/u/${u.userName}`} className="user-chip">
+                <Avatar name={u.userName} url={u.avatarUrl} />
+                {u.userName}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <GenreSelect
         genres={genres.data}

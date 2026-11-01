@@ -9,6 +9,7 @@ import type {
   Genre,
   MyRating,
   PagedResult,
+  UserSearchResult,
   Platform,
   Profile,
   RankedGame,
@@ -135,6 +136,8 @@ export const api = {
   genres: () => request<Genre[]>('/genres'),
 
   // Perfiles
+  searchUsers: (q: string, limit = 10) =>
+    request<UserSearchResult[]>(`/users?q=${encodeURIComponent(q)}&limit=${limit}`),
   profile: (userName: string) => request<Profile>(`/users/${encodeURIComponent(userName)}`),
   uploadAvatar: (image: Blob) => {
     const form = new FormData()

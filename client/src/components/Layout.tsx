@@ -20,7 +20,7 @@ function NavSearch() {
   return (
     <SearchAutocomplete
       className="nav-search"
-      placeholder="Buscar juegos…"
+      placeholder="Buscar juegos o usuarios…"
       onSearch={(q) => q.length >= 2 && navigate(`/juegos?q=${encodeURIComponent(q)}`)}
     />
   )

@@ -172,3 +172,9 @@ export interface AdminUser {
   isLockedOut: boolean
   failedLoginAttempts: number
 }
+
+export interface UserSearchResult {
+  userName: string
+  avatarUrl: string | null
+  ratings: number
+}

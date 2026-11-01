@@ -119,6 +119,8 @@ public record ProfileDto(
 
 public record UpdatePlatformsRequest(List<int> PlatformIds);
 
+public record UserSearchDto(string UserName, string? AvatarUrl, int Ratings);
+
 public record UpdateTopGamesRequest([MaxLength(5)] List<int> GameIds);
 
 public record UpdateFavoriteGenresRequest(List<int> GenreIds);

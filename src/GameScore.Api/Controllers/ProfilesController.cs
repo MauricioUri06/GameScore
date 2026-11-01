@@ -12,6 +12,29 @@ namespace GameScore.Api.Controllers;
 [ApiController]
 public class ProfilesController(GameScoreDbContext db, GameService games) : ControllerBase
 {
+    /// <summary>Busca usuarios por nickname (contiene el texto, sin distinguir mayúsculas).</summary>
+    [HttpGet("api/users")]
+    public async Task<ActionResult<List<UserSearchDto>>> SearchUsers(
+        [FromQuery] string? q, [FromQuery] int limit = 10, CancellationToken ct = default)
+    {
+        var text = q?.Trim();
+        if (string.IsNullOrEmpty(text) || text.Length < 2) return new List<UserSearchDto>();
+
+        var upper = text.ToUpperInvariant();
+        var users = await db.Users
+            .AsNoTracking()
+            .Where(u => u.NormalizedUserName!.Contains(upper))
+            .OrderBy(u => u.NormalizedUserName!.StartsWith(upper) ? 0 : 1) // los que empiezan igual, primero
+            .ThenBy(u => u.NormalizedUserName)
+            .Take(Math.Clamp(limit, 1, 20))
+            .Select(u => new { u.UserName, u.AvatarUpdatedAt, Ratings = u.Ratings.Count() })
+            .ToListAsync(ct);
+
+        return users
+            .Select(u => new UserSearchDto(u.UserName!, AvatarUrls.For(u.UserName!, u.AvatarUpdatedAt), u.Ratings))
+            .ToList();
+    }
+
     /// <summary>Perfil público: top 5, géneros favoritos, plataformas, estadísticas y últimas calificaciones.</summary>
     [HttpGet("api/users/{userName}")]
     public async Task<ActionResult<ProfileDto>> GetProfile(string userName, CancellationToken ct)

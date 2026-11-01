@@ -766,18 +766,21 @@ button.tag {
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
+/* minmax(0, 1fr): las 5 columnas miden siempre lo mismo, haya 1 o 5 juegos */
 .top5 {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
+  align-items: start;
 }
 @media (max-width: 640px) {
   .top5 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 .top5-slot {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3 / 4; /* misma forma que la portada de una tarjeta */
+  width: 100%;
   border-radius: var(--radius);
   border: 1px dashed var(--border);
   display: grid;
@@ -1478,4 +1481,45 @@ img.avatar {
   padding: 10px 12px;
   color: var(--text-faint);
   font-size: 0.9rem;
+}
+
+/* ---------- Búsqueda de usuarios ---------- */
+.autocomplete-heading {
+  padding: 8px 12px 4px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold-light);
+}
+.autocomplete-item .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 0.8rem;
+}
+.user-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+.user-chip:hover {
+  border-color: var(--primary);
+  color: var(--text);
+}
+.user-chip .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
 }
