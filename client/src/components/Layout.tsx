@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from './Avatar'
+import { SearchAutocomplete } from './SearchAutocomplete'
 
 function Logo() {
   return (
@@ -16,25 +16,13 @@ function Logo() {
 }
 
 function NavSearch() {
-  const [q, setQ] = useState('')
   const navigate = useNavigate()
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    if (q.trim().length >= 2) navigate(`/juegos?q=${encodeURIComponent(q.trim())}`)
-  }
-
   return (
-    <form className="nav-search" onSubmit={submit} role="search">
-      <input
-        className="input"
-        type="search"
-        placeholder="Buscar juegos…"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        aria-label="Buscar juegos"
-      />
-    </form>
+    <SearchAutocomplete
+      className="nav-search"
+      placeholder="Buscar juegos…"
+      onSearch={(q) => q.length >= 2 && navigate(`/juegos?q=${encodeURIComponent(q)}`)}
+    />
   )
 }
 
@@ -53,8 +41,9 @@ export function Layout() {
           </Link>
           <nav className="nav-links">
             <NavLink to="/" end>
-              Ranking
+              Inicio
             </NavLink>
+            <NavLink to="/ranking">Ranking</NavLink>
             <NavLink to="/juegos">Juegos</NavLink>
           </nav>
           <NavSearch />

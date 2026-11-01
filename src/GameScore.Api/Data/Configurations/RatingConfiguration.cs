@@ -18,7 +18,7 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_Ratings_Score",
-            "\"Score\" >= 0.5 AND \"Score\" <= 5"));
+            "\"Score\" >= 0 AND \"Score\" <= 5"));
 
         builder.HasOne(r => r.User)
             .WithMany(u => u.Ratings)

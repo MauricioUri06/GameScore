@@ -1,7 +1,7 @@
 namespace GameScore.Api.Entities;
 
 /// <summary>
-/// Calificación de un usuario a un juego. Escala de 0.5 a 5 en pasos de 0.5 (estilo Letterboxd).
+/// Calificación de un usuario a un juego. Escala de 0 a 5 en pasos de 0.5.
 /// Un usuario solo puede tener una calificación por juego.
 /// </summary>
 public class Rating
@@ -20,6 +20,8 @@ public class Rating
     /// <summary>Plataforma en la que lo jugó (PC, PlayStation…). Null en calificaciones antiguas.</summary>
     public int? PlatformId { get; set; }
     public Platform? Platform { get; set; }
+
+    public ICollection<ReviewVote> Votes { get; set; } = new List<ReviewVote>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

@@ -1291,3 +1291,191 @@ img.avatar {
   background: rgba(240, 128, 106, 0.14);
   color: var(--danger);
 }
+
+/* ---------- Consolas agrupadas por familia ---------- */
+.platform-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.platform-group {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.platform-family {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding-top: 4px;
+}
+@media (max-width: 560px) {
+  .platform-group {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* ---------- 0 estrellas ---------- */
+.star-zero {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.star-zero:hover:not(:disabled),
+.star-zero.selected {
+  border-color: var(--gold-light);
+  color: var(--gold-light);
+}
+
+/* ---------- Likes / dislikes ---------- */
+.review-votes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.vote-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--text);
+}
+.vote-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--text);
+}
+.vote-btn.dislike.active {
+  border-color: var(--danger);
+  background: rgba(240, 128, 106, 0.12);
+}
+.vote-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* ---------- Recorte de foto de perfil ---------- */
+.cropper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.cropper-view {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.cropper-view:active {
+  cursor: grabbing;
+}
+.cropper-view img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  pointer-events: none;
+}
+.cropper-mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 999px rgba(13, 21, 18, 0.6);
+  outline: 2px solid var(--gold-light);
+  pointer-events: none;
+}
+.cropper-zoom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 260px;
+}
+.cropper-zoom input {
+  flex: 1;
+  accent-color: var(--gold);
+}
+
+/* ---------- Autocompletado de búsqueda ---------- */
+.autocomplete {
+  display: flex;
+  gap: 12px;
+}
+.autocomplete-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.games-search {
+  flex: 1;
+  min-width: 220px;
+}
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.7);
+  max-height: 420px;
+  overflow-y: auto;
+}
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.autocomplete-item.active {
+  background: var(--primary-soft);
+}
+.autocomplete-item img,
+.autocomplete-thumb {
+  width: 30px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.autocomplete-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.autocomplete-empty {
+  padding: 10px 12px;
+  color: var(--text-faint);
+  font-size: 0.9rem;
+}

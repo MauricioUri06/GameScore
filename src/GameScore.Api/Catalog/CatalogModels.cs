@@ -18,7 +18,8 @@ public record CatalogGame(
     string? BackgroundUrl,
     DateOnly? Released,
     string? Summary,
-    IReadOnlyList<CatalogGenre> Genres);
+    IReadOnlyList<CatalogGenre> Genres,
+    IReadOnlyList<int> PlatformIds);
 
 /// <summary>Una página de resultados y el total de juegos que cumplen el filtro.</summary>
 public record CatalogPage(List<CatalogGame> Items, int TotalCount);

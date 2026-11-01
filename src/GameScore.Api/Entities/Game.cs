@@ -21,6 +21,9 @@ public class Game
     public string? BackgroundImage { get; set; }
 
     public DateOnly? Released { get; set; }
+
+    /// <summary>Ids de plataforma de IGDB donde salió el juego (null = aún no se consultó).</summary>
+    public int[]? PlatformIgdbIds { get; set; }
     public string? Description { get; set; }
     public DateTime CachedAt { get; set; } = DateTime.UtcNow;
 

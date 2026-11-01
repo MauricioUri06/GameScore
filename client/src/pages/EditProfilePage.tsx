@@ -4,10 +4,11 @@ import { api } from '../api/client'
 import type { Genre, Platform, Profile } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
+import { AvatarCropper } from '../components/AvatarCropper'
 import { igdbSize } from '../components/GameCard'
+import { groupPlatforms } from '../components/PlatformList'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
-import { toSquareJpeg } from '../lib/resizeImage'
 
 interface PickedGame {
   gameId: number
@@ -149,7 +150,6 @@ function ProfileEditor({
           setAvatar(user.avatarUrl ? { kind: 'remove' } : { kind: 'none' })
           setJustSaved(false)
         }}
-        onError={setError}
       />
       <TopGamesSection games={draft.games} onChange={(games) => update({ games })} />
       <PlatformsSection
@@ -195,7 +195,6 @@ function AvatarSection({
   disabled,
   onPick,
   onRemove,
-  onError,
 }: {
   userName: string
   url: string | null
@@ -203,40 +202,52 @@ function AvatarSection({
   disabled: boolean
   onPick: (image: Blob, preview: string) => void
   onRemove: () => void
-  onError: (e: unknown) => void
 }) {
   const fileInput = useRef<HTMLInputElement>(null)
+  const [cropping, setCropping] = useState<File | null>(null)
 
-  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = '' // permite volver a elegir el mismo archivo
-    if (!file) return
-    try {
-      const image = await toSquareJpeg(file)
-      onPick(image, URL.createObjectURL(image))
-    } catch (err) {
-      onError(err)
-    }
+    if (file) setCropping(file)
   }
 
   return (
     <div className="card section avatar-editor">
       <h2>Foto de perfil</h2>
-      <Avatar name={userName} url={url} large />
-      <p className="muted small" style={{ margin: 0 }}>
-        JPG, PNG o WebP. Se recorta en un cuadrado automáticamente.
-      </p>
-      <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onFile} />
-      <div className="row" style={{ justifyContent: 'center' }}>
-        <button type="button" className="btn btn-ghost" disabled={disabled} onClick={() => fileInput.current?.click()}>
-          {hasPhoto ? 'Cambiar foto' : 'Elegir foto'}
-        </button>
-        {hasPhoto && (
-          <button type="button" className="btn btn-danger" disabled={disabled} onClick={onRemove}>
-            Quitar foto
-          </button>
-        )}
-      </div>
+      {cropping ? (
+        <AvatarCropper
+          file={cropping}
+          onCancel={() => setCropping(null)}
+          onConfirm={(image) => {
+            onPick(image, URL.createObjectURL(image))
+            setCropping(null)
+          }}
+        />
+      ) : (
+        <>
+          <Avatar name={userName} url={url} large />
+          <p className="muted small" style={{ margin: 0 }}>
+            JPG, PNG o WebP. Después de elegirla podrás encuadrarla y hacer zoom.
+          </p>
+          <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onFile} />
+          <div className="row" style={{ justifyContent: 'center' }}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={disabled}
+              onClick={() => fileInput.current?.click()}
+            >
+              {hasPhoto ? 'Cambiar foto' : 'Elegir foto'}
+            </button>
+            {hasPhoto && (
+              <button type="button" className="btn btn-danger" disabled={disabled} onClick={onRemove}>
+                Quitar foto
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -376,19 +387,26 @@ function PlatformsSection({
     <div className="card section">
       <h2>Mis plataformas</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Marca en qué plataformas juegas ({selected.length} seleccionadas).
+        Marca las consolas que tienes ({selected.length} seleccionadas).
       </p>
-      <div className="tag-list tag-list-center">
-        {all.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={`tag tag-lg${selected.includes(p.id) ? ' selected' : ''}`}
-            aria-pressed={selected.includes(p.id)}
-            onClick={() => toggle(p.id)}
-          >
-            {p.name}
-          </button>
+      <div className="platform-groups">
+        {groupPlatforms(all).map(([family, items]) => (
+          <div key={family} className="platform-group">
+            <span className="platform-family">{family}</span>
+            <div className="tag-list">
+              {items.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`tag${selected.includes(p.id) ? ' selected' : ''}`}
+                  aria-pressed={selected.includes(p.id)}
+                  onClick={() => toggle(p.id)}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -404,16 +422,14 @@ function GenresSection({
   selected: number[]
   onChange: (ids: number[]) => void
 }) {
-  const toggle = (id: number) => {
-    if (selected.includes(id)) onChange(selected.filter((x) => x !== id))
-    else if (selected.length < 5) onChange([...selected, id])
-  }
+  const toggle = (id: number) =>
+    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
 
   return (
     <div className="card section">
       <h2>Géneros favoritos</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Elige hasta 5 ({selected.length}/5).
+        Elige todas las que quieras ({selected.length} seleccionadas).
       </p>
       <div className="tag-list tag-list-center">
         {all.map((g) => (

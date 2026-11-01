@@ -35,7 +35,7 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
         var platforms = await db.UserPlatforms
             .Where(up => up.UserId == user.Id)
             .OrderBy(up => up.Platform.SortOrder)
-            .Select(up => new PlatformDto(up.Platform.Id, up.Platform.Name))
+            .Select(up => new PlatformDto(up.Platform.Id, up.Platform.Name, up.Platform.Family))
             .ToListAsync(ct);
 
         var ratingsQuery = db.Ratings.Where(r => r.UserId == user.Id);
@@ -102,12 +102,8 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
     [HttpPut("api/me/favorite-genres")]
     public async Task<IActionResult> UpdateFavoriteGenres(UpdateFavoriteGenresRequest request, CancellationToken ct)
     {
+        // Sin límite: se pueden elegir todas las categorías que se quiera
         var genreIds = (request.GenreIds ?? []).Distinct().ToList();
-        if (genreIds.Count > 5)
-        {
-            ModelState.AddModelError(nameof(request.GenreIds), "Máximo 5 géneros.");
-            return ValidationProblem(ModelState);
-        }
 
         var validIds = await db.Genres.Where(g => genreIds.Contains(g.Id)).Select(g => g.Id).ToListAsync(ct);
         var userId = User.GetRequiredUserId();

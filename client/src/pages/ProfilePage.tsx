@@ -62,7 +62,7 @@ export function ProfilePage() {
           {profile.favoriteGenres.length ? (
             <div className="tag-list tag-list-center">
               {profile.favoriteGenres.map((g) => (
-                <Link key={g.id} to={`/?genre=${g.slug}`} className="tag tag-lg selected">
+                <Link key={g.id} to={`/ranking?genre=${g.slug}`} className="tag tag-lg selected">
                   {g.name}
                 </Link>
               ))}

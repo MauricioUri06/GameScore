@@ -27,14 +27,18 @@ public class GamesController(GameService games, RankingService ranking, GameScor
         return await games.BrowseAsync(page, genre, query, ct);
     }
 
-    /// <summary>Busca juegos por nombre (para sugerencias). Devuelve todos los resultados.</summary>
+    /// <summary>
+    /// Busca juegos por nombre. Con <c>limit</c> devuelve solo los primeros (autocompletado);
+    /// sin él, todos los resultados.
+    /// </summary>
     [HttpGet("search")]
-    public async Task<ActionResult<List<GameSummaryDto>>> Search([FromQuery] string? q, CancellationToken ct = default)
+    public async Task<ActionResult<List<GameSummaryDto>>> Search(
+        [FromQuery] string? q, [FromQuery] int? limit = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
             return Ok(new List<GameSummaryDto>());
 
-        return await games.SearchAsync(q.Trim(), null, ct);
+        return await games.SearchAsync(q.Trim(), null, ct, limit is null ? null : Math.Clamp(limit.Value, 1, 20));
     }
 
     /// <summary>Juegos populares recientes (desde IGDB).</summary>

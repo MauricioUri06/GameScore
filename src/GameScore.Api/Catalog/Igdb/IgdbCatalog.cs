@@ -14,7 +14,7 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
 {
     private const string GameFields =
         "fields name,slug,summary,first_release_date,total_rating_count,cover.image_id,artworks.image_id," +
-        "screenshots.image_id,genres.name,genres.slug,themes.name,themes.slug;";
+        "screenshots.image_id,genres.name,genres.slug,themes.name,themes.slug,platforms;";
 
     /// <summary>
     /// Tipos de juego que mostramos: juego principal (0), expansión independiente (4), remake (8),
@@ -37,14 +37,14 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
 
     private readonly IgdbOptions _options = options.Value;
 
-    public async Task<List<CatalogGame>> SearchAsync(string query, CatalogGenreFilter? genre, CancellationToken ct)
+    public async Task<List<CatalogGame>> SearchAsync(string query, CatalogGenreFilter? genre, CancellationToken ct, int max = MaxResults)
     {
         var text = query.Replace("\\", "").Replace("\"", "\\\"").Trim();
 
         // IGDB no permite ordenar una búsqueda, así que pedimos todos los resultados que deja
         // en una consulta (máx. 500) y los ordenamos nosotros: nombre exacto primero, luego los más populares.
         var games = await WithTypeFallback(type => QueryAsync<IgdbGame>("games",
-            $"search \"{text}\"; {GameFields} where {BaseFilter(type, genre)}; limit {MaxResults};", ct));
+            $"search \"{text}\"; {GameFields} where {BaseFilter(type, genre)}; limit {Math.Clamp(max, 1, MaxResults)};", ct));
 
         return games
             .Where(IsAllowed)
@@ -203,7 +203,8 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
             ImageUrl(backgroundId, "t_1080p") ?? ImageUrl(g.Cover?.ImageId, "t_cover_big"),
             g.FirstReleaseDate is { } unix ? DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime) : null,
             g.Summary,
-            genres);
+            genres,
+            g.Platforms ?? []);
     }
 
     /// <summary>
@@ -245,5 +246,6 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         public List<IgdbImage>? Screenshots { get; set; }
         public List<IgdbGenre>? Genres { get; set; }
         public List<IgdbGenre>? Themes { get; set; }
+        public List<int>? Platforms { get; set; }
     }
 }

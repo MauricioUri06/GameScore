@@ -37,12 +37,17 @@ public record GameSummaryDto(
     int RatingsCount);
 
 public record ReviewDto(
+    int RatingId,
     string UserName,
     string? AvatarUrl,
     decimal Score,
     string? Review,
     string? PlatformName,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    int Likes,
+    int Dislikes,
+    // Voto del usuario actual: 1, -1 o 0 (sin voto / anónimo)
+    short MyVote);
 
 public record MyRatingDto(decimal Score, string? Review, int? PlatformId, DateTime UpdatedAt);
 
@@ -57,10 +62,12 @@ public record GameDetailDto(
     IReadOnlyList<GenreDto> Genres,
     double? AverageScore,
     int RatingsCount,
-    // Cantidad de calificaciones por valor: índice 0 = 0.5 estrellas ... índice 9 = 5 estrellas
+    // Cantidad de calificaciones por valor: índice 0 = 0 estrellas, 1 = 0.5 ... índice 10 = 5 estrellas
     IReadOnlyList<int> Distribution,
     MyRatingDto? MyRating,
-    IReadOnlyList<ReviewDto> RecentReviews);
+    IReadOnlyList<ReviewDto> RecentReviews,
+    // Consolas donde está disponible el juego (vacío si IGDB no lo sabe: se muestran todas)
+    IReadOnlyList<PlatformDto> AvailablePlatforms);
 
 public record RankedGameDto(
     int Position,
@@ -76,7 +83,7 @@ public record RankedGameDto(
 // ---------- Calificaciones ----------
 
 public record RateGameRequest(
-    [Range(0.5, 5.0)] decimal Score,
+    [Range(0.0, 5.0)] decimal Score,
     [StringLength(2000)] string? Review,
     [Required(ErrorMessage = "Elige en qué plataforma lo jugaste.")] int? PlatformId);
 
@@ -97,7 +104,7 @@ public record TopGameDto(int Position, int GameId, string Slug, string Name, str
 public record ProfileRatingDto(
     int GameId, string GameName, string? GameCover, decimal Score, string? Review, string? PlatformName, DateTime UpdatedAt);
 
-public record PlatformDto(int Id, string Name);
+public record PlatformDto(int Id, string Name, string Family);
 
 public record ProfileDto(
     string UserName,
@@ -114,7 +121,7 @@ public record UpdatePlatformsRequest(List<int> PlatformIds);
 
 public record UpdateTopGamesRequest([MaxLength(5)] List<int> GameIds);
 
-public record UpdateFavoriteGenresRequest([MaxLength(5)] List<int> GenreIds);
+public record UpdateFavoriteGenresRequest(List<int> GenreIds);
 
 // ---------- Paginación ----------
 

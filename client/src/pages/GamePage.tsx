@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
-import type { GameDetail } from '../api/types'
+import type { GameDetail, Platform, Review } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
 import { GameCover } from '../components/GameCard'
+import { groupPlatforms } from '../components/PlatformList'
 import { StarInput, Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -41,7 +42,7 @@ export function GamePage() {
                 {game.released && <span className="muted">{game.released.slice(0, 4)}</span>}
                 <div className="tag-list">
                   {game.genres.map((g) => (
-                    <Link key={g.id} to={`/?genre=${g.slug}`} className="tag">
+                    <Link key={g.id} to={`/ranking?genre=${g.slug}`} className="tag">
                       {g.name}
                     </Link>
                   ))}
@@ -68,20 +69,7 @@ export function GamePage() {
           ) : (
             <div>
               {game.recentReviews.map((r) => (
-                <article key={r.userName} className="review">
-                  <Avatar name={r.userName} url={r.avatarUrl} />
-                  <div>
-                    <div className="review-head">
-                      <Link to={`/u/${r.userName}`}>
-                        <strong>{r.userName}</strong>
-                      </Link>
-                      <Stars value={r.score} size="0.9rem" />
-                      {r.platformName && <span className="tag platform-tag">{r.platformName}</span>}
-                      <span className="faint">{new Date(r.updatedAt).toLocaleDateString()}</span>
-                    </div>
-                    {r.review && <p className="review-text">{r.review}</p>}
-                  </div>
-                </article>
+                <ReviewItem key={r.ratingId} review={r} />
               ))}
             </div>
           )}
@@ -129,12 +117,12 @@ function ScoreSummary({ game }: { game: GameDetail }) {
             key={i}
             className="histogram-bar"
             style={{ height: `${(count / max) * 100}%` }}
-            title={`${(i + 1) / 2} ★: ${count}`}
+            title={`${i / 2} ★: ${count}`}
           />
         ))}
       </div>
       <div className="histogram-labels">
-        <span>½★</span>
+        <span>0★</span>
         <span>5★</span>
       </div>
     </div>
@@ -147,6 +135,8 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
   const [review, setReview] = useState(game.myRating?.review ?? '')
   const [platformId, setPlatformId] = useState<number | ''>(game.myRating?.platformId ?? '')
   const platforms = useAsync(() => api.platforms(), [])
+  // Solo las consolas donde salió el juego; si IGDB no lo sabe, todas
+  const choices: Platform[] = game.availablePlatforms.length ? game.availablePlatforms : (platforms.data ?? [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const [saved, setSaved] = useState(false)
@@ -173,7 +163,7 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
   const save = async () => {
     if (score === null) return
     if (platformId === '') {
-      setError(new Error('Elige en qué plataforma lo jugaste.'))
+      setError(new Error('Elige en qué consola lo jugaste.'))
       return
     }
     setSaving(true)
@@ -210,7 +200,7 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
       {saved && <div className="alert alert-success">¡Guardado!</div>}
       <StarInput value={score} onChange={setScore} disabled={saving} />
       <div className="field" style={{ marginTop: 14 }}>
-        <label htmlFor="platform">¿En qué plataforma lo jugaste?</label>
+        <label htmlFor="platform">¿En qué consola lo jugaste?</label>
         <select
           id="platform"
           className="select"
@@ -218,11 +208,15 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
           onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : '')}
           disabled={saving || platforms.loading}
         >
-          <option value="">Elige una plataforma…</option>
-          {platforms.data?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
+          <option value="">Elige una consola…</option>
+          {groupPlatforms(choices).map(([family, items]) => (
+            <optgroup key={family} label={family}>
+              {items.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>
@@ -248,5 +242,73 @@ function RatePanel({ game, onSaved }: { game: GameDetail; onSaved: () => void })
         )}
       </div>
     </div>
+  )
+}
+
+/** Una reseña con sus botones de like / dislike. */
+function ReviewItem({ review }: { review: Review }) {
+  const { user } = useAuth()
+  const [votes, setVotes] = useState({ likes: review.likes, dislikes: review.dislikes, myVote: review.myVote })
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const isMine = user?.userName.toLowerCase() === review.userName.toLowerCase()
+
+  const vote = async (value: 1 | -1) => {
+    if (!user || isMine || busy) return
+    const next = votes.myVote === value ? 0 : value // volver a pulsar quita el voto
+    setBusy(true)
+    setError(null)
+    try {
+      setVotes(await api.voteReview(review.ratingId, next))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo votar.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const canVote = Boolean(user) && !isMine
+  const hint = !user ? 'Inicia sesión para votar' : isMine ? 'Es tu reseña' : undefined
+
+  return (
+    <article className="review">
+      <Avatar name={review.userName} url={review.avatarUrl} />
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="review-head">
+          <Link to={`/u/${review.userName}`}>
+            <strong>{review.userName}</strong>
+          </Link>
+          <Stars value={review.score} size="0.9rem" />
+          {review.platformName && <span className="tag platform-tag">{review.platformName}</span>}
+          <span className="faint">{new Date(review.updatedAt).toLocaleDateString()}</span>
+        </div>
+        {review.review && <p className="review-text">{review.review}</p>}
+        {review.review && (
+          <div className="review-votes" title={hint}>
+            <button
+              type="button"
+              className={`vote-btn${votes.myVote === 1 ? ' active' : ''}`}
+              onClick={() => vote(1)}
+              disabled={!canVote || busy}
+              aria-pressed={votes.myVote === 1}
+              aria-label="Me gusta"
+            >
+              👍 {votes.likes}
+            </button>
+            <button
+              type="button"
+              className={`vote-btn dislike${votes.myVote === -1 ? ' active' : ''}`}
+              onClick={() => vote(-1)}
+              disabled={!canVote || busy}
+              aria-pressed={votes.myVote === -1}
+              aria-label="No me gusta"
+            >
+              👎 {votes.dislikes}
+            </button>
+            {error && <span className="small" style={{ color: 'var(--danger)' }}>{error}</span>}
+          </div>
+        )}
+      </div>
+    </article>
   )
 }

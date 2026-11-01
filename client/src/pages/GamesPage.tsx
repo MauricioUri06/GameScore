@@ -1,9 +1,9 @@
-import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { GameCard, GameGridSkeleton } from '../components/GameCard'
 import { GenreSelect } from '../components/GenreSelect'
 import { Pagination } from '../components/Pagination'
+import { SearchAutocomplete } from '../components/SearchAutocomplete'
 import { Empty, ErrorMessage } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 
@@ -35,11 +35,6 @@ export function GamesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const submit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    update({ q: String(new FormData(e.currentTarget).get('q') ?? '').trim() })
-  }
-
   const data = result.data
   const first = data ? (data.page - 1) * data.pageSize + 1 : 0
   const last = data ? first + data.items.length - 1 : 0
@@ -47,24 +42,21 @@ export function GamesPage() {
   return (
     <div className="container page">
       <h1>Juegos</h1>
-      <form key={q} onSubmit={submit} className="row search-row" role="search">
-        <input
-          className="input"
-          style={{ flex: 1, minWidth: 220 }}
-          type="search"
-          name="q"
+      <div className="row search-row">
+        <SearchAutocomplete
+          key={q}
+          className="games-search"
           placeholder="Busca un juego por nombre…"
           defaultValue={q}
+          onSearch={(text) => update({ q: text })}
+          showButton
         />
-        <button className="btn btn-primary" type="submit">
-          Buscar
-        </button>
         {q && (
           <button className="btn btn-ghost" type="button" onClick={() => update({ q: '' })}>
             Quitar búsqueda
           </button>
         )}
-      </form>
+      </div>
 
       <GenreSelect
         genres={genres.data}

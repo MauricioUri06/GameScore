@@ -29,10 +29,16 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
     /// </summary>
     public const int MaxPages = 1000;
 
-    /// <summary>Busca por nombre (sin límite propio: todo lo que devuelve el catálogo).</summary>
-    public async Task<List<GameSummaryDto>> SearchAsync(string query, string? genreSlug, CancellationToken ct)
+    /// <summary>
+    /// Busca por nombre. Sin <paramref name="limit"/> devuelve todo lo que encuentra el catálogo;
+    /// con límite (sugerencias del autocompletado) pide menos resultados para responder rápido.
+    /// </summary>
+    public async Task<List<GameSummaryDto>> SearchAsync(string query, string? genreSlug, CancellationToken ct, int? limit = null)
     {
-        var games = await catalog.SearchAsync(query, await ResolveGenreAsync(genreSlug, ct), ct);
+        var genre = await ResolveGenreAsync(genreSlug, ct);
+        var games = limit is { } count
+            ? (await catalog.SearchAsync(query, genre, ct, max: 50)).Take(count).ToList()
+            : await catalog.SearchAsync(query, genre, ct);
         return await ToSummariesAsync(games, ct);
     }
 
@@ -96,12 +102,12 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             .Select(r => r.Score)
             .ToListAsync(ct);
 
-        // Distribución en 10 "cubetas": 0.5, 1.0, ..., 5.0
-        var distribution = new int[10];
+        // Distribución en 11 "cubetas": 0, 0.5, 1.0, ..., 5.0
+        var distribution = new int[11];
         foreach (var s in scores)
         {
-            var index = (int)(s * 2) - 1;
-            if (index is >= 0 and < 10) distribution[index]++;
+            var index = (int)(s * 2);
+            if (index is >= 0 and <= 10) distribution[index]++;
         }
 
         MyRatingDto? myRating = null;
@@ -116,11 +122,24 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
         var recentReviews = await db.Ratings
             .Where(r => r.GameId == game.Id)
             .OrderByDescending(r => r.UpdatedAt)
-            .Take(10)
+            .Take(20)
             .Select(r => new ReviewDto(
+                r.Id,
                 r.User.UserName!, AvatarUrls.For(r.User.UserName!, r.User.AvatarUpdatedAt), r.Score, r.Review,
-                r.Platform != null ? r.Platform.Name : null, r.UpdatedAt))
+                r.Platform != null ? r.Platform.Name : null, r.UpdatedAt,
+                r.Votes.Count(v => v.Value == 1),
+                r.Votes.Count(v => v.Value == -1),
+                currentUserId == null
+                    ? (short)0
+                    : r.Votes.Where(v => v.UserId == currentUserId).Select(v => v.Value).FirstOrDefault()))
             .ToListAsync(ct);
+
+        // Consolas donde salió el juego, según IGDB (si no hay datos, el frontend muestra todas)
+        var gamePlatformIds = game.PlatformIgdbIds ?? [];
+        var available = (await db.Platforms.AsNoTracking().OrderBy(p => p.SortOrder).ToListAsync(ct))
+            .Where(p => p.IgdbIds.Any(id => gamePlatformIds.Contains(id)))
+            .Select(p => new PlatformDto(p.Id, p.Name, p.Family))
+            .ToList();
 
         return new GameDetailDto(
             game.ExternalId,
@@ -135,7 +154,8 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             scores.Count,
             distribution,
             myRating,
-            recentReviews);
+            recentReviews,
+            available);
     }
 
     /// <summary>
@@ -150,6 +170,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
 
         var isFresh = game is not null
                       && game.Description is not null
+                      && game.PlatformIgdbIds is not null
                       && game.CachedAt > DateTime.UtcNow.AddDays(-_catalogOptions.CacheDays);
         if (isFresh) return game;
 
@@ -178,6 +199,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
         game.BackgroundImage = detail.BackgroundUrl;
         game.Released = detail.Released;
         game.Description = detail.Summary ?? string.Empty;
+        game.PlatformIgdbIds = detail.PlatformIds.ToArray();
         game.CachedAt = DateTime.UtcNow;
 
         game.Genres.Clear();

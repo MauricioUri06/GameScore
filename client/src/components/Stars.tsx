@@ -37,7 +37,7 @@ export function Stars({ value, size = '1rem' }: { value: number; size?: string }
   )
 }
 
-/** Selector de estrellas con medias estrellas (0.5 a 5). */
+/** Selector de estrellas de 0 a 5 con medias estrellas. El botón "0" da cero estrellas. */
 export function StarInput({
   value,
   onChange,
@@ -48,14 +48,27 @@ export function StarInput({
   disabled?: boolean
 }) {
   const [hover, setHover] = useState<number | null>(null)
-  const shown = hover ?? value ?? 0
+  const shown = hover ?? value
 
   return (
     <div className="star-input" onMouseLeave={() => setHover(null)}>
+      <button
+        type="button"
+        className={`star-zero${value === 0 ? ' selected' : ''}`}
+        aria-label="0 estrellas"
+        aria-pressed={value === 0}
+        disabled={disabled}
+        onMouseEnter={() => setHover(0)}
+        onFocus={() => setHover(0)}
+        onBlur={() => setHover(null)}
+        onClick={() => onChange(0)}
+      >
+        0
+      </button>
       <span className="stars" role="radiogroup" aria-label="Tu puntaje">
         {[0, 1, 2, 3, 4].map((i) => (
           <span key={i} className="star" style={{ position: 'relative' }}>
-            <StarShape fill={fillFor(shown, i)} />
+            <StarShape fill={fillFor(shown ?? 0, i)} />
             {[0.5, 1].map((part) => {
               const starValue = i + part
               return (
@@ -77,7 +90,7 @@ export function StarInput({
           </span>
         ))}
       </span>
-      <span className="star-input-value">{shown > 0 ? shown.toFixed(1) : '–'}</span>
+      <span className="star-input-value">{shown === null ? '–' : shown.toFixed(1)}</span>
     </div>
   )
 }

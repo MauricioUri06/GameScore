@@ -107,7 +107,8 @@ export const api = {
   me: () => request<CurrentUser>('/auth/me'),
 
   // Juegos
-  searchGames: (q: string) => request<GameSummary[]>(`/games/search?q=${encodeURIComponent(q)}`),
+  searchGames: (q: string, limit?: number) =>
+    request<GameSummary[]>(`/games/search?q=${encodeURIComponent(q)}${limit ? `&limit=${limit}` : ''}`),
   /** Todos los juegos, de 48 en 48, con filtros opcionales de categoría y nombre. */
   games: (params: { page: number; genre?: string; q?: string }) => {
     const qs = new URLSearchParams({ page: String(params.page) })
@@ -122,6 +123,12 @@ export const api = {
   rateGame: (gameId: number, score: number, review: string | null, platformId: number) =>
     request<MyRating>(`/games/${gameId}/rating`, { method: 'PUT', body: json({ score, review, platformId }) }),
   deleteRating: (gameId: number) => request<void>(`/games/${gameId}/rating`, { method: 'DELETE' }),
+  /** 1 = like, -1 = dislike, 0 = quitar voto */
+  voteReview: (ratingId: number, value: 1 | -1 | 0) =>
+    request<{ likes: number; dislikes: number; myVote: number }>(`/reviews/${ratingId}/vote`, {
+      method: 'PUT',
+      body: json({ value }),
+    }),
 
   // Comunidad
   activity: (limit = 12) => request<Activity[]>(`/activity?limit=${limit}`),

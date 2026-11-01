@@ -15,6 +15,7 @@ public class GameScoreDbContext(DbContextOptions<GameScoreDbContext> options)
     public DbSet<Platform> Platforms => Set<Platform>();
     public DbSet<UserPlatform> UserPlatforms => Set<UserPlatform>();
     public DbSet<UserAvatar> UserAvatars => Set<UserAvatar>();
+    public DbSet<ReviewVote> ReviewVotes => Set<ReviewVote>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

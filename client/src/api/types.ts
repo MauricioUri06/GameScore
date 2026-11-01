@@ -22,8 +22,10 @@ export interface Genre {
 
 export interface Platform {
   id: number
-  /** PC, PlayStation, Xbox, Nintendo… */
+  /** PS5, Switch, PC (Windows)… */
   name: string
+  /** PC, PlayStation, Xbox, Nintendo u Otras */
+  family: string
 }
 
 export interface GameSummary {
@@ -38,12 +40,17 @@ export interface GameSummary {
 }
 
 export interface Review {
+  ratingId: number
   userName: string
   avatarUrl: string | null
   score: number
   review: string | null
   platformName: string | null
   updatedAt: string
+  likes: number
+  dislikes: number
+  /** 1 = like, -1 = dislike, 0 = sin voto */
+  myVote: number
 }
 
 export interface MyRating {
@@ -67,6 +74,8 @@ export interface GameDetail {
   distribution: number[]
   myRating: MyRating | null
   recentReviews: Review[]
+  /** Consolas donde salió el juego (vacío = sin datos) */
+  availablePlatforms: Platform[]
 }
 
 export interface RankedGame {
