@@ -3,6 +3,8 @@ import type {
   AdminStats,
   AdminUser,
   AuthResponse,
+  CoverQuizGuessResult,
+  CoverQuizState,
   CurrentUser,
   GameDetail,
   FinishedGame,
@@ -10,6 +12,7 @@ import type {
   JournalEntry,
   Medal,
   Genre,
+  Leader,
   MyRating,
   OlderNewerGuessResult,
   OlderNewerLeader,
@@ -171,9 +174,15 @@ export const api = {
   finishPlaying: (gameId: number) => request<void>(`/me/playing/${gameId}/finish`, { method: 'POST' }),
   deleteFinished: (gameId: number) => request<void>(`/me/finished/${gameId}`, { method: 'DELETE' }),
   olderNewerStart: () => request<OlderNewerState>('/older-newer/start', { method: 'POST' }),
-  olderNewerGuess: (runId: string, guess: 'older' | 'newer') =>
+  olderNewerGuess: (runId: string, guess: 'older' | 'newer' | 'timeout') =>
     request<OlderNewerGuessResult>(`/older-newer/${runId}/guess`, { method: 'POST', body: json({ guess }) }),
   olderNewerLeaderboard: () => request<OlderNewerLeader[]>('/older-newer/leaderboard'),
+  coverQuizStart: () => request<CoverQuizState>('/cover-quiz/start', { method: 'POST' }),
+  coverQuizGuess: (runId: string, text: string) =>
+    request<CoverQuizGuessResult>(`/cover-quiz/${runId}/guess`, { method: 'POST', body: json({ text }) }),
+  coverQuizSkip: (runId: string) => request<CoverQuizGuessResult>(`/cover-quiz/${runId}/skip`, { method: 'POST' }),
+  coverQuizNext: (runId: string) => request<CoverQuizState>(`/cover-quiz/${runId}/next`, { method: 'POST' }),
+  coverQuizLeaderboard: () => request<Leader[]>('/cover-quiz/leaderboard'),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),

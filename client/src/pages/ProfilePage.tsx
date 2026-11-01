@@ -64,10 +64,6 @@ export function ProfilePage() {
             <strong>{finishedCount}</strong>
             <span>Terminados</span>
           </Link>
-          <Link to="/older-newer" className="stat stat-link" title="Récord en Older/Newer">
-            <strong>{profile.olderNewerBest}</strong>
-            <span>Older/Newer</span>
-          </Link>
           <div className="stat">
             <strong>{profile.averageGiven?.toFixed(1) ?? '–'}</strong>
             <span>Promedio</span>
@@ -80,6 +76,16 @@ export function ProfilePage() {
           </div>
         </div>
       </header>
+
+      <div className="profile-records">
+        <span className="profile-records-title">Récords</span>
+        <Link to="/older-newer">
+          ⏳ Older/Newer: <strong>{profile.olderNewerBest}</strong>
+        </Link>
+        <Link to="/adivina-la-portada">
+          🖼️ Adivina la portada: <strong>{profile.coverQuizBest}</strong>
+        </Link>
+      </div>
 
       <div className="profile-medals">
         {profile.medals.length > 0 ? (

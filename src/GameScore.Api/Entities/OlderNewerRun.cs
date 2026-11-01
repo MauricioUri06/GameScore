@@ -30,6 +30,9 @@ public class OlderNewerRun
     /// <summary>Juegos que ya salieron en esta partida (ids de IGDB), para no repetirlos.</summary>
     public int[] UsedGameIds { get; set; } = [];
 
+    /// <summary>Cuándo se mostró la pregunta actual (para el límite de 10 segundos).</summary>
+    public DateTime QuestionShownAt { get; set; } = DateTime.UtcNow;
+
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

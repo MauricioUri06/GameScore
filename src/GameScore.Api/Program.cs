@@ -106,6 +106,8 @@ builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<RankingService>();
 builder.Services.AddScoped<MedalService>();
 builder.Services.AddSingleton<OlderNewerPool>();
+builder.Services.AddHttpClient(CoverImageService.HttpClientName, http => http.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddSingleton<CoverImageService>();
 builder.Services.AddSingleton<TokenService>();
 
 // Límite de intentos en registro/login (además del bloqueo de cuenta de Identity)

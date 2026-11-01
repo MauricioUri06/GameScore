@@ -142,15 +142,27 @@ public record ProfileDto(
     int MedalsTotal,
     int ReviewsCount,
     int FinishedCount,
-    int OlderNewerBest);
+    int OlderNewerBest,
+    int CoverQuizBest);
+
+// ---------- Adivina la portada ----------
+public record CoverQuizStateDto(Guid RunId, int Round, int TotalRounds, int Score, int Attempts, int MaxAttempts,
+    string Hint, string ImageUrl, int SecondsLeft, int SecondsPerRound, bool RoundOver, bool GameOver, int? Best,
+    IReadOnlyList<int> PointsByAttempt);
+public record CoverQuizGuessRequest([Required, StringLength(200)] string Text);
+/// <summary>Answer/AnswerGameId solo se envían cuando la ronda ya terminó.</summary>
+public record CoverQuizGuessResultDto(bool Correct, bool TimedOut, int Points, string? Answer, int? AnswerGameId,
+    string? AnswerCoverUrl, bool NewRecord, CoverQuizStateDto State);
+public record LeaderDto(string UserName, string? AvatarUrl, int Best);
 
 // ---------- Older/Newer ----------
 /// <summary>Year = null en el juego que hay que adivinar.</summary>
 public record OlderNewerGameDto(int GameId, string Name, string? CoverUrl, int? Year);
-public record OlderNewerStateDto(Guid RunId, int Score, OlderNewerGameDto Left, OlderNewerGameDto Right, int? Best);
+public record OlderNewerStateDto(Guid RunId, int Score, OlderNewerGameDto Left, OlderNewerGameDto Right, int? Best,
+    int SecondsPerQuestion);
 public record OlderNewerGuessRequest([Required] string Guess);
 public record OlderNewerGuessResultDto(bool Correct, int RightYear, int Score, bool GameOver,
-    OlderNewerGameDto? NextRight, int? Best, bool NewRecord);
+    OlderNewerGameDto? NextRight, int? Best, bool NewRecord, bool TimedOut);
 public record OlderNewerLeaderDto(string UserName, string? AvatarUrl, int Best);
 
 public record UpdatePlayingRequest(List<int> GameIds);

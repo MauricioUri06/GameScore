@@ -138,6 +138,7 @@ export interface Profile {
   medalsTotal: number
   finishedCount: number
   olderNewerBest: number
+  coverQuizBest: number
   reviewsCount: number
 }
 
@@ -213,6 +214,7 @@ export interface OlderNewerState {
   left: OlderNewerGame
   right: OlderNewerGame
   best: number | null
+  secondsPerQuestion: number
 }
 
 export interface OlderNewerGuessResult {
@@ -223,12 +225,43 @@ export interface OlderNewerGuessResult {
   nextRight: OlderNewerGame | null
   best: number | null
   newRecord: boolean
+  timedOut: boolean
 }
 
-export interface OlderNewerLeader {
+/** Un puesto en el top de récords de un minijuego. */
+export interface Leader {
   userName: string
   avatarUrl: string | null
   best: number
+}
+export type OlderNewerLeader = Leader
+
+export interface CoverQuizState {
+  runId: string
+  round: number
+  totalRounds: number
+  score: number
+  attempts: number
+  maxAttempts: number
+  hint: string
+  imageUrl: string
+  secondsLeft: number
+  secondsPerRound: number
+  roundOver: boolean
+  gameOver: boolean
+  best: number | null
+  pointsByAttempt: number[]
+}
+
+export interface CoverQuizGuessResult {
+  correct: boolean
+  timedOut: boolean
+  points: number
+  answer: string | null
+  answerGameId: number | null
+  answerCoverUrl: string | null
+  newRecord: boolean
+  state: CoverQuizState
 }
 
 export interface FinishedGame {

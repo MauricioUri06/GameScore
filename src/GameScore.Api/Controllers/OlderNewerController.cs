@@ -16,6 +16,12 @@ namespace GameScore.Api.Controllers;
 [Route("api/older-newer")]
 public class OlderNewerController(GameScoreDbContext db, OlderNewerPool pool) : ControllerBase
 {
+    /// <summary>Segundos para responder cada pregunta (así no da tiempo de buscarlo en internet).</summary>
+    public const int SecondsPerQuestion = 10;
+
+    /// <summary>Margen extra por la latencia de la conexión y la animación entre preguntas.</summary>
+    private static readonly TimeSpan Grace = TimeSpan.FromSeconds(3);
+
     /// <summary>Empieza una partida nueva.</summary>
     [HttpPost("start")]
     public async Task<ActionResult<OlderNewerStateDto>> Start(CancellationToken ct)
@@ -44,7 +50,8 @@ public class OlderNewerController(GameScoreDbContext db, OlderNewerPool pool) : 
         return new OlderNewerStateDto(run.Id, 0,
             new OlderNewerGameDto(left.Id, left.Name, left.CoverUrl, left.Year),
             new OlderNewerGameDto(right.Id, right.Name, right.CoverUrl, null),
-            userId is null ? null : await BestAsync(userId, ct));
+            userId is null ? null : await BestAsync(userId, ct),
+            SecondsPerQuestion);
     }
 
     /// <summary>Responde si el juego de la derecha es más antiguo ("older") o más nuevo ("newer").</summary>
@@ -52,9 +59,9 @@ public class OlderNewerController(GameScoreDbContext db, OlderNewerPool pool) : 
     public async Task<ActionResult<OlderNewerGuessResultDto>> Guess(Guid runId, OlderNewerGuessRequest request, CancellationToken ct)
     {
         var guess = request.Guess?.Trim().ToLowerInvariant();
-        if (guess is not ("older" or "newer"))
+        if (guess is not ("older" or "newer" or "timeout"))
         {
-            ModelState.AddModelError(nameof(request.Guess), "La respuesta debe ser \"older\" o \"newer\".");
+            ModelState.AddModelError(nameof(request.Guess), "La respuesta debe ser \"older\", \"newer\" o \"timeout\".");
             return ValidationProblem(ModelState);
         }
 
@@ -68,9 +75,12 @@ public class OlderNewerController(GameScoreDbContext db, OlderNewerPool pool) : 
             ? (int?)null
             : await db.OlderNewerRuns.Where(r => r.UserId == userId && r.Id != run.Id).MaxAsync(r => (int?)r.Score, ct) ?? 0;
         var rightYear = run.RightYear;
-        var correct = run.RightYear == run.LeftYear
-                      || (guess == "older" && run.RightYear < run.LeftYear)
-                      || (guess == "newer" && run.RightYear > run.LeftYear);
+        var timedOut = guess == "timeout"
+                       || DateTime.UtcNow - run.QuestionShownAt > TimeSpan.FromSeconds(SecondsPerQuestion) + Grace;
+        var correct = !timedOut
+                      && (run.RightYear == run.LeftYear
+                          || (guess == "older" && run.RightYear < run.LeftYear)
+                          || (guess == "newer" && run.RightYear > run.LeftYear));
 
         OlderNewerGameDto? nextRight = null;
         if (correct)
@@ -94,6 +104,7 @@ public class OlderNewerController(GameScoreDbContext db, OlderNewerPool pool) : 
                 run.RightCover = next.CoverUrl;
                 run.RightYear = next.Year;
                 run.UsedGameIds = [.. run.UsedGameIds, next.Id];
+                run.QuestionShownAt = DateTime.UtcNow;
                 nextRight = new OlderNewerGameDto(next.Id, next.Name, next.CoverUrl, null);
             }
         }
@@ -107,7 +118,7 @@ public class OlderNewerController(GameScoreDbContext db, OlderNewerPool pool) : 
 
         var best = userId is null ? (int?)null : Math.Max(previousBest ?? 0, run.Score);
         var newRecord = userId is not null && run.Finished && run.Score > (previousBest ?? 0);
-        return new OlderNewerGuessResultDto(correct, rightYear, run.Score, run.Finished, nextRight, best, newRecord);
+        return new OlderNewerGuessResultDto(correct, rightYear, run.Score, run.Finished, nextRight, best, newRecord, timedOut);
     }
 
     /// <summary>Los 10 mejores récords.</summary>

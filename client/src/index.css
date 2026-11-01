@@ -2284,3 +2284,222 @@ img.avatar {
     font-size: 1.5rem;
   }
 }
+
+/* ---------- Menú Actividades ---------- */
+.activities-menu {
+  position: relative;
+}
+.activities-trigger {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.activities-trigger:hover,
+.activities-trigger.active,
+.activities-trigger[aria-expanded='true'] {
+  color: var(--text);
+  background: var(--primary-soft);
+}
+.activities-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold-light);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.75);
+}
+.nav-links .activities-panel a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  color: var(--text);
+  background: none;
+}
+.nav-links .activities-panel a:hover {
+  background: var(--primary-soft);
+}
+.activities-panel strong {
+  display: block;
+  font-weight: 600;
+}
+.activities-panel small {
+  display: block;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+}
+.activities-icon {
+  font-size: 1.3rem;
+}
+
+/* ---------- Temporizador ---------- */
+.countdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto 16px;
+}
+.countdown-track {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.countdown-fill {
+  display: block;
+  height: 100%;
+  transition: width 0.1s linear;
+}
+.countdown-fill.ok {
+  background: var(--primary-light);
+}
+.countdown-fill.warn {
+  background: var(--gold-light);
+}
+.countdown-fill.danger {
+  background: #c0504d;
+}
+.countdown-text {
+  min-width: 3ch;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-align: right;
+}
+.countdown-text.danger {
+  color: #e06c6c;
+}
+
+/* ---------- Adivina la portada ---------- */
+.cq-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.cq-board .countdown {
+  width: 100%;
+  margin: 0;
+}
+.cq-cover {
+  width: 220px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 3px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  transition: border-color 0.2s;
+}
+.cq-cover.correct {
+  border-color: var(--primary-light);
+}
+.cq-cover.wrong {
+  border-color: #c0504d;
+}
+.cq-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+}
+.cq-hint {
+  margin: 0;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 1.25rem;
+  letter-spacing: 0.18em;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.cq-attempts {
+  display: flex;
+  gap: 6px;
+}
+.cq-attempts span {
+  min-width: 42px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  text-align: center;
+}
+.cq-attempts span.current {
+  border-color: var(--gold-light);
+  color: var(--gold-light);
+  font-weight: 700;
+}
+.cq-attempts span.used {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+.cq-feedback {
+  margin: 0;
+  color: var(--gold-light);
+  font-size: 0.9rem;
+  text-align: center;
+}
+.cq-form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.cq-form .input {
+  flex: 1;
+}
+.cq-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.cq-result h2 {
+  margin: 0;
+}
+
+/* ---------- Récords en el perfil ---------- */
+.profile-records {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 18px;
+  margin: 4px 0 14px;
+  font-size: 0.9rem;
+}
+.profile-records-title {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.profile-records a {
+  color: var(--text-muted);
+}
+.profile-records a strong {
+  color: var(--gold-light);
+}
+@media (max-width: 480px) {
+  .cq-form {
+    flex-direction: column;
+  }
+}

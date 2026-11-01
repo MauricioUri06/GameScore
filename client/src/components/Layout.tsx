@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { ActivitiesMenu } from './ActivitiesMenu'
 import { UserMenu } from './UserMenu'
 import { SearchAutocomplete } from './SearchAutocomplete'
 
@@ -45,7 +46,7 @@ export function Layout() {
             </NavLink>
             <NavLink to="/ranking">Ranking</NavLink>
             <NavLink to="/juegos">Juegos</NavLink>
-            <NavLink to="/older-newer">Older/Newer</NavLink>
+            <ActivitiesMenu />
           </nav>
           <NavSearch />
           <div className="nav-user">
