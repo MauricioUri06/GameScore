@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { JournalEntry, PlayingGame } from '../api/types'
@@ -7,6 +7,7 @@ import { ErrorMessage } from './Status'
 
 const dateFmt = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' })
 const formatHours = (h: number) => `${Number.isInteger(h) ? h : h.toFixed(1)} h`
+const round1 = (n: number) => Math.round(n * 10) / 10
 
 /**
  * Juego de "Jugando ahora": portada, descripción, diario (lo último que hizo el jugador)
@@ -48,17 +49,48 @@ export function PlayingCard({
     }
   }
 
-  const addHours = async (delta: number) => {
-    setError(null)
-    const previous = hours
-    setHours(Math.max(0, Math.round((hours + delta) * 10) / 10)) // respuesta inmediata
+  // Los clics rápidos se juntan y se mandan en UNA sola petición cuando el usuario para de hacer clic.
+  // Así las respuestas nunca llegan desordenadas y el número no "retrocede".
+  const pending = useRef(0) // horas sumadas en pantalla que aún no se enviaron
+  const flushTimer = useRef<number | undefined>(undefined)
+  const sending = useRef(false)
+
+  const flushHours = async () => {
+    window.clearTimeout(flushTimer.current)
+    if (sending.current || pending.current === 0) return
+    const delta = pending.current
+    pending.current = 0
+    sending.current = true
     try {
       const res = await api.addPlayingHours(game.gameId, delta)
-      setHours(res.hoursPlayed)
+      // Lo que diga el servidor + lo que se haya clicado mientras tanto
+      setHours(Math.max(0, round1(res.hoursPlayed + pending.current)))
     } catch (err) {
-      setHours(previous)
+      setHours((h) => Math.max(0, round1(h - delta)))
       setError(err)
+    } finally {
+      sending.current = false
+      if (pending.current !== 0) flushTimer.current = window.setTimeout(flushHours, 400)
     }
+  }
+
+  // Si sales de la página con horas sin enviar, se envían igual
+  const flushRef = useRef(flushHours)
+  useEffect(() => {
+    flushRef.current = flushHours
+  })
+  useEffect(() => () => void flushRef.current(), [])
+
+  const addHours = (delta: number) => {
+    setError(null)
+    const next = Math.max(0, round1(hours + delta))
+    const applied = round1(next - hours)
+    if (applied === 0) return
+    pending.current = round1(pending.current + applied)
+    setHours(next) // respuesta inmediata en pantalla
+    window.clearTimeout(flushTimer.current)
+    if (Math.abs(pending.current) >= 50) void flushHours()
+    else flushTimer.current = window.setTimeout(flushHours, 600)
   }
 
   const addEntry = async (e: FormEvent) => {

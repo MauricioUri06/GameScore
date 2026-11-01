@@ -276,12 +276,21 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
     public async Task<ActionResult<HoursDto>> AddHours(int gameId, AddHoursRequest request, CancellationToken ct)
     {
         var userId = User.GetRequiredUserId();
-        var row = await db.CurrentlyPlaying.FirstOrDefaultAsync(p => p.UserId == userId && p.Game.ExternalId == gameId, ct);
-        if (row is null) return NotFound();
+        var delta = Math.Round(request.Hours, 1);
 
-        row.HoursPlayed = Math.Clamp(Math.Round(row.HoursPlayed + request.Hours, 1), 0, 100_000);
-        await db.SaveChangesAsync(ct);
-        return new HoursDto(row.HoursPlayed);
+        // Suma atómica en la base de datos (UPDATE ... SET "HoursPlayed" = GREATEST(0, "HoursPlayed" + delta)):
+        // si llegan varios clics a la vez, ninguno pisa al otro.
+        var updated = await db.CurrentlyPlaying
+            .Where(p => p.UserId == userId && p.Game.ExternalId == gameId)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.HoursPlayed,
+                p => Math.Min(100_000, Math.Max(0, p.HoursPlayed + delta))), ct);
+        if (updated == 0) return NotFound();
+
+        var hours = await db.CurrentlyPlaying
+            .Where(p => p.UserId == userId && p.Game.ExternalId == gameId)
+            .Select(p => p.HoursPlayed)
+            .FirstAsync(ct);
+        return new HoursDto(Math.Round(hours, 1));
     }
 
     /// <summary>Diario completo de un juego de un usuario (lo más nuevo primero).</summary>
