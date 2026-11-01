@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
@@ -14,6 +15,8 @@ export function ProfilePage() {
   const userName = useParams().userName ?? ''
   const { user } = useAuth()
   const { data: profile, error, loading } = useAsync(() => api.profile(userName), [userName])
+  // Juegos que se acaban de marcar como terminados (se quitan de "Jugando ahora" sin recargar)
+  const [finishedNow, setFinishedNow] = useState<number[]>([])
 
   if (loading) return <Spinner />
   if (error || !profile) {
@@ -25,6 +28,8 @@ export function ProfilePage() {
   }
 
   const isMe = user?.userName.toLowerCase() === profile.userName.toLowerCase()
+  const playing = profile.playing.filter((g) => !finishedNow.includes(g.gameId))
+  const finishedCount = profile.finishedCount + finishedNow.length
   const slots = Array.from({ length: 5 }, (_, i) => profile.topGames.find((t) => t.position === i + 1))
 
   return (
@@ -55,6 +60,10 @@ export function ProfilePage() {
             <strong>{profile.reviewsCount}</strong>
             <span>Reseñas</span>
           </div>
+          <Link to={`/u/${profile.userName}/terminados`} className="stat stat-link">
+            <strong>{finishedCount}</strong>
+            <span>Terminados</span>
+          </Link>
           <div className="stat">
             <strong>{profile.averageGiven?.toFixed(1) ?? '–'}</strong>
             <span>Promedio</span>
@@ -127,15 +136,27 @@ export function ProfilePage() {
         </section>
       </div>
 
-      {(profile.playing.length > 0 || isMe) && (
+      {(playing.length > 0 || isMe) && (
         <section className="section">
           <div className="section-header">
             <h2>Jugando ahora</h2>
           </div>
-          {profile.playing.length ? (
+          {finishedNow.length > 0 && (
+            <p className="small muted" style={{ textAlign: 'center' }}>
+              🏁 ¡Bien jugado! Lo encontrarás en{' '}
+              <Link to={`/u/${profile.userName}/terminados`}>Juegos terminados</Link>.
+            </p>
+          )}
+          {playing.length ? (
             <div className="playing-list">
-              {profile.playing.map((g) => (
-                <PlayingCard key={g.gameId} game={g} userName={profile.userName} isMe={isMe} />
+              {playing.map((g) => (
+                <PlayingCard
+                  key={g.gameId}
+                  game={g}
+                  userName={profile.userName}
+                  isMe={isMe}
+                  onFinished={(id) => setFinishedNow((ids) => [...ids, id])}
+                />
               ))}
             </div>
           ) : (

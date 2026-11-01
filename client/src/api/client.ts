@@ -5,6 +5,7 @@ import type {
   AuthResponse,
   CurrentUser,
   GameDetail,
+  FinishedGame,
   GameSummary,
   JournalEntry,
   Medal,
@@ -163,6 +164,9 @@ export const api = {
   addJournalEntry: (gameId: number, text: string) =>
     request<JournalEntry>(`/me/playing/${gameId}/journal`, { method: 'POST', body: json({ text }) }),
   deleteJournalEntry: (entryId: number) => request<void>(`/me/journal/${entryId}`, { method: 'DELETE' }),
+  finished: (userName: string) => request<FinishedGame[]>(`/users/${encodeURIComponent(userName)}/finished`),
+  finishPlaying: (gameId: number) => request<void>(`/me/playing/${gameId}/finish`, { method: 'POST' }),
+  deleteFinished: (gameId: number) => request<void>(`/me/finished/${gameId}`, { method: 'DELETE' }),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),

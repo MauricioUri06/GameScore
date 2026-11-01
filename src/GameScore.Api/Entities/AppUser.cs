@@ -19,4 +19,5 @@ public class AppUser : IdentityUser
     public ICollection<UserPlatform> Platforms { get; set; } = new List<UserPlatform>();
     public ICollection<CurrentlyPlaying> CurrentlyPlaying { get; set; } = new List<CurrentlyPlaying>();
     public ICollection<UserShowcaseMedal> ShowcaseMedals { get; set; } = new List<UserShowcaseMedal>();
+    public ICollection<FinishedGame> FinishedGames { get; set; } = new List<FinishedGame>();
 }

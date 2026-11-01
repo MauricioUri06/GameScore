@@ -136,6 +136,7 @@ export interface Profile {
   medals: Medal[]
   medalsEarned: number
   medalsTotal: number
+  finishedCount: number
   reviewsCount: number
 }
 
@@ -194,6 +195,16 @@ export interface PlayingGame {
   description: string | null
   hoursPlayed: number
   lastEntry: JournalEntry | null
+  journalCount: number
+}
+
+export interface FinishedGame {
+  gameId: number
+  name: string
+  coverUrl: string | null
+  finishedAt: string
+  hoursPlayed: number
+  score: number | null
   journalCount: number
 }
 

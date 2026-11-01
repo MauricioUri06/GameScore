@@ -17,7 +17,8 @@ public record UserStats(
     int ZeroStarRatings,
     int FiveStarRatings,
     int ProfileChecks,
-    int Playing);
+    int Playing,
+    int Finished);
 
 /// <summary>
 /// Medallas: se calculan a partir de la actividad del usuario (no se guardan), así que
@@ -83,7 +84,11 @@ public class MedalService(GameScoreDbContext db)
         new("profile-complete", "Perfil completo",
             "Ten foto de perfil, un top 5 completo, géneros favoritos y consolas.", "✨", "Especiales", 4,
             s => s.ProfileChecks),
-        new("playing-1", "En partida", "Agrega un juego a \"Jugando ahora\".", "▶️", "Especiales", 1, s => s.Playing),
+        new("playing-1", "En partida", "Agrega un juego a \"Jugando ahora\".", "▶️", "Especiales", 1,
+            s => s.Playing + s.Finished),
+        new("finished-1", "Créditos finales", "Marca un juego como terminado.", "🏁", "Especiales", 1, s => s.Finished),
+        new("finished-10", "Completista", "Termina 10 juegos.", "🏆", "Especiales", 10, s => s.Finished),
+        new("finished-25", "Leyenda del mando", "Termina 25 juegos.", "🎮", "Especiales", 25, s => s.Finished),
     ];
 
     /// <summary>Todas las medallas con el progreso del usuario (obtenidas y por obtener).</summary>
@@ -109,7 +114,8 @@ public class MedalService(GameScoreDbContext db)
                 TopGames = u.TopGames.Count(),
                 FavoriteGenres = u.FavoriteGenres.Count(),
                 Platforms = u.Platforms.Count(),
-                Playing = u.CurrentlyPlaying.Count()
+                Playing = u.CurrentlyPlaying.Count(),
+                Finished = u.FinishedGames.Count()
             })
             .FirstAsync(ct);
 
@@ -148,6 +154,7 @@ public class MedalService(GameScoreDbContext db)
             zero,
             five,
             profileChecks,
-            user.Playing);
+            user.Playing,
+            user.Finished);
     }
 }

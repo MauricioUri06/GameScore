@@ -140,9 +140,14 @@ public record ProfileDto(
     IReadOnlyList<MedalDto> Medals,
     int MedalsEarned,
     int MedalsTotal,
-    int ReviewsCount);
+    int ReviewsCount,
+    int FinishedCount);
 
 public record UpdatePlayingRequest(List<int> GameIds);
+
+/// <summary>Juego terminado. MyScore = la calificación que le dio el usuario, si lo calificó.</summary>
+public record FinishedGameDto(int GameId, string Name, string? CoverUrl, DateTime FinishedAt, double HoursPlayed,
+    double? Score, int JournalCount);
 
 public record UpdateShowcaseMedalsRequest(List<string> MedalIds);
 

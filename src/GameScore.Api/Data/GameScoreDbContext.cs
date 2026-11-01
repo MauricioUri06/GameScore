@@ -19,6 +19,7 @@ public class GameScoreDbContext(DbContextOptions<GameScoreDbContext> options)
     public DbSet<CurrentlyPlaying> CurrentlyPlaying => Set<CurrentlyPlaying>();
     public DbSet<UserShowcaseMedal> UserShowcaseMedals => Set<UserShowcaseMedal>();
     public DbSet<PlayingJournalEntry> PlayingJournalEntries => Set<PlayingJournalEntry>();
+    public DbSet<FinishedGame> FinishedGames => Set<FinishedGame>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

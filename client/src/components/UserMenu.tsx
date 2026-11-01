@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from './Avatar'
 
-/** Menú desplegable del usuario (arriba a la derecha): perfil, medallas, admin y cerrar sesión. */
+/** Menú desplegable del usuario (arriba a la derecha): perfil, terminados, medallas, admin y cerrar sesión. */
 export function UserMenu() {
   const { user, logout } = useAuth()
   const [open, setOpen] = useState(false)
@@ -51,6 +51,9 @@ export function UserMenu() {
           </Link>
           <Link role="menuitem" to="/settings/profile">
             Editar perfil
+          </Link>
+          <Link role="menuitem" to={`/u/${user.userName}/terminados`}>
+            Juegos terminados
           </Link>
           <Link role="menuitem" to={`/u/${user.userName}/medallas`}>
             Medallas

@@ -6,6 +6,7 @@ import { Spinner } from './components/Status'
 import { AdminPage } from './pages/AdminPage'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { EditProfilePage } from './pages/EditProfilePage'
+import { FinishedPage } from './pages/FinishedPage'
 import { GamePage } from './pages/GamePage'
 import { GamesPage } from './pages/GamesPage'
 import { HomePage } from './pages/HomePage'
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="games/:gameId" element={<GamePage />} />
             <Route path="u/:userName" element={<ProfilePage />} />
             <Route path="u/:userName/medallas" element={<MedalsPage />} />
+            <Route path="u/:userName/terminados" element={<FinishedPage />} />
             <Route
               path="settings/profile"
               element={

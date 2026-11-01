@@ -96,6 +96,7 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
         }).ToList();
 
         var reviewsCount = await ratingsQuery.CountAsync(r => r.Review != null, ct);
+        var finishedCount = await db.FinishedGames.CountAsync(f => f.UserId == user.Id, ct);
         var allMedals = await medals.GetMedalsAsync(user.Id, ct);
         var earnedById = allMedals.Where(m => m.Earned).ToDictionary(m => m.Id);
         var showcaseIds = await db.UserShowcaseMedals
@@ -120,7 +121,74 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
             showcase,
             earnedById.Count,
             allMedals.Count,
-            reviewsCount);
+            reviewsCount,
+            finishedCount);
+    }
+
+    /// <summary>Juegos terminados de un usuario (lo más reciente primero).</summary>
+    [HttpGet("api/users/{userName}/finished")]
+    public async Task<ActionResult<List<FinishedGameDto>>> GetFinished(string userName, CancellationToken ct)
+    {
+        var normalized = userName.ToUpperInvariant();
+        var userId = await db.Users.Where(u => u.NormalizedUserName == normalized).Select(u => u.Id).FirstOrDefaultAsync(ct);
+        if (userId is null) return NotFound();
+
+        var rows = await db.FinishedGames
+            .Where(f => f.UserId == userId)
+            .OrderByDescending(f => f.FinishedAt)
+            .Select(f => new
+            {
+                f.GameId,
+                f.Game.ExternalId,
+                f.Game.Name,
+                f.Game.CoverImage,
+                f.FinishedAt,
+                f.HoursPlayed,
+                Score = db.Ratings.Where(r => r.UserId == userId && r.GameId == f.GameId).Select(r => (double?)r.Score).FirstOrDefault(),
+                JournalCount = db.PlayingJournalEntries.Count(e => e.UserId == userId && e.GameId == f.GameId),
+            })
+            .ToListAsync(ct);
+
+        return rows.Select(f => new FinishedGameDto(f.ExternalId, f.Name, f.CoverImage, f.FinishedAt, f.HoursPlayed,
+            f.Score, f.JournalCount)).ToList();
+    }
+
+    /// <summary>Marca como terminado un juego de "Jugando ahora": sale de esa lista y pasa a "Juegos terminados".</summary>
+    [Authorize]
+    [HttpPost("api/me/playing/{gameId:int}/finish")]
+    public async Task<IActionResult> FinishPlaying(int gameId, CancellationToken ct)
+    {
+        var userId = User.GetRequiredUserId();
+        var row = await db.CurrentlyPlaying.FirstOrDefaultAsync(p => p.UserId == userId && p.Game.ExternalId == gameId, ct);
+        if (row is null) return NotFound();
+
+        var finished = await db.FinishedGames.FirstOrDefaultAsync(f => f.UserId == userId && f.GameId == row.GameId, ct);
+        if (finished is null)
+        {
+            db.FinishedGames.Add(new FinishedGame { UserId = userId, GameId = row.GameId, HoursPlayed = row.HoursPlayed });
+        }
+        else
+        {
+            // Ya lo había terminado antes (lo volvió a jugar): se actualiza la fecha y se suman las horas
+            finished.FinishedAt = DateTime.UtcNow;
+            finished.HoursPlayed += row.HoursPlayed;
+        }
+
+        db.CurrentlyPlaying.Remove(row);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    /// <summary>Quita un juego de tus terminados.</summary>
+    [Authorize]
+    [HttpDelete("api/me/finished/{gameId:int}")]
+    public async Task<IActionResult> DeleteFinished(int gameId, CancellationToken ct)
+    {
+        var userId = User.GetRequiredUserId();
+        var deleted = await db.FinishedGames
+            .Where(f => f.UserId == userId && f.Game.ExternalId == gameId)
+            .ExecuteDeleteAsync(ct);
+        return deleted == 0 ? NotFound() : NoContent();
     }
 
     /// <summary>Todas las medallas de un usuario, obtenidas y por obtener, con su progreso.</summary>

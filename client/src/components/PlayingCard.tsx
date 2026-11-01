@@ -12,7 +12,17 @@ const formatHours = (h: number) => `${Number.isInteger(h) ? h : h.toFixed(1)} h`
  * Juego de "Jugando ahora": portada, descripción, diario (lo último que hizo el jugador)
  * y horas jugadas. Si es tu perfil puedes escribir en el diario y sumar horas.
  */
-export function PlayingCard({ game, userName, isMe }: { game: PlayingGame; userName: string; isMe: boolean }) {
+export function PlayingCard({
+  game,
+  userName,
+  isMe,
+  onFinished,
+}: {
+  game: PlayingGame
+  userName: string
+  isMe: boolean
+  onFinished?: (gameId: number) => void
+}) {
   const [hours, setHours] = useState(game.hoursPlayed)
   const [lastEntry, setLastEntry] = useState<JournalEntry | null>(game.lastEntry)
   const [count, setCount] = useState(game.journalCount)
@@ -22,6 +32,21 @@ export function PlayingCard({ game, userName, isMe }: { game: PlayingGame; userN
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const [expanded, setExpanded] = useState(false)
+  const [confirmFinish, setConfirmFinish] = useState(false)
+  const [finishing, setFinishing] = useState(false)
+
+  const finish = async () => {
+    setFinishing(true)
+    setError(null)
+    try {
+      await api.finishPlaying(game.gameId)
+      onFinished?.(game.gameId)
+    } catch (err) {
+      setError(err)
+      setFinishing(false)
+      setConfirmFinish(false)
+    }
+  }
 
   const addHours = async (delta: number) => {
     setError(null)
@@ -86,9 +111,32 @@ export function PlayingCard({ game, userName, isMe }: { game: PlayingGame; userN
       </Link>
 
       <div className="playing-body">
-        <Link to={`/games/${game.gameId}`} className="playing-title">
-          {game.name}
-        </Link>
+        <div className="playing-head">
+          <Link to={`/games/${game.gameId}`} className="playing-title">
+            {game.name}
+          </Link>
+          {isMe &&
+            (confirmFinish ? (
+              <span className="playing-finish-confirm">
+                <span className="small muted">¿Lo terminaste?</span>
+                <button type="button" className="btn btn-primary btn-sm" onClick={finish} disabled={finishing}>
+                  {finishing ? 'Moviendo…' : 'Sí, terminado'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setConfirmFinish(false)}
+                  disabled={finishing}
+                >
+                  Cancelar
+                </button>
+              </span>
+            ) : (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmFinish(true)}>
+                🏁 Marcar como terminado
+              </button>
+            ))}
+        </div>
         {game.description ? (
           <>
             <p className={`playing-description${expanded ? ' expanded' : ''}`}>{game.description}</p>
