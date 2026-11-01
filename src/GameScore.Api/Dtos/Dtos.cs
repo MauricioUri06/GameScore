@@ -108,7 +108,13 @@ public record ProfileRatingDto(
 
 public record PlatformDto(int Id, string Name, string Family);
 
-public record PlayingGameDto(int GameId, string Name, string? CoverUrl);
+public record PlayingGameDto(int GameId, string Name, string? CoverUrl, string? Description,
+    double HoursPlayed, JournalEntryDto? LastEntry, int JournalCount);
+public record JournalEntryDto(int Id, string Text, DateTime CreatedAt);
+public record AddJournalEntryRequest([property: System.ComponentModel.DataAnnotations.Required]
+    [property: System.ComponentModel.DataAnnotations.StringLength(500, MinimumLength = 1)] string Text);
+public record AddHoursRequest([property: System.ComponentModel.DataAnnotations.Range(-100.0, 100.0)] double Hours);
+public record HoursDto(double HoursPlayed);
 
 public record MedalDto(
     string Id,

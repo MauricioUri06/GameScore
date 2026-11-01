@@ -8,8 +8,8 @@ public class CurrentlyPlayingConfiguration : IEntityTypeConfiguration<CurrentlyP
 {
     public void Configure(EntityTypeBuilder<CurrentlyPlaying> builder)
     {
-        builder.ToTable("CurrentlyPlaying");
         builder.HasKey(p => new { p.UserId, p.GameId });
+        builder.ToTable("CurrentlyPlaying", t => t.HasCheckConstraint("CK_CurrentlyPlaying_Hours", "\"HoursPlayed\" >= 0"));
 
         builder.HasOne(p => p.User)
             .WithMany(u => u.CurrentlyPlaying)

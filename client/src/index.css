@@ -1834,3 +1834,185 @@ img.avatar {
   font-size: 0.72rem;
   font-weight: 700;
 }
+
+/* ---------- Jugando ahora: descripción, diario y horas ---------- */
+.playing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.playing-card {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 20px;
+  padding: 16px;
+}
+.playing-cover {
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  align-self: start;
+}
+.playing-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.playing-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.playing-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.playing-title:hover {
+  color: var(--gold-light);
+}
+.playing-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.playing-description.expanded {
+  display: block;
+}
+.link-button {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary-light);
+  font: inherit;
+  cursor: pointer;
+}
+.link-button.small {
+  font-size: 0.82rem;
+}
+.link-button:hover {
+  text-decoration: underline;
+}
+.playing-tracker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 16px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.playing-journal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.playing-journal h3,
+.playing-hours-label {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: left;
+}
+.journal-entry {
+  position: relative;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+}
+.journal-entry.latest {
+  border-left-color: var(--gold-light);
+}
+.journal-entry p {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+}
+.journal-date {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+.journal-form .textarea {
+  min-height: 64px;
+}
+.journal-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+.journal-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.journal-delete {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.journal-delete:hover {
+  color: var(--danger, #e06c6c);
+}
+.playing-hours {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 12px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  align-self: start;
+}
+.playing-hours-label {
+  text-align: center;
+  font-size: 0.75rem;
+}
+.playing-hours-value {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--gold-light);
+  line-height: 1;
+}
+.playing-hours-actions {
+  display: flex;
+  gap: 6px;
+}
+@media (max-width: 640px) {
+  .playing-card {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .playing-tracker {
+    grid-template-columns: 1fr;
+  }
+}

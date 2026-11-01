@@ -118,6 +118,9 @@ namespace GameScore.Api.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<double>("HoursPlayed")
+                        .HasColumnType("double precision");
+
                     b.Property<int>("Position")
                         .HasColumnType("integer");
 
@@ -125,7 +128,10 @@ namespace GameScore.Api.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("CurrentlyPlaying", (string)null);
+                    b.ToTable("CurrentlyPlaying", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CurrentlyPlaying_Hours", "\"HoursPlayed\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("GameScore.Api.Entities.Game", b =>
@@ -568,6 +574,38 @@ namespace GameScore.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.PlayingJournalEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("UserId", "GameId", "CreatedAt");
+
+                    b.ToTable("PlayingJournalEntries", (string)null);
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.Rating", b =>
                 {
                     b.Property<int>("Id")
@@ -713,6 +751,23 @@ namespace GameScore.Api.Migrations
                     b.HasIndex("PlatformId");
 
                     b.ToTable("UserPlatforms");
+                });
+
+            modelBuilder.Entity("GameScore.Api.Entities.UserShowcaseMedal", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MedalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "MedalId");
+
+                    b.ToTable("UserShowcaseMedals", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -881,6 +936,25 @@ namespace GameScore.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.PlayingJournalEntry", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.Rating", b =>
                 {
                     b.HasOne("GameScore.Api.Entities.Game", "Game")
@@ -994,6 +1068,17 @@ namespace GameScore.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.UserShowcaseMedal", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany("ShowcaseMedals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1054,6 +1139,8 @@ namespace GameScore.Api.Migrations
                     b.Navigation("Platforms");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("ShowcaseMedals");
 
                     b.Navigation("TopGames");
                 });

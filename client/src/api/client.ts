@@ -6,6 +6,7 @@ import type {
   CurrentUser,
   GameDetail,
   GameSummary,
+  JournalEntry,
   Medal,
   Genre,
   MyRating,
@@ -155,6 +156,13 @@ export const api = {
     request<void>('/me/platforms', { method: 'PUT', body: json({ platformIds }) }),
   updatePlaying: (gameIds: number[]) =>
     request<void>('/me/playing', { method: 'PUT', body: json({ gameIds }) }),
+  addPlayingHours: (gameId: number, hours: number) =>
+    request<{ hoursPlayed: number }>(`/me/playing/${gameId}/hours`, { method: 'POST', body: json({ hours }) }),
+  journal: (userName: string, gameId: number) =>
+    request<JournalEntry[]>(`/users/${encodeURIComponent(userName)}/journal/${gameId}`),
+  addJournalEntry: (gameId: number, text: string) =>
+    request<JournalEntry>(`/me/playing/${gameId}/journal`, { method: 'POST', body: json({ text }) }),
+  deleteJournalEntry: (entryId: number) => request<void>(`/me/journal/${entryId}`, { method: 'DELETE' }),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),

@@ -5,6 +5,7 @@ import { Avatar } from '../components/Avatar'
 import { MedalCircle } from '../components/MedalCircle'
 import { GameCover, igdbSize } from '../components/GameCard'
 import { PlatformList } from '../components/PlatformList'
+import { PlayingCard } from '../components/PlayingCard'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -132,17 +133,9 @@ export function ProfilePage() {
             <h2>Jugando ahora</h2>
           </div>
           {profile.playing.length ? (
-            <div className="playing-grid">
+            <div className="playing-list">
               {profile.playing.map((g) => (
-                <Link key={g.gameId} to={`/games/${g.gameId}`} className="game-card">
-                  <div className="game-cover">
-                    <GameCover src={g.coverUrl} name={g.name} />
-                    <span className="score-pill overlay">▶</span>
-                  </div>
-                  <div className="game-card-body">
-                    <span className="game-card-title">{g.name}</span>
-                  </div>
-                </Link>
+                <PlayingCard key={g.gameId} game={g} userName={profile.userName} isMe={isMe} />
               ))}
             </div>
           ) : (

@@ -191,6 +191,16 @@ export interface PlayingGame {
   gameId: number
   name: string
   coverUrl: string | null
+  description: string | null
+  hoursPlayed: number
+  lastEntry: JournalEntry | null
+  journalCount: number
+}
+
+export interface JournalEntry {
+  id: number
+  text: string
+  createdAt: string
 }
 
 export interface Medal {

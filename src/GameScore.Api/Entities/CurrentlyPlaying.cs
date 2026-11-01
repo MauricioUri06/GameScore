@@ -13,4 +13,7 @@ public class CurrentlyPlaying
     public int Position { get; set; }
 
     public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Horas jugadas que el usuario va sumando.</summary>
+    public double HoursPlayed { get; set; }
 }

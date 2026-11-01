@@ -75,11 +75,25 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
                 r.Platform != null ? r.Platform.Name : null, r.UpdatedAt))
             .ToListAsync(ct);
 
-        var playing = await db.CurrentlyPlaying
+        var playingRows = await db.CurrentlyPlaying
             .Where(p => p.UserId == user.Id)
             .OrderBy(p => p.Position)
-            .Select(p => new PlayingGameDto(p.Game.ExternalId, p.Game.Name, p.Game.CoverImage))
+            .Select(p => new { p.GameId, p.Game.ExternalId, p.Game.Name, p.Game.CoverImage, p.Game.Description, p.HoursPlayed })
             .ToListAsync(ct);
+        var playingIds = playingRows.Select(p => p.GameId).ToList();
+        var journal = await db.PlayingJournalEntries
+            .Where(e => e.UserId == user.Id && playingIds.Contains(e.GameId))
+            .Select(e => new { e.Id, e.GameId, e.Text, e.CreatedAt })
+            .ToListAsync(ct);
+        var journalByGame = journal.GroupBy(e => e.GameId).ToDictionary(g => g.Key, g => g.ToList());
+        var playing = playingRows.Select(p =>
+        {
+            var entries = journalByGame.GetValueOrDefault(p.GameId) ?? [];
+            var last = entries.MaxBy(e => e.CreatedAt);
+            return new PlayingGameDto(p.ExternalId, p.Name, p.CoverImage,
+                string.IsNullOrWhiteSpace(p.Description) ? null : p.Description, p.HoursPlayed,
+                last is null ? null : new JournalEntryDto(last.Id, last.Text, last.CreatedAt), entries.Count);
+        }).ToList();
 
         var reviewsCount = await ratingsQuery.CountAsync(r => r.Review != null, ct);
         var allMedals = await medals.GetMedalsAsync(user.Id, ct);
@@ -162,7 +176,8 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
         }
 
         var userId = User.GetRequiredUserId();
-        var entries = new List<CurrentlyPlaying>();
+        var existing = await db.CurrentlyPlaying.Where(p => p.UserId == userId).ToListAsync(ct);
+        var keep = new HashSet<int>();
         for (var i = 0; i < gameIds.Count; i++)
         {
             var game = await games.EnsureCachedAsync(gameIds[i], ct);
@@ -171,13 +186,86 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
                 ModelState.AddModelError(nameof(request.GameIds), $"No existe el juego {gameIds[i]}.");
                 return ValidationProblem(ModelState);
             }
-            entries.Add(new CurrentlyPlaying { UserId = userId, GameId = game.Id, Position = i + 1 });
+
+            keep.Add(game.Id);
+            var row = existing.FirstOrDefault(p => p.GameId == game.Id);
+            if (row is null)
+                db.CurrentlyPlaying.Add(new CurrentlyPlaying { UserId = userId, GameId = game.Id, Position = i + 1 });
+            else
+                row.Position = i + 1; // se conservan las horas jugadas
         }
 
-        await db.CurrentlyPlaying.Where(p => p.UserId == userId).ExecuteDeleteAsync(ct);
-        db.CurrentlyPlaying.AddRange(entries);
+        db.CurrentlyPlaying.RemoveRange(existing.Where(p => !keep.Contains(p.GameId)));
         await db.SaveChangesAsync(ct);
         return NoContent();
+    }
+
+    /// <summary>Suma (o resta, para corregir) horas jugadas a un juego de "Jugando ahora".</summary>
+    [Authorize]
+    [HttpPost("api/me/playing/{gameId:int}/hours")]
+    public async Task<ActionResult<HoursDto>> AddHours(int gameId, AddHoursRequest request, CancellationToken ct)
+    {
+        var userId = User.GetRequiredUserId();
+        var row = await db.CurrentlyPlaying.FirstOrDefaultAsync(p => p.UserId == userId && p.Game.ExternalId == gameId, ct);
+        if (row is null) return NotFound();
+
+        row.HoursPlayed = Math.Clamp(Math.Round(row.HoursPlayed + request.Hours, 1), 0, 100_000);
+        await db.SaveChangesAsync(ct);
+        return new HoursDto(row.HoursPlayed);
+    }
+
+    /// <summary>Diario completo de un juego de un usuario (lo más nuevo primero).</summary>
+    [HttpGet("api/users/{userName}/journal/{gameId:int}")]
+    public async Task<ActionResult<List<JournalEntryDto>>> GetJournal(string userName, int gameId, CancellationToken ct)
+    {
+        var normalized = userName.ToUpperInvariant();
+        var userId = await db.Users.Where(u => u.NormalizedUserName == normalized).Select(u => u.Id).FirstOrDefaultAsync(ct);
+        if (userId is null) return NotFound();
+
+        var rows = await db.PlayingJournalEntries
+            .Where(e => e.UserId == userId && e.Game.ExternalId == gameId)
+            .OrderByDescending(e => e.CreatedAt)
+            .Take(100)
+            .Select(e => new { e.Id, e.Text, e.CreatedAt })
+            .ToListAsync(ct);
+        return rows.Select(e => new JournalEntryDto(e.Id, e.Text, e.CreatedAt)).ToList();
+    }
+
+    /// <summary>Agrega una entrada al diario de un juego que estás jugando.</summary>
+    [Authorize]
+    [HttpPost("api/me/playing/{gameId:int}/journal")]
+    public async Task<ActionResult<JournalEntryDto>> AddJournalEntry(int gameId, AddJournalEntryRequest request, CancellationToken ct)
+    {
+        var text = request.Text.Trim();
+        if (text.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.Text), "Escribe algo en el diario.");
+            return ValidationProblem(ModelState);
+        }
+
+        var userId = User.GetRequiredUserId();
+        var internalId = await db.CurrentlyPlaying
+            .Where(p => p.UserId == userId && p.Game.ExternalId == gameId)
+            .Select(p => (int?)p.GameId)
+            .FirstOrDefaultAsync(ct);
+        if (internalId is null) return NotFound();
+
+        var entry = new PlayingJournalEntry { UserId = userId, GameId = internalId.Value, Text = text };
+        db.PlayingJournalEntries.Add(entry);
+        await db.SaveChangesAsync(ct);
+        return new JournalEntryDto(entry.Id, entry.Text, entry.CreatedAt);
+    }
+
+    /// <summary>Borra una entrada de tu diario.</summary>
+    [Authorize]
+    [HttpDelete("api/me/journal/{entryId:int}")]
+    public async Task<IActionResult> DeleteJournalEntry(int entryId, CancellationToken ct)
+    {
+        var userId = User.GetRequiredUserId();
+        var deleted = await db.PlayingJournalEntries
+            .Where(e => e.Id == entryId && e.UserId == userId)
+            .ExecuteDeleteAsync(ct);
+        return deleted == 0 ? NotFound() : NoContent();
     }
 
     /// <summary>Reemplaza el top 5. El orden de la lista define la posición (1 a 5).</summary>
