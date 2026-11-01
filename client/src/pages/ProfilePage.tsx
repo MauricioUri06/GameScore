@@ -32,9 +32,16 @@ export function ProfilePage() {
         <div>
           <h1 style={{ marginBottom: 4 }}>{profile.userName}</h1>
           {isMe && (
-            <Link to="/settings/profile" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}>
-              Editar perfil
-            </Link>
+            <div className="row" style={{ justifyContent: 'center', marginTop: 8 }}>
+              <Link to="/settings/profile" className="btn btn-ghost btn-sm">
+                Editar perfil
+              </Link>
+              {user?.isAdmin && (
+                <Link to="/admin" className="btn btn-primary btn-sm">
+                  Panel de administrador
+                </Link>
+              )}
+            </div>
           )}
         </div>
         <div className="profile-stats">
