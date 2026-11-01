@@ -29,7 +29,8 @@ public class IgdbTokenProvider(IHttpClientFactory httpFactory, IOptions<IgdbOpti
 
             if (string.IsNullOrWhiteSpace(_options.ClientId) || string.IsNullOrWhiteSpace(_options.ClientSecret))
                 throw new CatalogException(
-                    "Faltan las credenciales de IGDB (Igdb:ClientId e Igdb:ClientSecret en User Secrets).");
+                    "Faltan las credenciales de IGDB. En el hosting define las variables Igdb__ClientId e Igdb__ClientSecret; " +
+                    "en tu PC, Igdb:ClientId e Igdb:ClientSecret en User Secrets.");
 
             var http = httpFactory.CreateClient(HttpClientName);
             var url = $"{_options.TokenUrl}?client_id={Uri.EscapeDataString(_options.ClientId)}" +
