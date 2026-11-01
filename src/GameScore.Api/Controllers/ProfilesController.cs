@@ -53,7 +53,6 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
 
         return new ProfileDto(
             user.UserName!,
-            user.DisplayName,
             user.CreatedAt,
             ratingsCount,
             averageGiven,
@@ -61,20 +60,6 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
             favoriteGenres,
             platforms,
             recent);
-    }
-
-    [Authorize]
-    [HttpPut("api/me/profile")]
-    public async Task<IActionResult> UpdateProfile(UpdateProfileRequest request, CancellationToken ct)
-    {
-        var userId = User.GetRequiredUserId();
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
-        if (user is null) return Unauthorized();
-
-        user.DisplayName = request.DisplayName.Trim();
-
-        await db.SaveChangesAsync(ct);
-        return NoContent();
     }
 
     /// <summary>Reemplaza el top 5. El orden de la lista define la posición (1 a 5).</summary>

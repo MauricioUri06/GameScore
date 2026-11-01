@@ -28,12 +28,11 @@ export function ProfilePage() {
   return (
     <div className="container page">
       <header className="profile-header">
-        <Avatar name={profile.displayName} large />
+        <Avatar name={profile.userName} large />
         <div>
-          <h1 style={{ marginBottom: 4 }}>{profile.displayName}</h1>
-          <div className="muted">@{profile.userName}</div>
+          <h1 style={{ marginBottom: 4 }}>{profile.userName}</h1>
           {isMe && (
-            <Link to="/settings/profile" className="btn btn-ghost btn-sm" style={{ marginTop: 12 }}>
+            <Link to="/settings/profile" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}>
               Editar perfil
             </Link>
           )}

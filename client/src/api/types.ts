@@ -4,7 +4,6 @@
 export interface CurrentUser {
   id: string
   userName: string
-  displayName: string
 }
 
 export interface AuthResponse {
@@ -39,7 +38,6 @@ export interface GameSummary {
 
 export interface Review {
   userName: string
-  displayName: string
   score: number
   review: string | null
   updatedAt: string
@@ -81,7 +79,6 @@ export interface RankedGame {
 
 export interface Activity {
   userName: string
-  displayName: string
   gameId: number
   gameName: string
   gameCover: string | null
@@ -109,7 +106,6 @@ export interface ProfileRating {
 
 export interface Profile {
   userName: string
-  displayName: string
   createdAt: string
   ratingsCount: number
   averageGiven: number | null

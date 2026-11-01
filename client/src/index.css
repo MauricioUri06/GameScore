@@ -20,9 +20,10 @@
   --primary-light: #5fd1a4;
   --primary-soft: rgba(47, 163, 122, 0.16);
 
-  --gold: #d9a521;          /* botones */
-  --gold-hover: #ebba3a;
-  --on-gold: #1a1406;       /* texto sobre dorado */
+  --gold: #b8860b;          /* botones (dorado oscuro: el texto blanco se lee bien) */
+  --gold-hover: #c99613;
+  --gold-light: #e0b23c;    /* bordes y detalles dorados */
+  --on-gold: #ffffff;       /* texto de los botones */
 
   --star: #f2c14e;          /* estrellas doradas */
   --star-empty: #2a3a33;
@@ -81,6 +82,11 @@ h3 {
   margin: 0 0 0.5em;
   letter-spacing: -0.01em;
 }
+h1,
+h2,
+h3 {
+  text-align: center;
+}
 h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
 h2 { font-size: 1.35rem; }
 h3 { font-size: 1.05rem; }
@@ -108,9 +114,10 @@ img {
 
 .section-header {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
@@ -274,12 +281,12 @@ img {
   background: var(--gold-hover);
   border-color: var(--gold-hover);
   color: var(--on-gold);
-  box-shadow: 0 0 0 1px rgba(235, 186, 58, 0.45), 0 8px 24px -12px rgba(217, 165, 33, 0.6);
+  box-shadow: 0 0 0 1px rgba(224, 178, 60, 0.45), 0 8px 24px -12px rgba(184, 134, 11, 0.6);
 }
 .btn-ghost {
   background: transparent;
-  color: var(--gold);
-  border-color: rgba(217, 165, 33, 0.55);
+  color: #ffffff;
+  border-color: var(--gold-light);
 }
 .btn-ghost:hover:not(:disabled) {
   color: var(--on-gold);
@@ -288,7 +295,7 @@ img {
 }
 .btn-danger {
   background: transparent;
-  color: var(--danger);
+  color: #ffffff;
   border-color: rgba(240, 128, 106, 0.4);
 }
 .btn-sm {
@@ -734,14 +741,15 @@ button.tag {
 /* ---------- Perfil ---------- */
 .profile-header {
   display: flex;
-  gap: 24px;
+  flex-direction: column;
+  gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
+  text-align: center;
 }
 .profile-stats {
   display: flex;
   gap: 28px;
-  margin-left: auto;
+  justify-content: center;
 }
 .stat {
   text-align: center;
@@ -982,4 +990,41 @@ button.tag {
     grid-template-columns: 1fr;
     gap: 6px;
   }
+}
+
+/* ---------- Títulos de página y filtros ---------- */
+.page-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.page-title h1 {
+  margin: 0;
+}
+.page-intro {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0 28px;
+}
+.filter-label {
+  font-family: var(--font-display);
+  color: var(--text-muted);
+}
+.filter-bar .select {
+  width: auto;
+  min-width: 260px;
+  cursor: pointer;
+}
+.select option {
+  background: var(--bg-elevated);
+  color: var(--text);
 }

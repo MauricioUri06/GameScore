@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Identity;
 namespace GameScore.Api.Entities;
 
 /// <summary>
-/// Usuario de GameScore. Extiende IdentityUser (UserName = nickname, PasswordHash = clave de 6 dígitos, etc.).
+/// Usuario de GameScore. Extiende IdentityUser: UserName es el nickname (lo único que ve la comunidad)
+/// y PasswordHash guarda la clave de 6 dígitos.
 /// </summary>
 public class AppUser : IdentityUser
 {
-    public string DisplayName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();

@@ -22,11 +22,7 @@ public class AuthController(
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
         var userName = request.UserName.Trim();
-        var user = new AppUser
-        {
-            UserName = userName,
-            DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? userName : request.DisplayName.Trim()
-        };
+        var user = new AppUser { UserName = userName };
 
         var result = await userManager.CreateAsync(user, request.Pin);
         if (!result.Succeeded)
@@ -104,7 +100,7 @@ public class AuthController(
     }
 
     private static CurrentUserDto ToDto(AppUser user) =>
-        new(user.Id, user.UserName!, user.DisplayName);
+        new(user.Id, user.UserName!);
 
     private static string TranslateIdentityError(IdentityError error) => error.Code switch
     {

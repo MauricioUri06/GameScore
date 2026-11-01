@@ -114,7 +114,6 @@ export function RegisterPage() {
   const { register } = useAuth()
   const redirect = useRedirectAfterAuth()
   const [userName, setUserName] = useState('')
-  const [displayName, setDisplayName] = useState('')
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
   const [error, setError] = useState<unknown>(null)
@@ -128,11 +127,7 @@ export function RegisterPage() {
     setLoading(true)
     setError(null)
     try {
-      await register({
-        userName: userName.trim(),
-        pin,
-        displayName: displayName.trim() || undefined,
-      })
+      await register({ userName: userName.trim(), pin })
       redirect()
     } catch (err) {
       setError(err)
@@ -160,17 +155,7 @@ export function RegisterPage() {
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
           />
-          <span className="hint">Será tu dirección: /u/{userName || 'nickname'}</span>
-        </div>
-        <div className="field">
-          <label htmlFor="displayName">Nombre visible (opcional)</label>
-          <input
-            id="displayName"
-            className="input"
-            maxLength={50}
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-          />
+          <span className="hint">Es el nombre que verá la comunidad. Tu perfil: /u/{userName || 'nickname'}</span>
         </div>
         <div className="field">
           <label htmlFor="pin">Clave de 6 dígitos</label>

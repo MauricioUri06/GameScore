@@ -6,7 +6,7 @@ interface AuthContextValue {
   user: CurrentUser | null
   loading: boolean
   login: (userName: string, pin: string) => Promise<void>
-  register: (data: { userName: string; pin: string; displayName?: string }) => Promise<void>
+  register: (data: { userName: string; pin: string }) => Promise<void>
   logout: () => void
   refresh: () => Promise<void>
 }

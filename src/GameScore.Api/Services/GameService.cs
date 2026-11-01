@@ -63,7 +63,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             .OrderByDescending(r => r.UpdatedAt)
             .Take(10)
             .Select(r => new ReviewDto(
-                r.User.UserName!, r.User.DisplayName, r.Score, r.Review, r.UpdatedAt))
+                r.User.UserName!, r.Score, r.Review, r.UpdatedAt))
             .ToListAsync(ct);
 
         return new GameDetailDto(

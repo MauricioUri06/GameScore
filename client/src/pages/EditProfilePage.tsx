@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Genre, Platform, Profile } from '../api/types'
@@ -31,13 +31,12 @@ export function EditProfilePage() {
 
   return (
     <div className="container page" style={{ maxWidth: 760 }}>
-      <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
-        <h1 style={{ margin: 0 }}>Editar perfil</h1>
+      <div className="page-title">
+        <h1>Editar perfil</h1>
         <Link to={`/u/${profile.data.userName}`} className="btn btn-ghost btn-sm">
           Ver mi perfil
         </Link>
       </div>
-      <ProfileForm profile={profile.data} />
       <TopGamesEditor profile={profile.data} />
       {platforms.error ? (
         <ErrorMessage error={platforms.error} />
@@ -81,41 +80,6 @@ function useSaveState() {
   )
 
   return { saving, run, feedback }
-}
-
-function ProfileForm({ profile }: { profile: Profile }) {
-  const { refresh } = useAuth()
-  const [displayName, setDisplayName] = useState(profile.displayName)
-  const { saving, run, feedback } = useSaveState()
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    run(async () => {
-      await api.updateProfile({ displayName: displayName.trim() })
-      await refresh()
-    })
-  }
-
-  return (
-    <form className="card section" onSubmit={submit}>
-      <h2>Datos</h2>
-      {feedback}
-      <div className="field">
-        <label htmlFor="displayName">Nombre visible</label>
-        <input
-          id="displayName"
-          className="input"
-          maxLength={50}
-          required
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-        />
-      </div>
-      <button className="btn btn-primary" disabled={saving}>
-        {saving ? 'Guardando…' : 'Guardar nombre'}
-      </button>
-    </form>
-  )
 }
 
 function TopGamesEditor({ profile }: { profile: Profile }) {

@@ -12,8 +12,7 @@ public record RegisterRequest(
         ErrorMessage = "El nickname solo puede tener letras, números, '_', '.' y '-'.")]
     string UserName,
     [Required, RegularExpression("^[0-9]{6}$", ErrorMessage = "La clave debe tener exactamente 6 dígitos.")]
-    string Pin,
-    [StringLength(50)] string? DisplayName);
+    string Pin);
 
 public record LoginRequest(
     [Required] string UserName,
@@ -21,7 +20,7 @@ public record LoginRequest(
 
 public record AuthResponse(string Token, DateTime ExpiresAt, CurrentUserDto User);
 
-public record CurrentUserDto(string Id, string UserName, string DisplayName);
+public record CurrentUserDto(string Id, string UserName);
 
 // ---------- Juegos ----------
 
@@ -39,7 +38,6 @@ public record GameSummaryDto(
 
 public record ReviewDto(
     string UserName,
-    string DisplayName,
     decimal Score,
     string? Review,
     DateTime UpdatedAt);
@@ -81,7 +79,6 @@ public record RateGameRequest(
 
 public record ActivityDto(
     string UserName,
-    string DisplayName,
     int GameId,
     string GameName,
     string? GameCover,
@@ -99,7 +96,6 @@ public record PlatformDto(int Id, string Name, string Family);
 
 public record ProfileDto(
     string UserName,
-    string DisplayName,
     DateTime CreatedAt,
     int RatingsCount,
     double? AverageGiven,
@@ -107,9 +103,6 @@ public record ProfileDto(
     IReadOnlyList<GenreDto> FavoriteGenres,
     IReadOnlyList<PlatformDto> Platforms,
     IReadOnlyList<ProfileRatingDto> RecentRatings);
-
-public record UpdateProfileRequest(
-    [Required, StringLength(50, MinimumLength = 1)] string DisplayName);
 
 public record UpdatePlatformsRequest(List<int> PlatformIds);
 

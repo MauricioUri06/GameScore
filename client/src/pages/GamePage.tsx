@@ -69,11 +69,11 @@ export function GamePage() {
             <div>
               {game.recentReviews.map((r) => (
                 <article key={r.userName} className="review">
-                  <Avatar name={r.displayName} />
+                  <Avatar name={r.userName} />
                   <div>
                     <div className="review-head">
                       <Link to={`/u/${r.userName}`}>
-                        <strong>{r.displayName}</strong>
+                        <strong>{r.userName}</strong>
                       </Link>
                       <Stars value={r.score} size="0.9rem" />
                       <span className="faint">{new Date(r.updatedAt).toLocaleDateString()}</span>

@@ -14,24 +14,29 @@ export function RankingPage() {
   return (
     <div className="container page">
       <h1>Ranking de la comunidad</h1>
-      <p className="muted" style={{ maxWidth: 640 }}>
+      <p className="muted page-intro">
         Los mejores juegos según la comunidad. Usamos un promedio ponderado: un juego necesita varias
         calificaciones para subir, así una sola nota perfecta no lo pone en la cima.
       </p>
 
-      <div className="tag-list" style={{ margin: '20px 0 28px' }}>
-        <button className={`tag${genre === '' ? ' selected' : ''}`} onClick={() => setParams({})}>
-          Todos
-        </button>
-        {genres.data?.map((g) => (
-          <button
-            key={g.id}
-            className={`tag${genre === g.slug ? ' selected' : ''}`}
-            onClick={() => setParams({ genre: g.slug })}
-          >
-            {g.name}
-          </button>
-        ))}
+      <div className="filter-bar">
+        <label htmlFor="genre" className="filter-label">
+          Categoría
+        </label>
+        <select
+          id="genre"
+          className="select"
+          value={genre}
+          onChange={(e) => setParams(e.target.value ? { genre: e.target.value } : {})}
+          disabled={genres.loading}
+        >
+          <option value="">Todas las categorías</option>
+          {genres.data?.map((g) => (
+            <option key={g.id} value={g.slug}>
+              {g.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {ranking.error ? (

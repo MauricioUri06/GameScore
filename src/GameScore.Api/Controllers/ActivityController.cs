@@ -17,7 +17,6 @@ public class ActivityController(GameScoreDbContext db) : ControllerBase
             .Take(Math.Clamp(limit, 1, 50))
             .Select(r => new ActivityDto(
                 r.User.UserName!,
-                r.User.DisplayName,
                 r.Game.ExternalId,
                 r.Game.Name,
                 r.Game.CoverImage,
