@@ -134,32 +134,17 @@ public class CoverQuizController(GameScoreDbContext db, OlderNewerPool pool, Cov
         return await StateAsync(run, ct);
     }
 
-    /// <summary>Los 10 mejores récords.</summary>
+    /// <summary>Los 10 mejores récords y tu puesto.</summary>
     [HttpGet("leaderboard")]
-    public async Task<ActionResult<List<LeaderDto>>> Leaderboard(CancellationToken ct)
+    public async Task<ActionResult<LeaderboardDto>> Leaderboard(CancellationToken ct)
     {
-        var top = await db.CoverQuizRuns
+        var bests = await db.CoverQuizRuns
             .Where(r => r.UserId != null && r.Score > 0)
-            .GroupBy(r => r.UserId)
+            .GroupBy(r => r.UserId!)
             .Select(g => new { UserId = g.Key, Best = g.Max(r => r.Score) })
-            .OrderByDescending(x => x.Best)
-            .Take(10)
             .ToListAsync(ct);
-
-        var ids = top.Select(t => t.UserId).ToList();
-        var users = await db.Users
-            .Where(u => ids.Contains(u.Id))
-            .Select(u => new { u.Id, u.UserName, u.AvatarUpdatedAt })
-            .ToDictionaryAsync(u => u.Id, ct);
-
-        return top
-            .Where(t => t.UserId is not null && users.ContainsKey(t.UserId))
-            .Select(t =>
-            {
-                var u = users[t.UserId!];
-                return new LeaderDto(u.UserName!, AvatarUrls.For(u.UserName!, u.AvatarUpdatedAt), t.Best);
-            })
-            .ToList();
+        return await Leaderboards.BuildAsync(db, bests.Select(b => new UserBest(b.UserId, b.Best)).ToList(),
+            lowerIsBetter: false, User.GetUserId(), ct);
     }
 
     // ---------- Ayudantes ----------

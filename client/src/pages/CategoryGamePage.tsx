@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { CategoryAnswerResult, CategoryState, GameSummary, Leader } from '../api/types'
+import type { CategoryAnswerResult, CategoryState, GameSummary, LeaderboardData } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { CountdownBar } from '../components/CountdownBar'
 import { GamePicker } from '../components/GamePicker'
@@ -26,7 +26,7 @@ export function CategoryGamePage() {
   const [state, setState] = useState<CategoryState | null>(null)
   const [result, setResult] = useState<CategoryAnswerResult | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [leaders, setLeaders] = useState<Leader[] | null>(null)
+  const [leaders, setLeaders] = useState<LeaderboardData | null>(null)
   const [error, setError] = useState<unknown>(null)
   const [roundStart, setRoundStart] = useState(0)
   const [now, setNow] = useState(0)
@@ -37,7 +37,7 @@ export function CategoryGamePage() {
     api
       .categoryLeaderboard()
       .then((l) => active && setLeaders(l))
-      .catch(() => active && setLeaders([]))
+      .catch(() => active && setLeaders({ top: [], me: null }))
     return () => {
       active = false
     }
@@ -281,7 +281,7 @@ export function CategoryGamePage() {
 
       {(phase === 'intro' || phase === 'over') && (
         <Leaderboard
-          leaders={leaders}
+          board={leaders}
           format={formatSeconds}
           title={t('Mejores tiempos para llegar a 1000', 'Fastest times to reach 1000')}
         />

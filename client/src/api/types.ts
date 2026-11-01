@@ -232,11 +232,17 @@ export interface OlderNewerGuessResult {
 
 /** Un puesto en el top de récords de un minijuego. */
 export interface Leader {
+  /** Puesto (los empates comparten puesto) */
+  position: number
   userName: string
   avatarUrl: string | null
   best: number
 }
-export type OlderNewerLeader = Leader
+/** Top 10 de un minijuego + tu puesto (null si no iniciaste sesión o no tienes récord). */
+export interface LeaderboardData {
+  top: Leader[]
+  me: Leader | null
+}
 
 export interface CoverQuizState {
   runId: string

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { CoverQuizGuessResult, CoverQuizState, Leader } from '../api/types'
+import type { CoverQuizGuessResult, CoverQuizState, LeaderboardData } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { CountdownBar } from '../components/CountdownBar'
 import { Leaderboard } from '../components/Leaderboard'
@@ -22,7 +22,7 @@ export function CoverQuizPage() {
   const [result, setResult] = useState<CoverQuizGuessResult | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [text, setText] = useState('')
-  const [leaders, setLeaders] = useState<Leader[] | null>(null)
+  const [leaders, setLeaders] = useState<LeaderboardData | null>(null)
   const [error, setError] = useState<unknown>(null)
   const input = useRef<HTMLInputElement>(null)
 
@@ -32,7 +32,7 @@ export function CoverQuizPage() {
     api
       .coverQuizLeaderboard()
       .then((l) => active && setLeaders(l))
-      .catch(() => active && setLeaders([]))
+      .catch(() => active && setLeaders({ top: [], me: null }))
     return () => {
       active = false
     }
@@ -269,7 +269,7 @@ export function CoverQuizPage() {
         </div>
       )}
 
-      {(phase === 'intro' || phase === 'over') && <Leaderboard leaders={leaders} />}
+      {(phase === 'intro' || phase === 'over') && <Leaderboard board={leaders} />}
     </div>
   )
 }

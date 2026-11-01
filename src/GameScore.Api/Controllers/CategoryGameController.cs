@@ -118,32 +118,17 @@ public class CategoryGameController(GameScoreDbContext db, GameService games) : 
         return await StateAsync(run, ct);
     }
 
-    /// <summary>Los 10 mejores tiempos para llegar a 1000.</summary>
+    /// <summary>Los 10 mejores tiempos para llegar a 1000 y tu puesto.</summary>
     [HttpGet("leaderboard")]
-    public async Task<ActionResult<List<LeaderDto>>> Leaderboard(CancellationToken ct)
+    public async Task<ActionResult<LeaderboardDto>> Leaderboard(CancellationToken ct)
     {
-        var top = await db.CategoryRuns
+        var bests = await db.CategoryRuns
             .Where(r => r.UserId != null && r.Won)
-            .GroupBy(r => r.UserId)
+            .GroupBy(r => r.UserId!)
             .Select(g => new { UserId = g.Key, Best = g.Min(r => r.TotalSeconds) })
-            .OrderBy(x => x.Best)
-            .Take(10)
             .ToListAsync(ct);
-
-        var ids = top.Select(t => t.UserId).ToList();
-        var users = await db.Users
-            .Where(u => ids.Contains(u.Id))
-            .Select(u => new { u.Id, u.UserName, u.AvatarUpdatedAt })
-            .ToDictionaryAsync(u => u.Id, ct);
-
-        return top
-            .Where(t => t.UserId is not null && users.ContainsKey(t.UserId))
-            .Select(t =>
-            {
-                var u = users[t.UserId!];
-                return new LeaderDto(u.UserName!, AvatarUrls.For(u.UserName!, u.AvatarUpdatedAt), (int)Math.Ceiling(t.Best));
-            })
-            .ToList();
+        return await Leaderboards.BuildAsync(db, bests.Select(b => new UserBest(b.UserId, b.Best)).ToList(),
+            lowerIsBetter: true, User.GetUserId(), ct);
     }
 
     // ---------- Ayudantes ----------

@@ -20,7 +20,22 @@ public class RankingService(GameScoreDbContext db, IOptions<RankingOptions> opti
 {
     private readonly int _m = Math.Max(0, options.Value.MinVotes);
 
-    public async Task<List<RankedGameDto>> GetTopAsync(int limit, string? genreSlug, CancellationToken ct)
+    public const int PageSize = 50;
+
+    /// <summary>Los primeros <paramref name="limit"/> del ranking.</summary>
+    public async Task<List<RankedGameDto>> GetTopAsync(int limit, string? genreSlug, CancellationToken ct) =>
+        (await GetRangeAsync(0, limit, genreSlug, ct)).Items.ToList();
+
+    /// <summary>Una página del ranking completo (de 50 en 50).</summary>
+    public async Task<PagedResultDto<RankedGameDto>> GetPageAsync(int page, string? genreSlug, CancellationToken ct)
+    {
+        var (items, total) = await GetRangeAsync((page - 1) * PageSize, PageSize, genreSlug, ct);
+        return new PagedResultDto<RankedGameDto>(items, page, PageSize, total,
+            Math.Max(1, (int)Math.Ceiling(total / (double)PageSize)));
+    }
+
+    private async Task<(IReadOnlyList<RankedGameDto> Items, int Total)> GetRangeAsync(
+        int skip, int take, string? genreSlug, CancellationToken ct)
     {
         var ratings = db.Ratings.AsQueryable();
         if (!string.IsNullOrWhiteSpace(genreSlug))
@@ -37,7 +52,7 @@ public class RankingService(GameScoreDbContext db, IOptions<RankingOptions> opti
             })
             .ToListAsync(ct);
 
-        if (perGame.Count == 0) return [];
+        if (perGame.Count == 0) return ([], 0);
 
         var totalCount = perGame.Sum(p => p.Count);
         var globalMean = perGame.Sum(p => p.Sum) / totalCount;
@@ -52,7 +67,8 @@ public class RankingService(GameScoreDbContext db, IOptions<RankingOptions> opti
             })
             .OrderByDescending(p => p.Weighted)
             .ThenByDescending(p => p.Count)
-            .Take(limit)
+            .Skip(skip)
+            .Take(take)
             .ToList();
 
         var ids = top.Select(t => t.GameId).ToList();
@@ -60,11 +76,11 @@ public class RankingService(GameScoreDbContext db, IOptions<RankingOptions> opti
             .Where(g => ids.Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
 
-        return top.Select((t, i) =>
+        var items = top.Select((t, i) =>
         {
             var game = games[t.GameId];
             return new RankedGameDto(
-                i + 1,
+                skip + i + 1,
                 game.ExternalId,
                 game.Slug,
                 game.Name,
@@ -74,5 +90,6 @@ public class RankingService(GameScoreDbContext db, IOptions<RankingOptions> opti
                 Math.Round(t.Weighted, 3),
                 t.Count);
         }).ToList();
+        return (items, perGame.Count);
     }
 }

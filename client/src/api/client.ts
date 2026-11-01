@@ -14,10 +14,9 @@ import type {
   JournalEntry,
   Medal,
   Genre,
-  Leader,
+  LeaderboardData,
   MyRating,
   OlderNewerGuessResult,
-  OlderNewerLeader,
   OlderNewerState,
   PagedResult,
   UserSearchResult,
@@ -129,6 +128,10 @@ export const api = {
     return request<PagedResult<GameSummary>>(`/games?${qs}`)
   },
   popularGames: (count = 12) => request<GameSummary[]>(`/games/popular?count=${count}`),
+  rankingPage: (page: number, genre?: string) =>
+    request<PagedResult<RankedGame>>(
+      `/games/ranking/pages?page=${page}${genre ? `&genre=${encodeURIComponent(genre)}` : ''}`,
+    ),
   ranking: (limit = 50, genre?: string) =>
     request<RankedGame[]>(`/games/ranking?limit=${limit}${genre ? `&genre=${encodeURIComponent(genre)}` : ''}`),
   game: (gameId: number) => request<GameDetail>(`/games/${gameId}`),
@@ -177,20 +180,20 @@ export const api = {
   olderNewerStart: () => request<OlderNewerState>('/older-newer/start', { method: 'POST' }),
   olderNewerGuess: (runId: string, guess: 'older' | 'newer' | 'timeout') =>
     request<OlderNewerGuessResult>(`/older-newer/${runId}/guess`, { method: 'POST', body: json({ guess }) }),
-  olderNewerLeaderboard: () => request<OlderNewerLeader[]>('/older-newer/leaderboard'),
+  olderNewerLeaderboard: () => request<LeaderboardData>('/older-newer/leaderboard'),
   coverQuizStart: () => request<CoverQuizState>('/cover-quiz/start', { method: 'POST' }),
   coverQuizGuess: (runId: string, text: string) =>
     request<CoverQuizGuessResult>(`/cover-quiz/${runId}/guess`, { method: 'POST', body: json({ text }) }),
   coverQuizSkip: (runId: string) => request<CoverQuizGuessResult>(`/cover-quiz/${runId}/skip`, { method: 'POST' }),
   coverQuizNext: (runId: string) => request<CoverQuizState>(`/cover-quiz/${runId}/next`, { method: 'POST' }),
-  coverQuizLeaderboard: () => request<Leader[]>('/cover-quiz/leaderboard'),
+  coverQuizLeaderboard: () => request<LeaderboardData>('/cover-quiz/leaderboard'),
   categoryStart: () => request<CategoryState>('/category-game/start', { method: 'POST' }),
   categoryAnswer: (runId: string, gameId: number) =>
     request<CategoryAnswerResult>(`/category-game/${runId}/answer`, { method: 'POST', body: json({ gameId }) }),
   categoryTimeout: (runId: string) =>
     request<CategoryAnswerResult>(`/category-game/${runId}/timeout`, { method: 'POST' }),
   categoryNext: (runId: string) => request<CategoryState>(`/category-game/${runId}/next`, { method: 'POST' }),
-  categoryLeaderboard: () => request<Leader[]>('/category-game/leaderboard'),
+  categoryLeaderboard: () => request<LeaderboardData>('/category-game/leaderboard'),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),

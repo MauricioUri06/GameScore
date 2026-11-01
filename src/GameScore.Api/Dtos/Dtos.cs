@@ -164,7 +164,10 @@ public record CoverQuizGuessRequest([Required, StringLength(200)] string Text);
 /// <summary>Answer/AnswerGameId solo se envían cuando la ronda ya terminó.</summary>
 public record CoverQuizGuessResultDto(bool Correct, bool TimedOut, int Points, string? Answer, int? AnswerGameId,
     string? AnswerCoverUrl, bool NewRecord, CoverQuizStateDto State);
-public record LeaderDto(string UserName, string? AvatarUrl, int Best);
+/// <summary>Un puesto en un top de récords. Position: los empates comparten puesto.</summary>
+public record LeaderDto(int Position, string UserName, string? AvatarUrl, int Best);
+/// <summary>Top 10 + el puesto del usuario actual (null si no inició sesión o no tiene récord).</summary>
+public record LeaderboardDto(IReadOnlyList<LeaderDto> Top, LeaderDto? Me);
 
 // ---------- Older/Newer ----------
 /// <summary>Year = null en el juego que hay que adivinar.</summary>
@@ -174,7 +177,6 @@ public record OlderNewerStateDto(Guid RunId, int Score, OlderNewerGameDto Left, 
 public record OlderNewerGuessRequest([Required] string Guess);
 public record OlderNewerGuessResultDto(bool Correct, int RightYear, int Score, bool GameOver,
     OlderNewerGameDto? NextRight, int? Best, bool NewRecord, bool TimedOut);
-public record OlderNewerLeaderDto(string UserName, string? AvatarUrl, int Best);
 
 public record UpdatePlayingRequest(List<int> GameIds);
 

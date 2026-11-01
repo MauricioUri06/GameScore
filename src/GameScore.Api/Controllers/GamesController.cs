@@ -46,6 +46,12 @@ public class GamesController(GameService games, RankingService ranking, GameScor
     public async Task<ActionResult<List<GameSummaryDto>>> Popular([FromQuery] int count = 12, CancellationToken ct = default) =>
         await games.GetPopularAsync(Math.Clamp(count, 1, 100), ct);
 
+    /// <summary>Ranking completo por páginas (de 50 en 50).</summary>
+    [HttpGet("ranking/pages")]
+    public async Task<ActionResult<PagedResultDto<RankedGameDto>>> RankingPage(
+        [FromQuery] int page = 1, [FromQuery] string? genre = null, CancellationToken ct = default) =>
+        await ranking.GetPageAsync(Math.Clamp(page, 1, 10_000), genre, ct);
+
     /// <summary>Ranking de los mejores juegos calificados por la comunidad.</summary>
     [HttpGet("ranking")]
     public async Task<ActionResult<List<RankedGameDto>>> Ranking(

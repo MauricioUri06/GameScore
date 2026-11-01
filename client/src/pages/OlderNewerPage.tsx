@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { Leader, OlderNewerGame, OlderNewerState } from '../api/types'
+import type { LeaderboardData, OlderNewerGame, OlderNewerState } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { CountdownBar } from '../components/CountdownBar'
 import { GameCover } from '../components/GameCard'
@@ -36,7 +36,7 @@ export function OlderNewerPage() {
   const [run, setRun] = useState<OlderNewerState | null>(null)
   const [reveal, setReveal] = useState<Reveal | null>(null)
   const [over, setOver] = useState<Over | null>(null)
-  const [leaders, setLeaders] = useState<Leader[] | null>(null)
+  const [leaders, setLeaders] = useState<LeaderboardData | null>(null)
   const [error, setError] = useState<unknown>(null)
   const timer = useRef<number | undefined>(undefined)
 
@@ -49,7 +49,7 @@ export function OlderNewerPage() {
     api
       .olderNewerLeaderboard()
       .then((l) => active && setLeaders(l))
-      .catch(() => active && setLeaders([]))
+      .catch(() => active && setLeaders({ top: [], me: null }))
     return () => {
       active = false
     }
@@ -214,7 +214,7 @@ export function OlderNewerPage() {
         </>
       ) : null}
 
-      {(phase === 'intro' || phase === 'over') && <Leaderboard leaders={leaders} />}
+      {(phase === 'intro' || phase === 'over') && <Leaderboard board={leaders} />}
     </div>
   )
 }
