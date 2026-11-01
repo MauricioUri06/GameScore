@@ -54,17 +54,23 @@ public class AdminController(GameScoreDbContext db) : ControllerBase
         var games = await db.Games.CountAsync(ct);
         var average = await db.Ratings.AverageAsync(r => (double?)r.Score, ct);
 
-        var byPlatform = await db.Ratings
-            .GroupBy(r => r.Platform != null ? r.Platform.Name : "Sin plataforma")
-            .Select(g => new CountByName(g.Key, g.Count()))
-            .OrderByDescending(x => x.Count)
-            .ToListAsync(ct);
+        // Se ordena por g.Count() ANTES de crear el record: EF Core no puede traducir a SQL
+        // un OrderBy sobre una propiedad de un objeto creado con constructor.
+        var byPlatform = (await db.Ratings
+                .GroupBy(r => r.Platform != null ? r.Platform.Name : "Sin plataforma")
+                .OrderByDescending(g => g.Count())
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .ToListAsync(ct))
+            .Select(x => new CountByName(x.Name, x.Count))
+            .ToList();
 
-        var usersByPlatform = await db.UserPlatforms
-            .GroupBy(up => up.Platform.Name)
-            .Select(g => new CountByName(g.Key, g.Count()))
-            .OrderByDescending(x => x.Count)
-            .ToListAsync(ct);
+        var usersByPlatform = (await db.UserPlatforms
+                .GroupBy(up => up.Platform.Name)
+                .OrderByDescending(g => g.Count())
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .ToListAsync(ct))
+            .Select(x => new CountByName(x.Name, x.Count))
+            .ToList();
 
         return new AdminStatsDto(users, newUsers, ratings, ratingsWeek, reviews, games,
             average is null ? null : Math.Round(average.Value, 2), byPlatform, usersByPlatform);
