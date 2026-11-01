@@ -6,10 +6,10 @@ import { Avatar } from './Avatar'
 function Logo() {
   return (
     <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-      <rect width="64" height="64" rx="4" fill="#161f4a" />
+      <rect width="64" height="64" rx="4" fill="#16231e" />
       <path
         d="M32 12l5.9 12.6 13.8 1.7-10.2 9.5 2.7 13.7L32 42.7l-12.2 6.8 2.7-13.7-10.2-9.5 13.8-1.7z"
-        fill="#8b5cf6"
+        fill="#2fa37a"
       />
     </svg>
   )

@@ -1,31 +1,32 @@
 /* ==========================================================
-   GameScore — tema morado + azul oscuro (colores sólidos, sin degradados)
+   GameScore — tema "Bosque esmeralda" (colores sólidos, sin degradados)
    Todos los colores salen de estas variables: para cambiar
    el esquema basta con editar este bloque.
    ========================================================== */
 :root {
-  --bg: #0a0f24;            /* azul noche (fondo) */
-  --bg-elevated: #10173a;   /* barras, paneles */
-  --surface: #161f4a;       /* tarjetas */
-  --surface-hover: #1d2860;
-  --border: #27316a;
+  /* Paleta "Bosque esmeralda" */
+  --bg: #0d1512;            /* verde casi negro (fondo) */
+  --bg-elevated: #111c18;   /* barras, campos */
+  --surface: #16231e;       /* tarjetas */
+  --surface-hover: #1d2e27;
+  --border: #27392f;
 
-  --text: #ecebff;
-  --text-muted: #9ea3cf;
-  --text-faint: #6c72a3;
+  --text: #e6f2ec;
+  --text-muted: #93ab9f;
+  --text-faint: #6b8478;
 
-  --primary: #8b5cf6;       /* morado principal */
-  --primary-strong: #7c3aed;
-  --primary-light: #c4b5fd;
-  --primary-soft: rgba(139, 92, 246, 0.16);
+  --primary: #2fa37a;       /* esmeralda principal */
+  --primary-strong: #1f8a63;
+  --primary-light: #5fd1a4;
+  --primary-soft: rgba(47, 163, 122, 0.16);
 
-  --star: #b794f6;          /* estrellas */
-  --star-empty: #2e3770;
+  --star: #f2c14e;          /* estrellas doradas */
+  --star-empty: #2a3a33;
 
-  --danger: #f472b6;
-  --success: #67e8f9;
+  --danger: #f0806a;
+  --success: #5fd1a4;
 
-  --glow: 0 0 0 1px rgba(139, 92, 246, 0.45), 0 8px 24px -12px rgba(124, 58, 237, 0.6);
+  --glow: 0 0 0 1px rgba(47, 163, 122, 0.45), 0 8px 24px -12px rgba(31, 138, 99, 0.6);
 
   /* Esquinas afiladas */
   --radius: 4px;
@@ -123,7 +124,7 @@ img {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(10, 15, 36, 0.82);
+  background: rgba(13, 21, 18, 0.9);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
@@ -283,7 +284,7 @@ img {
 .btn-danger {
   background: transparent;
   color: var(--danger);
-  border-color: rgba(244, 114, 182, 0.4);
+  border-color: rgba(240, 128, 106, 0.4);
 }
 .btn-sm {
   padding: 6px 12px;
@@ -379,7 +380,7 @@ img {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(10, 15, 36, 0.85);
+  background: rgba(13, 21, 18, 0.88);
   backdrop-filter: blur(6px);
 }
 
@@ -873,15 +874,15 @@ button.tag {
 .alert {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(244, 114, 182, 0.4);
-  background: rgba(244, 114, 182, 0.08);
-  color: #fbcfe8;
+  border: 1px solid rgba(240, 128, 106, 0.4);
+  background: rgba(240, 128, 106, 0.08);
+  color: #fcd5cc;
   margin-bottom: 16px;
 }
 .alert-success {
-  border-color: rgba(103, 232, 249, 0.4);
-  background: rgba(103, 232, 249, 0.08);
-  color: #cffafe;
+  border-color: rgba(95, 209, 164, 0.4);
+  background: rgba(95, 209, 164, 0.08);
+  color: #d4f5e6;
 }
 
 .empty {
