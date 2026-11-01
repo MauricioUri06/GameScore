@@ -53,6 +53,7 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
 
         return new ProfileDto(
             user.UserName!,
+            AvatarUrls.For(user.UserName!, user.AvatarUpdatedAt),
             user.CreatedAt,
             ratingsCount,
             averageGiven,

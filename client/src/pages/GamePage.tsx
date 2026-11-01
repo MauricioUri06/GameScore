@@ -41,7 +41,7 @@ export function GamePage() {
                 {game.released && <span className="muted">{game.released.slice(0, 4)}</span>}
                 <div className="tag-list">
                   {game.genres.map((g) => (
-                    <Link key={g.id} to={`/ranking?genre=${g.slug}`} className="tag">
+                    <Link key={g.id} to={`/?genre=${g.slug}`} className="tag">
                       {g.name}
                     </Link>
                   ))}
@@ -69,7 +69,7 @@ export function GamePage() {
             <div>
               {game.recentReviews.map((r) => (
                 <article key={r.userName} className="review">
-                  <Avatar name={r.userName} />
+                  <Avatar name={r.userName} url={r.avatarUrl} />
                   <div>
                     <div className="review-head">
                       <Link to={`/u/${r.userName}`}>

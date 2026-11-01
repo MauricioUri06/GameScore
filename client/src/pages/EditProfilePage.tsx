@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Genre, Platform, Profile } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { Avatar } from '../components/Avatar'
 import { igdbSize } from '../components/GameCard'
+import { toSquareJpeg } from '../lib/resizeImage'
 import { groupPlatforms } from '../components/PlatformList'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -37,6 +39,7 @@ export function EditProfilePage() {
           Ver mi perfil
         </Link>
       </div>
+      <AvatarEditor />
       <TopGamesEditor profile={profile.data} />
       {platforms.error ? (
         <ErrorMessage error={platforms.error} />
@@ -299,6 +302,57 @@ function PlatformsEditor({ profile, allPlatforms }: { profile: Profile; allPlatf
       >
         {saving ? 'Guardando…' : 'Guardar plataformas'}
       </button>
+    </div>
+  )
+}
+
+function AvatarEditor() {
+  const { user, refresh } = useAuth()
+  const fileInput = useRef<HTMLInputElement>(null)
+  const { saving, run, feedback } = useSaveState()
+
+  if (!user) return null
+
+  const onFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a elegir el mismo archivo
+    if (!file) return
+    run(async () => {
+      const image = await toSquareJpeg(file)
+      await api.uploadAvatar(image)
+      await refresh()
+    })
+  }
+
+  return (
+    <div className="card section avatar-editor">
+      <h2>Foto de perfil</h2>
+      {feedback}
+      <Avatar name={user.userName} url={user.avatarUrl} large />
+      <p className="muted small" style={{ margin: 0 }}>
+        JPG, PNG o WebP. Se recorta en un cuadrado automáticamente.
+      </p>
+      <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onFile} />
+      <div className="row" style={{ justifyContent: 'center' }}>
+        <button type="button" className="btn btn-primary" disabled={saving} onClick={() => fileInput.current?.click()}>
+          {saving ? 'Subiendo…' : user.avatarUrl ? 'Cambiar foto' : 'Subir foto'}
+        </button>
+        {user.avatarUrl && (
+          <button
+            type="button"
+            className="btn btn-danger"
+            disabled={saving}
+            onClick={() =>
+              run(async () => {
+                await api.deleteAvatar()
+                await refresh()
+              })
+            }
+          >
+            Quitar foto
+          </button>
+        )}
+      </div>
     </div>
   )
 }

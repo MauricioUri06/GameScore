@@ -20,7 +20,7 @@ public record LoginRequest(
 
 public record AuthResponse(string Token, DateTime ExpiresAt, CurrentUserDto User);
 
-public record CurrentUserDto(string Id, string UserName);
+public record CurrentUserDto(string Id, string UserName, string? AvatarUrl);
 
 // ---------- Juegos ----------
 
@@ -38,6 +38,7 @@ public record GameSummaryDto(
 
 public record ReviewDto(
     string UserName,
+    string? AvatarUrl,
     decimal Score,
     string? Review,
     DateTime UpdatedAt);
@@ -79,6 +80,7 @@ public record RateGameRequest(
 
 public record ActivityDto(
     string UserName,
+    string? AvatarUrl,
     int GameId,
     string GameName,
     string? GameCover,
@@ -96,6 +98,7 @@ public record PlatformDto(int Id, string Name, string Family);
 
 public record ProfileDto(
     string UserName,
+    string? AvatarUrl,
     DateTime CreatedAt,
     int RatingsCount,
     double? AverageGiven,

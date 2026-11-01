@@ -1,5 +1,6 @@
 using GameScore.Api.Data;
 using GameScore.Api.Dtos;
+using GameScore.Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,7 @@ public class ActivityController(GameScoreDbContext db) : ControllerBase
             .Take(Math.Clamp(limit, 1, 50))
             .Select(r => new ActivityDto(
                 r.User.UserName!,
+                AvatarUrls.For(r.User.UserName!, r.User.AvatarUpdatedAt),
                 r.Game.ExternalId,
                 r.Game.Name,
                 r.Game.CoverImage,

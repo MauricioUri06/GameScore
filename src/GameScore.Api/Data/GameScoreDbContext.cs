@@ -14,6 +14,7 @@ public class GameScoreDbContext(DbContextOptions<GameScoreDbContext> options)
     public DbSet<UserFavoriteGenre> UserFavoriteGenres => Set<UserFavoriteGenre>();
     public DbSet<Platform> Platforms => Set<Platform>();
     public DbSet<UserPlatform> UserPlatforms => Set<UserPlatform>();
+    public DbSet<UserAvatar> UserAvatars => Set<UserAvatar>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -28,7 +28,7 @@ export function ProfilePage() {
   return (
     <div className="container page">
       <header className="profile-header">
-        <Avatar name={profile.userName} large />
+        <Avatar name={profile.userName} url={profile.avatarUrl} large />
         <div>
           <h1 style={{ marginBottom: 4 }}>{profile.userName}</h1>
           {isMe && (
@@ -48,6 +48,48 @@ export function ProfilePage() {
           </div>
         </div>
       </header>
+
+      <div className="profile-boxes">
+        <section className="profile-box">
+          <h2>Géneros favoritos</h2>
+          {profile.favoriteGenres.length ? (
+            <div className="tag-list tag-list-center">
+              {profile.favoriteGenres.map((g) => (
+                <Link key={g.id} to={`/?genre=${g.slug}`} className="tag tag-lg selected">
+                  {g.name}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">
+              {isMe ? (
+                <>
+                  Aún no elegiste tus géneros. <Link to="/settings/profile">Elígelos</Link>.
+                </>
+              ) : (
+                'Sin géneros elegidos todavía.'
+              )}
+            </p>
+          )}
+        </section>
+
+        <section className="profile-box">
+          <h2>Plataformas</h2>
+          {profile.platforms.length ? (
+            <PlatformList platforms={profile.platforms} />
+          ) : (
+            <p className="muted">
+              {isMe ? (
+                <>
+                  Aún no agregaste tus consolas. <Link to="/settings/profile">Agrégalas</Link>.
+                </>
+              ) : (
+                'Sin plataformas todavía.'
+              )}
+            </p>
+          )}
+        </section>
+      </div>
 
       <section className="section">
         <div className="section-header">
@@ -72,42 +114,6 @@ export function ProfilePage() {
             ),
           )}
         </div>
-      </section>
-
-      <section className="section">
-        <div className="section-header">
-          <h2>Plataformas</h2>
-        </div>
-        {profile.platforms.length ? (
-          <PlatformList platforms={profile.platforms} />
-        ) : (
-          <p className="muted">
-            {isMe ? (
-              <>
-                Aún no agregaste tus consolas. <Link to="/settings/profile">Agrégalas</Link>.
-              </>
-            ) : (
-              'Sin plataformas todavía.'
-            )}
-          </p>
-        )}
-      </section>
-
-      <section className="section">
-        <div className="section-header">
-          <h2>Géneros favoritos</h2>
-        </div>
-        {profile.favoriteGenres.length ? (
-          <div className="tag-list">
-            {profile.favoriteGenres.map((g) => (
-              <Link key={g.id} to={`/ranking?genre=${g.slug}`} className="tag selected">
-                {g.name}
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="muted">Sin géneros elegidos todavía.</p>
-        )}
       </section>
 
       <section className="section">

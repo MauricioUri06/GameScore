@@ -51,7 +51,9 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
-  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  // Con FormData (subida de archivos) el navegador pone el Content-Type con su boundary
+  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type'))
+    headers.set('Content-Type', 'application/json')
 
   const token = tokenStorage.get()
   if (token) headers.set('Authorization', `Bearer ${token}`)
@@ -118,6 +120,12 @@ export const api = {
 
   // Perfiles
   profile: (userName: string) => request<Profile>(`/users/${encodeURIComponent(userName)}`),
+  uploadAvatar: (image: Blob) => {
+    const form = new FormData()
+    form.append('file', image, 'avatar.jpg')
+    return request<{ avatarUrl: string | null }>('/me/avatar', { method: 'PUT', body: form })
+  },
+  deleteAvatar: () => request<void>('/me/avatar', { method: 'DELETE' }),
   platforms: () => request<Platform[]>('/platforms'),
   updatePlatforms: (platformIds: number[]) =>
     request<void>('/me/platforms', { method: 'PUT', body: json({ platformIds }) }),

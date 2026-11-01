@@ -100,7 +100,7 @@ public class AuthController(
     }
 
     private static CurrentUserDto ToDto(AppUser user) =>
-        new(user.Id, user.UserName!);
+        new(user.Id, user.UserName!, AvatarUrls.For(user.UserName!, user.AvatarUpdatedAt));
 
     private static string TranslateIdentityError(IdentityError error) => error.Code switch
     {

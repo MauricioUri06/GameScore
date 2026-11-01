@@ -2,6 +2,7 @@ using GameScore.Api.Catalog;
 using GameScore.Api.Data;
 using GameScore.Api.Dtos;
 using GameScore.Api.Entities;
+using GameScore.Api.Extensions;
 using GameScore.Api.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -63,7 +64,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             .OrderByDescending(r => r.UpdatedAt)
             .Take(10)
             .Select(r => new ReviewDto(
-                r.User.UserName!, r.Score, r.Review, r.UpdatedAt))
+                r.User.UserName!, AvatarUrls.For(r.User.UserName!, r.User.AvatarUpdatedAt), r.Score, r.Review, r.UpdatedAt))
             .ToListAsync(ct);
 
         return new GameDetailDto(

@@ -1028,3 +1028,57 @@ button.tag {
   background: var(--bg-elevated);
   color: var(--text);
 }
+
+/* ---------- Perfil: recuadros de géneros y plataformas ---------- */
+.profile-boxes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 32px;
+}
+@media (max-width: 760px) {
+  .profile-boxes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.profile-box {
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  border-top: 3px solid var(--gold-light);
+  border-radius: var(--radius);
+  padding: 20px 22px 24px;
+}
+.profile-box h2 {
+  font-size: 1.15rem;
+  color: var(--gold-light);
+  margin-bottom: 16px;
+}
+.profile-box .muted {
+  text-align: center;
+  margin: 0;
+}
+.profile-box .platform-group {
+  grid-template-columns: 100px 1fr;
+}
+.tag-lg {
+  font-size: 0.95rem;
+  padding: 6px 12px;
+}
+.tag-list-center {
+  justify-content: center;
+}
+
+/* ---------- Editor de foto de perfil ---------- */
+.avatar-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.avatar-editor h2 {
+  margin: 0;
+}
+img.avatar {
+  display: block;
+  object-fit: cover;
+}

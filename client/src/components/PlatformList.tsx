@@ -24,7 +24,7 @@ export function PlatformList({ platforms }: { platforms: Platform[] }) {
           <span className="platform-family">{family}</span>
           <div className="tag-list">
             {items.map((p) => (
-              <span key={p.id} className="tag selected">
+              <span key={p.id} className="tag tag-lg selected">
                 {p.name}
               </span>
             ))}
