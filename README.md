@@ -136,7 +136,7 @@ El `Dockerfile` de la raíz arma **una sola imagen**: compila la página React y
 Para generar `Jwt__Key` en PowerShell:
 
 ```powershell
-[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
 ```
 
 Las migraciones se aplican solas al arrancar (`Database__MigrateOnStartup=false` para desactivarlo).
