@@ -197,11 +197,6 @@ namespace GameScore.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Family")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -226,282 +221,51 @@ namespace GameScore.Api.Migrations
                         new
                         {
                             Id = 1,
-                            Family = "PC",
-                            Name = "PC (Windows)",
+                            Name = "PC",
                             Slug = "pc",
                             SortOrder = 1
                         },
                         new
                         {
-                            Id = 2,
-                            Family = "PC",
-                            Name = "Mac",
-                            Slug = "mac",
+                            Id = 10,
+                            Name = "PlayStation",
+                            Slug = "playstation",
                             SortOrder = 2
                         },
                         new
                         {
-                            Id = 3,
-                            Family = "PC",
-                            Name = "Linux",
-                            Slug = "linux",
+                            Id = 20,
+                            Name = "Xbox",
+                            Slug = "xbox-consolas",
                             SortOrder = 3
                         },
                         new
                         {
-                            Id = 4,
-                            Family = "PC",
-                            Name = "Steam Deck",
-                            Slug = "steam-deck",
+                            Id = 30,
+                            Name = "Nintendo",
+                            Slug = "nintendo",
                             SortOrder = 4
                         },
                         new
                         {
-                            Id = 10,
-                            Family = "PlayStation",
-                            Name = "PlayStation 5",
-                            Slug = "ps5",
-                            SortOrder = 10
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Family = "PlayStation",
-                            Name = "PlayStation 4",
-                            Slug = "ps4",
-                            SortOrder = 11
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Family = "PlayStation",
-                            Name = "PlayStation 3",
-                            Slug = "ps3",
-                            SortOrder = 12
-                        },
-                        new
-                        {
-                            Id = 13,
-                            Family = "PlayStation",
-                            Name = "PlayStation 2",
-                            Slug = "ps2",
-                            SortOrder = 13
-                        },
-                        new
-                        {
-                            Id = 14,
-                            Family = "PlayStation",
-                            Name = "PlayStation",
-                            Slug = "ps1",
-                            SortOrder = 14
-                        },
-                        new
-                        {
-                            Id = 15,
-                            Family = "PlayStation",
-                            Name = "PSP",
-                            Slug = "psp",
-                            SortOrder = 15
-                        },
-                        new
-                        {
-                            Id = 16,
-                            Family = "PlayStation",
-                            Name = "PS Vita",
-                            Slug = "ps-vita",
-                            SortOrder = 16
-                        },
-                        new
-                        {
-                            Id = 17,
-                            Family = "PlayStation",
-                            Name = "PlayStation VR2",
-                            Slug = "psvr2",
-                            SortOrder = 17
-                        },
-                        new
-                        {
-                            Id = 20,
-                            Family = "Xbox",
-                            Name = "Xbox Series X|S",
-                            Slug = "xbox-series",
-                            SortOrder = 20
-                        },
-                        new
-                        {
-                            Id = 21,
-                            Family = "Xbox",
-                            Name = "Xbox One",
-                            Slug = "xbox-one",
-                            SortOrder = 21
-                        },
-                        new
-                        {
-                            Id = 22,
-                            Family = "Xbox",
-                            Name = "Xbox 360",
-                            Slug = "xbox-360",
-                            SortOrder = 22
-                        },
-                        new
-                        {
-                            Id = 23,
-                            Family = "Xbox",
-                            Name = "Xbox (original)",
-                            Slug = "xbox",
-                            SortOrder = 23
-                        },
-                        new
-                        {
-                            Id = 30,
-                            Family = "Nintendo",
-                            Name = "Nintendo Switch 2",
-                            Slug = "switch-2",
-                            SortOrder = 30
-                        },
-                        new
-                        {
-                            Id = 31,
-                            Family = "Nintendo",
-                            Name = "Nintendo Switch",
-                            Slug = "switch",
-                            SortOrder = 31
-                        },
-                        new
-                        {
-                            Id = 32,
-                            Family = "Nintendo",
-                            Name = "Wii U",
-                            Slug = "wii-u",
-                            SortOrder = 32
-                        },
-                        new
-                        {
-                            Id = 33,
-                            Family = "Nintendo",
-                            Name = "Wii",
-                            Slug = "wii",
-                            SortOrder = 33
-                        },
-                        new
-                        {
-                            Id = 34,
-                            Family = "Nintendo",
-                            Name = "GameCube",
-                            Slug = "gamecube",
-                            SortOrder = 34
-                        },
-                        new
-                        {
-                            Id = 35,
-                            Family = "Nintendo",
-                            Name = "Nintendo 64",
-                            Slug = "n64",
-                            SortOrder = 35
-                        },
-                        new
-                        {
-                            Id = 36,
-                            Family = "Nintendo",
-                            Name = "Super Nintendo",
-                            Slug = "snes",
-                            SortOrder = 36
-                        },
-                        new
-                        {
-                            Id = 37,
-                            Family = "Nintendo",
-                            Name = "NES",
-                            Slug = "nes",
-                            SortOrder = 37
-                        },
-                        new
-                        {
-                            Id = 38,
-                            Family = "Nintendo",
-                            Name = "Nintendo 3DS",
-                            Slug = "3ds",
-                            SortOrder = 38
-                        },
-                        new
-                        {
-                            Id = 39,
-                            Family = "Nintendo",
-                            Name = "Nintendo DS",
-                            Slug = "ds",
-                            SortOrder = 39
-                        },
-                        new
-                        {
-                            Id = 40,
-                            Family = "Nintendo",
-                            Name = "Game Boy Advance",
-                            Slug = "gba",
-                            SortOrder = 40
-                        },
-                        new
-                        {
-                            Id = 41,
-                            Family = "Nintendo",
-                            Name = "Game Boy / Color",
-                            Slug = "gameboy",
-                            SortOrder = 41
-                        },
-                        new
-                        {
                             Id = 50,
-                            Family = "Otras",
-                            Name = "Android",
-                            Slug = "android",
-                            SortOrder = 50
-                        },
-                        new
-                        {
-                            Id = 51,
-                            Family = "Otras",
-                            Name = "iPhone / iPad",
-                            Slug = "ios",
-                            SortOrder = 51
+                            Name = "Móvil",
+                            Slug = "movil",
+                            SortOrder = 5
                         },
                         new
                         {
                             Id = 52,
-                            Family = "Otras",
-                            Name = "Meta Quest",
-                            Slug = "meta-quest",
-                            SortOrder = 52
-                        },
-                        new
-                        {
-                            Id = 53,
-                            Family = "Otras",
-                            Name = "Sega Dreamcast",
-                            Slug = "dreamcast",
-                            SortOrder = 53
-                        },
-                        new
-                        {
-                            Id = 54,
-                            Family = "Otras",
-                            Name = "Sega Saturn",
-                            Slug = "saturn",
-                            SortOrder = 54
-                        },
-                        new
-                        {
-                            Id = 55,
-                            Family = "Otras",
-                            Name = "Sega Genesis / Mega Drive",
-                            Slug = "genesis",
-                            SortOrder = 55
+                            Name = "Realidad virtual",
+                            Slug = "realidad-virtual",
+                            SortOrder = 6
                         },
                         new
                         {
                             Id = 56,
-                            Family = "Otras",
-                            Name = "Arcade / recreativas",
-                            Slug = "arcade",
-                            SortOrder = 56
+                            Name = "Retro / otras",
+                            Slug = "retro-otras",
+                            SortOrder = 7
                         });
                 });
 
