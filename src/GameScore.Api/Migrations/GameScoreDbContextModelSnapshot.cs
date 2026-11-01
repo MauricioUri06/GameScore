@@ -245,6 +245,68 @@ namespace GameScore.Api.Migrations
                     b.ToTable("Genres");
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.OlderNewerRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Finished")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LeftCover")
+                        .HasColumnType("text");
+
+                    b.Property<int>("LeftGameId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LeftName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("LeftYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RightCover")
+                        .HasColumnType("text");
+
+                    b.Property<int>("RightGameId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RightName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("RightYear")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<int[]>("UsedGameIds")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.HasIndex("UserId", "Score");
+
+                    b.ToTable("OlderNewerRuns", (string)null);
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.Platform", b =>
                 {
                     b.Property<int>("Id")
@@ -977,6 +1039,16 @@ namespace GameScore.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GameScore.Api.Entities.OlderNewerRun", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
