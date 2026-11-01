@@ -45,6 +45,9 @@ namespace GameScore.Api.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("AvatarUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -568,6 +571,28 @@ namespace GameScore.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.UserAvatar", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserAvatars");
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.UserFavoriteGenre", b =>
                 {
                     b.Property<string>("UserId")
@@ -779,6 +804,17 @@ namespace GameScore.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GameScore.Api.Entities.UserAvatar", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithOne()
+                        .HasForeignKey("GameScore.Api.Entities.UserAvatar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
