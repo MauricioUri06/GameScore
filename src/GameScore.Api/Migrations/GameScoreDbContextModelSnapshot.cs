@@ -283,6 +283,9 @@ namespace GameScore.Api.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PlatformId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Review")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -301,6 +304,8 @@ namespace GameScore.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
+
+                    b.HasIndex("PlatformId");
 
                     b.HasIndex("UserId", "GameId")
                         .IsUnique();
@@ -542,6 +547,11 @@ namespace GameScore.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GameScore.Api.Entities.Platform", "Platform")
+                        .WithMany()
+                        .HasForeignKey("PlatformId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("GameScore.Api.Entities.AppUser", "User")
                         .WithMany("Ratings")
                         .HasForeignKey("UserId")
@@ -549,6 +559,8 @@ namespace GameScore.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Game");
+
+                    b.Navigation("Platform");
 
                     b.Navigation("User");
                 });
