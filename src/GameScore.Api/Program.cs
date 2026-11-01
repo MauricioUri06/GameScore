@@ -36,13 +36,20 @@ builder.Services.AddDbContext<GameScoreDbContext>(options => options.UseNpgsql(c
 builder.Services
     .AddIdentityCore<AppUser>(options =>
     {
-        options.User.RequireUniqueEmail = true;
+        // Cuentas con nickname + clave de 6 dígitos (sin correo)
+        options.User.RequireUniqueEmail = false;
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-";
-        options.Password.RequiredLength = 8;
+        options.Password.RequiredLength = 6;
+        options.Password.RequiredUniqueChars = 1;
         options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
+        options.Password.RequireLowercase = false;
         options.Password.RequireUppercase = false;
         options.Password.RequireNonAlphanumeric = false;
+
+        // Una clave de 6 dígitos es corta: bloqueamos la cuenta tras varios intentos fallidos
+        options.Lockout.AllowedForNewUsers = true;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     })
     .AddEntityFrameworkStores<GameScoreDbContext>();
 

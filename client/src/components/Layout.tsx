@@ -6,16 +6,10 @@ import { Avatar } from './Avatar'
 function Logo() {
   return (
     <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-      <defs>
-        <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#a78bfa" />
-          <stop offset="1" stopColor="#4f46e5" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="14" fill="#161f4a" />
+      <rect width="64" height="64" rx="4" fill="#161f4a" />
       <path
         d="M32 12l5.9 12.6 13.8 1.7-10.2 9.5 2.7 13.7L32 42.7l-12.2 6.8 2.7-13.7-10.2-9.5 13.8-1.7z"
-        fill="url(#logo-g)"
+        fill="#8b5cf6"
       />
     </svg>
   )
@@ -27,7 +21,7 @@ function NavSearch() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (q.trim().length >= 2) navigate(`/search?q=${encodeURIComponent(q.trim())}`)
+    if (q.trim().length >= 2) navigate(`/juegos?q=${encodeURIComponent(q.trim())}`)
   }
 
   return (
@@ -58,8 +52,10 @@ export function Layout() {
             </span>
           </Link>
           <nav className="nav-links">
-            <NavLink to="/ranking">Ranking</NavLink>
-            <NavLink to="/search">Explorar</NavLink>
+            <NavLink to="/" end>
+              Ranking
+            </NavLink>
+            <NavLink to="/juegos">Juegos</NavLink>
           </nav>
           <NavSearch />
           <div className="nav-user">

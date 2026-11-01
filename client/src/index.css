@@ -1,5 +1,5 @@
 /* ==========================================================
-   GameScore — tema morado + azul oscuro
+   GameScore — tema morado + azul oscuro (colores sólidos, sin degradados)
    Todos los colores salen de estas variables: para cambiar
    el esquema basta con editar este bloque.
    ========================================================== */
@@ -25,13 +25,15 @@
   --danger: #f472b6;
   --success: #67e8f9;
 
-  --gradient: linear-gradient(135deg, #8b5cf6 0%, #4f46e5 55%, #1e3a8a 100%);
-  --glow: 0 0 0 1px rgba(139, 92, 246, 0.35), 0 10px 30px -10px rgba(124, 58, 237, 0.55);
+  --glow: 0 0 0 1px rgba(139, 92, 246, 0.45), 0 8px 24px -12px rgba(124, 58, 237, 0.6);
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Space Grotesk', var(--font-body);
+  /* Esquinas afiladas */
+  --radius: 4px;
+  --radius-sm: 2px;
+
+  /* Cinzel: títulos con aire de aventura. Alegreya Sans: texto legible y sobrio. */
+  --font-body: 'Alegreya Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Cinzel', Georgia, serif;
 
   color-scheme: dark;
 }
@@ -49,14 +51,10 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(1200px 600px at 85% -10%, rgba(124, 58, 237, 0.18), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(30, 58, 138, 0.35), transparent 60%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -114,7 +112,7 @@ img {
 }
 .section-header h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
@@ -141,7 +139,8 @@ img {
   gap: 10px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
   color: var(--text);
 }
 .brand-mark {
@@ -150,10 +149,7 @@ img {
 }
 .brand span em {
   font-style: normal;
-  background: var(--gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--primary-light);
 }
 .nav-links {
   display: flex;
@@ -243,6 +239,7 @@ img {
 
 /* ---------- Botones ---------- */
 .btn {
+  letter-spacing: 0.02em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -264,13 +261,14 @@ img {
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--gradient);
+  background: var(--primary-strong);
   color: #fff;
-  box-shadow: var(--glow);
+  border-color: var(--primary);
 }
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.1);
+  background: var(--primary);
   color: #fff;
+  box-shadow: var(--glow);
 }
 .btn-ghost {
   background: transparent;
@@ -341,8 +339,7 @@ img {
   color: var(--text-faint);
   font-family: var(--font-display);
   font-size: 2rem;
-  background: var(--gradient);
-  opacity: 0.4;
+  background: var(--surface-hover);
 }
 .game-card-body {
   padding: 10px 12px 12px;
@@ -372,7 +369,7 @@ img {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--primary-soft);
   color: var(--primary-light);
   font-weight: 700;
@@ -389,7 +386,7 @@ img {
 .tag {
   display: inline-block;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -457,7 +454,7 @@ button.tag {
 .star-input-half:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .star-input-value {
   font-family: var(--font-display);
@@ -478,10 +475,7 @@ button.tag {
 }
 .hero h1 em {
   font-style: normal;
-  background: var(--gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--primary-light);
 }
 .hero p {
   color: var(--text-muted);
@@ -509,9 +503,7 @@ button.tag {
   inset: 0;
   background-size: cover;
   background-position: center 25%;
-  opacity: 0.35;
-  mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+  opacity: 0.18;
 }
 .game-hero-content {
   position: relative;
@@ -547,15 +539,6 @@ button.tag {
 .game-description.expanded {
   max-height: none;
 }
-.game-description:not(.expanded)::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 70px;
-  background: linear-gradient(transparent, var(--bg));
-}
 .link-button {
   background: none;
   border: 0;
@@ -570,10 +553,7 @@ button.tag {
   font-size: 3rem;
   font-weight: 700;
   line-height: 1;
-  background: var(--gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--primary-light);
 }
 
 .histogram {
@@ -586,7 +566,7 @@ button.tag {
 .histogram-bar {
   flex: 1;
   background: var(--primary);
-  border-radius: 3px 3px 0 0;
+  border-radius: 0;
   min-height: 2px;
   opacity: 0.85;
 }
@@ -644,7 +624,7 @@ button.tag {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  background: var(--gradient);
+  background: var(--primary-strong);
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -679,7 +659,7 @@ button.tag {
 .activity-thumb {
   width: 54px;
   height: 72px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   flex-shrink: 0;
   background: var(--bg-elevated);
@@ -714,15 +694,12 @@ button.tag {
   color: var(--text-faint);
 }
 .ranking-pos.podium {
-  background: var(--gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--primary-light);
 }
 .ranking-thumb {
   width: 48px;
   height: 64px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   background: var(--bg-elevated);
 }
@@ -842,7 +819,7 @@ button.tag {
   width: 36px;
   height: 48px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   flex-shrink: 0;
 }
@@ -871,7 +848,7 @@ button.tag {
   background: none;
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   width: 30px;
   height: 30px;
   cursor: pointer;
@@ -929,13 +906,12 @@ button.tag {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-hover) 50%, var(--surface) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+  background: var(--surface);
+  animation: pulse 1.4s ease-in-out infinite;
   border-radius: var(--radius);
 }
-@keyframes shimmer {
-  to { background-position: -200% 0; }
+@keyframes pulse {
+  50% { background: var(--surface-hover); }
 }
 
 .footer {
@@ -966,4 +942,13 @@ button.tag {
   .grid-2 {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------- Clave de 6 dígitos ---------- */
+.pin-input {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.6em;
+  text-align: center;
+  padding-left: calc(12px + 0.6em);
 }

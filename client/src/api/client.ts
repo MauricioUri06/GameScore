@@ -94,9 +94,9 @@ const json = (body: unknown) => JSON.stringify(body)
 
 export const api = {
   // Auth
-  register: (body: { userName: string; email: string; password: string; displayName?: string }) =>
+  register: (body: { userName: string; pin: string; displayName?: string }) =>
     request<AuthResponse>('/auth/register', { method: 'POST', body: json(body) }),
-  login: (body: { userNameOrEmail: string; password: string }) =>
+  login: (body: { userName: string; pin: string }) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: json(body) }),
   me: () => request<CurrentUser>('/auth/me'),
 

@@ -5,8 +5,8 @@ import type { AuthResponse, CurrentUser } from '../api/types'
 interface AuthContextValue {
   user: CurrentUser | null
   loading: boolean
-  login: (userNameOrEmail: string, password: string) => Promise<void>
-  register: (data: { userName: string; email: string; password: string; displayName?: string }) => Promise<void>
+  login: (userName: string, pin: string) => Promise<void>
+  register: (data: { userName: string; pin: string; displayName?: string }) => Promise<void>
   logout: () => void
   refresh: () => Promise<void>
 }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
-      login: async (userNameOrEmail, password) => handleAuth(await api.login({ userNameOrEmail, password })),
+      login: async (userName, pin) => handleAuth(await api.login({ userName, pin })),
       register: async (data) => handleAuth(await api.register(data)),
       logout: () => {
         tokenStorage.clear()

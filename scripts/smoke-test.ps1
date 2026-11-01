@@ -6,7 +6,7 @@ param([string]$Base = "http://localhost:5080/api")
 $ErrorActionPreference = "Stop"
 $stamp = Get-Date -Format "MMddHHmmss"
 $user = "prueba$stamp"
-$pass = "prueba123"
+$pin = "246813"
 
 function Step($name, [scriptblock]$action) {
     try {
@@ -23,13 +23,13 @@ function Step($name, [scriptblock]$action) {
 # 1. Escritura en Neon: crear usuario (tabla AspNetUsers)
 $auth = Step "Registro de usuario '$user' (INSERT en Neon)" {
     Invoke-RestMethod "$Base/auth/register" -Method Post -ContentType "application/json" `
-        -Body (@{ userName = $user; email = "$user@example.com"; password = $pass } | ConvertTo-Json)
+        -Body (@{ userName = $user; pin = $pin } | ConvertTo-Json)
 }
 
 # 2. Lectura en Neon: login con el usuario recién creado
 $login = Step "Login (SELECT en Neon)" {
     Invoke-RestMethod "$Base/auth/login" -Method Post -ContentType "application/json" `
-        -Body (@{ userNameOrEmail = $user; password = $pass } | ConvertTo-Json)
+        -Body (@{ userName = $user; pin = $pin } | ConvertTo-Json)
 }
 $headers = @{ Authorization = "Bearer $($login.token)" }
 

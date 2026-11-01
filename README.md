@@ -6,7 +6,7 @@ Una red social para calificar videojuegos, al estilo Letterboxd: puntúa los jue
 
 | Capa | Tecnología |
 |---|---|
-| Backend | ASP.NET Core 10 Web API, EF Core 10, ASP.NET Identity + JWT |
+| Backend | ASP.NET Core 10 Web API, EF Core 10, ASP.NET Identity + JWT (nickname + clave de 6 dígitos) |
 | Base de datos | PostgreSQL (Neon, plan gratuito) |
 | Datos de juegos | [IGDB API](https://api-docs.igdb.com) (Twitch) |
 | Frontend | React 19 + TypeScript + Vite + React Router |
@@ -123,8 +123,8 @@ Las migraciones usan `DATABASE_URL_UNPOOLED` (vía `GameScoreDbContextFactory`).
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/api/auth/register` | Crear cuenta |
-| POST | `/api/auth/login` | Iniciar sesión (usuario o correo) |
+| POST | `/api/auth/register` | Crear cuenta (`userName`, `pin` de 6 dígitos) |
+| POST | `/api/auth/login` | Iniciar sesión (`userName`, `pin`). 5 intentos fallidos bloquean la cuenta 15 min |
 | GET | `/api/auth/me` | Usuario actual 🔒 |
 | GET | `/api/games/search?q=` | Buscar juegos en IGDB |
 | GET | `/api/games/popular` | Populares recientes |
@@ -149,7 +149,7 @@ La app solo habla con la interfaz `IGameCatalog` (`Catalog/IGameCatalog.cs`). Pa
 
 ## Personalizar colores
 
-Todo el tema está en las variables de `client/src/index.css` (bloque `:root`). Cambiando `--bg`, `--primary` y `--gradient` cambia el look completo.
+Todo el tema está en las variables de `client/src/index.css` (bloque `:root`): colores sólidos, esquinas (`--radius`) y fuentes (Cinzel para títulos, Alegreya Sans para texto).
 
 ---
 

@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GameScore.Api.Controllers;
 
+/// <summary>
+/// Registro e inicio de sesión con nickname + clave de 6 dígitos.
+/// </summary>
 [ApiController]
 [Route("api/auth")]
 public class AuthController(UserManager<AppUser> userManager, TokenService tokenService) : ControllerBase
@@ -15,16 +18,14 @@ public class AuthController(UserManager<AppUser> userManager, TokenService token
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
+        var userName = request.UserName.Trim();
         var user = new AppUser
         {
-            UserName = request.UserName.Trim(),
-            Email = request.Email.Trim(),
-            DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
-                ? request.UserName.Trim()
-                : request.DisplayName.Trim()
+            UserName = userName,
+            DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? userName : request.DisplayName.Trim()
         };
 
-        var result = await userManager.CreateAsync(user, request.Password);
+        var result = await userManager.CreateAsync(user, request.Pin);
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
@@ -38,14 +39,24 @@ public class AuthController(UserManager<AppUser> userManager, TokenService token
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var login = request.UserNameOrEmail.Trim();
-        var user = login.Contains('@')
-            ? await userManager.FindByEmailAsync(login)
-            : await userManager.FindByNameAsync(login);
+        var user = await userManager.FindByNameAsync(request.UserName.Trim());
+        if (user is null)
+            return Unauthorized(new ProblemDetails { Title = "Nickname o clave incorrectos." });
 
-        if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
-            return Unauthorized(new ProblemDetails { Title = "Usuario o contraseña incorrectos." });
+        if (await userManager.IsLockedOutAsync(user))
+            return LockedOut(user);
 
+        if (!await userManager.CheckPasswordAsync(user, request.Pin))
+        {
+            // Cuenta el intento fallido; al llegar al máximo, Identity bloquea la cuenta un rato
+            await userManager.AccessFailedAsync(user);
+            if (await userManager.IsLockedOutAsync(user))
+                return LockedOut(user);
+
+            return Unauthorized(new ProblemDetails { Title = "Nickname o clave incorrectos." });
+        }
+
+        await userManager.ResetAccessFailedCountAsync(user);
         return Ok(BuildResponse(user));
     }
 
@@ -58,6 +69,19 @@ public class AuthController(UserManager<AppUser> userManager, TokenService token
         return ToDto(user);
     }
 
+    private ObjectResult LockedOut(AppUser user)
+    {
+        var minutes = user.LockoutEnd is { } end
+            ? Math.Max(1, (int)Math.Ceiling((end - DateTimeOffset.UtcNow).TotalMinutes))
+            : 15;
+
+        return StatusCode(StatusCodes.Status429TooManyRequests, new ProblemDetails
+        {
+            Status = StatusCodes.Status429TooManyRequests,
+            Title = $"Demasiados intentos fallidos. Intenta de nuevo en {minutes} min."
+        });
+    }
+
     private AuthResponse BuildResponse(AppUser user)
     {
         var (token, expiresAt) = tokenService.CreateToken(user);
@@ -65,18 +89,14 @@ public class AuthController(UserManager<AppUser> userManager, TokenService token
     }
 
     private static CurrentUserDto ToDto(AppUser user) =>
-        new(user.Id, user.UserName!, user.DisplayName, user.Email!, user.AvatarUrl);
+        new(user.Id, user.UserName!, user.DisplayName, user.AvatarUrl);
 
     private static string TranslateIdentityError(IdentityError error) => error.Code switch
     {
-        "DuplicateUserName" => "Ese nombre de usuario ya está en uso.",
-        "DuplicateEmail" => "Ese correo ya está registrado.",
-        "InvalidUserName" => "El nombre de usuario no es válido.",
-        "InvalidEmail" => "El correo no es válido.",
-        "PasswordTooShort" => "La contraseña debe tener al menos 8 caracteres.",
-        "PasswordRequiresDigit" => "La contraseña debe tener al menos un número.",
-        "PasswordRequiresLower" => "La contraseña debe tener al menos una minúscula.",
-        "PasswordRequiresUpper" => "La contraseña debe tener al menos una mayúscula.",
+        "DuplicateUserName" => "Ese nickname ya está en uso.",
+        "InvalidUserName" => "El nickname no es válido.",
+        "PasswordTooShort" => "La clave debe tener 6 dígitos.",
+        "PasswordRequiresDigit" => "La clave debe tener solo números.",
         _ => error.Description
     };
 }

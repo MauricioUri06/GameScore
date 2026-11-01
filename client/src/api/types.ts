@@ -5,7 +5,6 @@ export interface CurrentUser {
   id: string
   userName: string
   displayName: string
-  email: string
   avatarUrl: string | null
 }
 

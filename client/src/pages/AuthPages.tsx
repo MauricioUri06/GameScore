@@ -10,11 +10,41 @@ function useRedirectAfterAuth() {
   return () => navigate(from, { replace: true })
 }
 
+/** Campo de clave: solo acepta números y como máximo 6. */
+function PinInput({
+  id,
+  value,
+  onChange,
+  autoComplete,
+}: {
+  id: string
+  value: string
+  onChange: (value: string) => void
+  autoComplete: string
+}) {
+  return (
+    <input
+      id={id}
+      className="input pin-input"
+      type="password"
+      inputMode="numeric"
+      autoComplete={autoComplete}
+      pattern="[0-9]{6}"
+      title="6 dígitos"
+      maxLength={6}
+      required
+      placeholder="••••••"
+      value={value}
+      onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+    />
+  )
+}
+
 export function LoginPage() {
   const { login } = useAuth()
   const redirect = useRedirectAfterAuth()
-  const [userNameOrEmail, setUserNameOrEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [userName, setUserName] = useState('')
+  const [pin, setPin] = useState('')
   const [error, setError] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
 
@@ -23,10 +53,11 @@ export function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await login(userNameOrEmail.trim(), password)
+      await login(userName.trim(), pin)
       redirect()
     } catch (err) {
       setError(err)
+      setPin('')
     } finally {
       setLoading(false)
     }
@@ -38,29 +69,21 @@ export function LoginPage() {
         <h1>Bienvenido de vuelta</h1>
         {error ? <ErrorMessage error={error} /> : null}
         <div className="field">
-          <label htmlFor="login">Usuario o correo</label>
+          <label htmlFor="userName">Nickname</label>
           <input
-            id="login"
+            id="userName"
             className="input"
             autoComplete="username"
             required
-            value={userNameOrEmail}
-            onChange={(e) => setUserNameOrEmail(e.target.value)}
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
           />
         </div>
         <div className="field">
-          <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            className="input"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <label htmlFor="pin">Clave de 6 dígitos</label>
+          <PinInput id="pin" value={pin} onChange={setPin} autoComplete="current-password" />
         </div>
-        <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+        <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading || pin.length !== 6}>
           {loading ? 'Entrando…' : 'Entrar'}
         </button>
         <p className="small muted" style={{ textAlign: 'center', marginBottom: 0 }}>
@@ -74,23 +97,25 @@ export function LoginPage() {
 export function RegisterPage() {
   const { register } = useAuth()
   const redirect = useRedirectAfterAuth()
-  const [form, setForm] = useState({ userName: '', displayName: '', email: '', password: '' })
+  const [userName, setUserName] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [pin, setPin] = useState('')
+  const [pinConfirm, setPinConfirm] = useState('')
   const [error, setError] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
 
-  const update = (key: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) =>
-    setForm({ ...form, [key]: e.target.value })
+  const mismatch = pinConfirm.length === 6 && pin !== pinConfirm
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
+    if (pin !== pinConfirm) return
     setLoading(true)
     setError(null)
     try {
       await register({
-        userName: form.userName.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        displayName: form.displayName.trim() || undefined,
+        userName: userName.trim(),
+        pin,
+        displayName: displayName.trim() || undefined,
       })
       redirect()
     } catch (err) {
@@ -106,7 +131,7 @@ export function RegisterPage() {
         <h1>Crea tu cuenta</h1>
         {error ? <ErrorMessage error={error} /> : null}
         <div className="field">
-          <label htmlFor="userName">Nombre de usuario</label>
+          <label htmlFor="userName">Nickname</label>
           <input
             id="userName"
             className="input"
@@ -116,42 +141,35 @@ export function RegisterPage() {
             maxLength={20}
             pattern="[a-zA-Z0-9_.\-]+"
             title="Letras, números, '_', '.' y '-'"
-            value={form.userName}
-            onChange={update('userName')}
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
           />
-          <span className="hint">Será tu dirección: /u/{form.userName || 'usuario'}</span>
+          <span className="hint">Será tu dirección: /u/{userName || 'nickname'}</span>
         </div>
         <div className="field">
           <label htmlFor="displayName">Nombre visible (opcional)</label>
-          <input id="displayName" className="input" maxLength={50} value={form.displayName} onChange={update('displayName')} />
-        </div>
-        <div className="field">
-          <label htmlFor="email">Correo</label>
           <input
-            id="email"
+            id="displayName"
             className="input"
-            type="email"
-            autoComplete="email"
-            required
-            value={form.email}
-            onChange={update('email')}
+            maxLength={50}
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
           />
         </div>
         <div className="field">
-          <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            className="input"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={form.password}
-            onChange={update('password')}
-          />
-          <span className="hint">Mínimo 8 caracteres, con al menos una minúscula y un número.</span>
+          <label htmlFor="pin">Clave de 6 dígitos</label>
+          <PinInput id="pin" value={pin} onChange={setPin} autoComplete="new-password" />
         </div>
-        <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+        <div className="field">
+          <label htmlFor="pinConfirm">Repite la clave</label>
+          <PinInput id="pinConfirm" value={pinConfirm} onChange={setPinConfirm} autoComplete="new-password" />
+          {mismatch && <span className="hint" style={{ color: 'var(--danger)' }}>Las claves no coinciden.</span>}
+        </div>
+        <button
+          className="btn btn-primary"
+          style={{ width: '100%' }}
+          disabled={loading || pin.length !== 6 || pin !== pinConfirm}
+        >
           {loading ? 'Creando cuenta…' : 'Crear cuenta'}
         </button>
         <p className="small muted" style={{ textAlign: 'center', marginBottom: 0 }}>

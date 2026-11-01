@@ -6,10 +6,9 @@ import { Spinner } from './components/Status'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { EditProfilePage } from './pages/EditProfilePage'
 import { GamePage } from './pages/GamePage'
-import { HomePage } from './pages/HomePage'
+import { GamesPage } from './pages/GamesPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RankingPage } from './pages/RankingPage'
-import { SearchPage } from './pages/SearchPage'
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -37,9 +36,12 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="search" element={<SearchPage />} />
-            <Route path="ranking" element={<RankingPage />} />
+            {/* Lo primero que se ve: el ranking */}
+            <Route index element={<RankingPage />} />
+            <Route path="juegos" element={<GamesPage />} />
+            {/* Rutas viejas */}
+            <Route path="ranking" element={<Navigate to="/" replace />} />
+            <Route path="search" element={<Navigate to="/juegos" replace />} />
             <Route path="games/:gameId" element={<GamePage />} />
             <Route path="u/:userName" element={<ProfilePage />} />
             <Route

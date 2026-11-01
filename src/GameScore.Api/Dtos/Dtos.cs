@@ -9,19 +9,19 @@ namespace GameScore.Api.Dtos;
 
 public record RegisterRequest(
     [Required, StringLength(20, MinimumLength = 3), RegularExpression("^[a-zA-Z0-9_.-]+$",
-        ErrorMessage = "El nombre de usuario solo puede tener letras, números, '_', '.' y '-'.")]
+        ErrorMessage = "El nickname solo puede tener letras, números, '_', '.' y '-'.")]
     string UserName,
-    [Required, EmailAddress] string Email,
-    [Required, StringLength(100, MinimumLength = 8)] string Password,
+    [Required, RegularExpression("^[0-9]{6}$", ErrorMessage = "La clave debe tener exactamente 6 dígitos.")]
+    string Pin,
     [StringLength(50)] string? DisplayName);
 
 public record LoginRequest(
-    [Required] string UserNameOrEmail,
-    [Required] string Password);
+    [Required] string UserName,
+    [Required] string Pin);
 
 public record AuthResponse(string Token, DateTime ExpiresAt, CurrentUserDto User);
 
-public record CurrentUserDto(string Id, string UserName, string DisplayName, string Email, string? AvatarUrl);
+public record CurrentUserDto(string Id, string UserName, string DisplayName, string? AvatarUrl);
 
 // ---------- Juegos ----------
 

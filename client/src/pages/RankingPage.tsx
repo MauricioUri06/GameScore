@@ -13,7 +13,7 @@ export function RankingPage() {
 
   return (
     <div className="container page">
-      <h1>Ranking</h1>
+      <h1>Ranking de la comunidad</h1>
       <p className="muted" style={{ maxWidth: 640 }}>
         Los mejores juegos según la comunidad. Usamos un promedio ponderado: un juego necesita varias
         calificaciones para subir, así una sola nota perfecta no lo pone en la cima.
@@ -39,7 +39,10 @@ export function RankingPage() {
       ) : ranking.loading ? (
         <Spinner />
       ) : !ranking.data?.length ? (
-        <Empty>Todavía no hay juegos calificados{genre ? ' en este género' : ''}.</Empty>
+        <Empty>
+          Todavía no hay juegos calificados{genre ? ' en este género' : ''}.{' '}
+          <Link to="/juegos">Explora los juegos</Link> y califica el primero.
+        </Empty>
       ) : (
         <ol className="ranking-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {ranking.data.map((g) => (
