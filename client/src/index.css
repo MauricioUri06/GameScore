@@ -442,13 +442,16 @@ button.tag {
 .star .star-empty {
   color: var(--star-empty);
 }
+/* Cabe en la columna lateral de la ficha (≈240 px); si no, pasa a otra línea en vez de salirse */
 .star-input {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  max-width: 100%;
 }
 .star-input .stars {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   cursor: pointer;
 }
 .star-input-half {
@@ -471,9 +474,9 @@ button.tag {
 }
 .star-input-value {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  min-width: 3ch;
+  min-width: 2.5ch;
   color: var(--primary-light);
 }
 
@@ -1322,8 +1325,9 @@ img.avatar {
 
 /* ---------- 0 estrellas ---------- */
 .star-zero {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
