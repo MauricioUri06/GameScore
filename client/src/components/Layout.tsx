@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { Avatar } from './Avatar'
+import { UserMenu } from './UserMenu'
 import { SearchAutocomplete } from './SearchAutocomplete'
 
 function Logo() {
@@ -27,7 +27,7 @@ function NavSearch() {
 }
 
 export function Layout() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
 
   return (
     <>
@@ -49,14 +49,7 @@ export function Layout() {
           <NavSearch />
           <div className="nav-user">
             {user ? (
-              <>
-                <Link to={`/u/${user.userName}`} className="row" style={{ gap: 8 }}>
-                  <Avatar name={user.userName} url={user.avatarUrl} />
-                </Link>
-                <button className="btn btn-ghost btn-sm" onClick={logout}>
-                  Salir
-                </button>
-              </>
+              <UserMenu />
             ) : (
               <>
                 <Link to="/login" className="btn btn-ghost btn-sm">

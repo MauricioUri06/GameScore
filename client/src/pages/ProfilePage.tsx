@@ -50,11 +50,37 @@ export function ProfilePage() {
             <span>Juegos</span>
           </div>
           <div className="stat">
+            <strong>{profile.reviewsCount}</strong>
+            <span>Reseñas</span>
+          </div>
+          <div className="stat">
             <strong>{profile.averageGiven?.toFixed(1) ?? '–'}</strong>
             <span>Promedio</span>
           </div>
+          <div className="stat">
+            <strong>
+              {profile.medals.length}/{profile.medalsTotal}
+            </strong>
+            <span>Medallas</span>
+          </div>
         </div>
       </header>
+
+      <div className="profile-medals">
+        {profile.medals.length > 0 ? (
+          profile.medals.map((m) => (
+            <span key={m.id} className="medal-badge" title={`${m.name}: ${m.description}`}>
+              <span aria-hidden="true">{m.icon}</span>
+              <span className="medal-badge-name">{m.name}</span>
+            </span>
+          ))
+        ) : (
+          <span className="small faint">Aún sin medallas.</span>
+        )}
+        <Link to={`/u/${profile.userName}/medallas`} className="small">
+          Ver todas las medallas →
+        </Link>
+      </div>
 
       <div className="profile-boxes">
         <section className="profile-box">
@@ -97,6 +123,33 @@ export function ProfilePage() {
           )}
         </section>
       </div>
+
+      {(profile.playing.length > 0 || isMe) && (
+        <section className="section">
+          <div className="section-header">
+            <h2>Jugando ahora</h2>
+          </div>
+          {profile.playing.length ? (
+            <div className="playing-grid">
+              {profile.playing.map((g) => (
+                <Link key={g.gameId} to={`/games/${g.gameId}`} className="game-card">
+                  <div className="game-cover">
+                    <GameCover src={g.coverUrl} name={g.name} />
+                    <span className="score-pill overlay">▶</span>
+                  </div>
+                  <div className="game-card-body">
+                    <span className="game-card-title">{g.name}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="muted" style={{ textAlign: 'center' }}>
+              ¿Qué estás jugando? <Link to="/settings/profile">Agrégalo</Link>.
+            </p>
+          )}
+        </section>
+      )}
 
       <section className="section">
         <div className="section-header">

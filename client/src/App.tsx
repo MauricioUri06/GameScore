@@ -9,6 +9,7 @@ import { EditProfilePage } from './pages/EditProfilePage'
 import { GamePage } from './pages/GamePage'
 import { GamesPage } from './pages/GamesPage'
 import { HomePage } from './pages/HomePage'
+import { MedalsPage } from './pages/MedalsPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RankingPage } from './pages/RankingPage'
 
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="search" element={<Navigate to="/juegos" replace />} />
             <Route path="games/:gameId" element={<GamePage />} />
             <Route path="u/:userName" element={<ProfilePage />} />
+            <Route path="u/:userName/medallas" element={<MedalsPage />} />
             <Route
               path="settings/profile"
               element={

@@ -38,6 +38,10 @@ export function GamePage() {
 
             <div>
               <h1>{game.name}</h1>
+              <p className="game-counts">
+                <strong>{game.reviewsCount}</strong> {game.reviewsCount === 1 ? 'reseña' : 'reseñas'} ·{' '}
+                <strong>{game.ratingsCount}</strong> {game.ratingsCount === 1 ? 'calificación' : 'calificaciones'}
+              </p>
               <div className="row" style={{ marginBottom: 16 }}>
                 {game.released && <span className="muted">{game.released.slice(0, 4)}</span>}
                 <div className="tag-list">
@@ -62,7 +66,7 @@ export function GamePage() {
       <div className="container page">
         <section>
           <div className="section-header">
-            <h2>Reseñas recientes</h2>
+            <h2>Reseñas ({game.reviewsCount})</h2>
           </div>
           {game.recentReviews.length === 0 ? (
             <Empty>Nadie ha calificado este juego todavía.</Empty>
@@ -107,7 +111,8 @@ function ScoreSummary({ game }: { game: GameDetail }) {
         <div style={{ textAlign: 'right' }}>
           {game.averageScore !== null && <Stars value={game.averageScore} />}
           <div className="small muted">
-            {game.ratingsCount} {game.ratingsCount === 1 ? 'calificación' : 'calificaciones'}
+            {game.ratingsCount} {game.ratingsCount === 1 ? 'calificación' : 'calificaciones'} ·{' '}
+            {game.reviewsCount} {game.reviewsCount === 1 ? 'reseña' : 'reseñas'}
           </div>
         </div>
       </div>

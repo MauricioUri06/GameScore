@@ -76,6 +76,8 @@ export interface GameDetail {
   recentReviews: Review[]
   /** Consolas donde salió el juego (vacío = sin datos) */
   availablePlatforms: Platform[]
+  /** Calificaciones con texto */
+  reviewsCount: number
 }
 
 export interface RankedGame {
@@ -129,6 +131,11 @@ export interface Profile {
   favoriteGenres: Genre[]
   platforms: Platform[]
   recentRatings: ProfileRating[]
+  playing: PlayingGame[]
+  /** Solo las medallas obtenidas */
+  medals: Medal[]
+  medalsTotal: number
+  reviewsCount: number
 }
 
 export interface PagedResult<T> {
@@ -177,4 +184,21 @@ export interface UserSearchResult {
   userName: string
   avatarUrl: string | null
   ratings: number
+}
+
+export interface PlayingGame {
+  gameId: number
+  name: string
+  coverUrl: string | null
+}
+
+export interface Medal {
+  id: string
+  name: string
+  description: string
+  icon: string
+  category: string
+  progress: number
+  target: number
+  earned: boolean
 }

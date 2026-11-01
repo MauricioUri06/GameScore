@@ -1527,3 +1527,186 @@ img.avatar {
   height: 28px;
   font-size: 0.8rem;
 }
+
+/* ---------- Ficha: cantidad de reseñas ---------- */
+.game-counts {
+  margin: -4px 0 12px;
+  color: var(--text-muted);
+}
+.game-counts strong {
+  color: var(--gold-light);
+}
+
+/* ---------- Perfil: medallas y jugando ahora ---------- */
+.profile-stats {
+  flex-wrap: wrap;
+}
+.profile-medals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.medal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--gold-light);
+  border-radius: var(--radius-sm);
+  background: rgba(224, 178, 60, 0.08);
+  font-size: 0.85rem;
+}
+.medal-badge-name {
+  color: var(--text);
+}
+.playing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+
+/* ---------- Página de medallas ---------- */
+.medals-total-bar,
+.medal-progress {
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.medals-total-bar {
+  max-width: 420px;
+  margin: 14px auto 0;
+}
+.medals-total-bar span,
+.medal-progress span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+}
+.medal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+.medal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 14px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  opacity: 0.75;
+}
+.medal-card.earned {
+  opacity: 1;
+  border-color: var(--gold-light);
+  border-top-width: 3px;
+}
+.medal-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+  filter: grayscale(1);
+}
+.medal-card.earned .medal-icon {
+  filter: none;
+}
+.medal-name {
+  font-family: var(--font-display);
+}
+.medal-card .medal-progress {
+  width: 100%;
+  margin-top: 4px;
+}
+.medal-status {
+  font-size: 0.8rem;
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+/* ---------- Menú del usuario ---------- */
+.user-menu {
+  position: relative;
+}
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.user-menu-trigger:hover,
+.user-menu-trigger[aria-expanded='true'] {
+  border-color: var(--gold-light);
+}
+.user-menu-trigger .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 0.8rem;
+}
+.user-menu-name {
+  font-weight: 600;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-menu-caret {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.user-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 210px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold-light);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.75);
+}
+.user-menu-panel a,
+.user-menu-logout {
+  display: block;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.user-menu-panel a:hover,
+.user-menu-logout:hover {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+.user-menu-panel hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+.user-menu-logout {
+  color: var(--danger);
+}
+@media (max-width: 560px) {
+  .user-menu-name {
+    display: none;
+  }
+}

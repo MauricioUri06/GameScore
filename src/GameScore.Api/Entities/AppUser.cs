@@ -17,4 +17,5 @@ public class AppUser : IdentityUser
     public ICollection<TopGame> TopGames { get; set; } = new List<TopGame>();
     public ICollection<UserFavoriteGenre> FavoriteGenres { get; set; } = new List<UserFavoriteGenre>();
     public ICollection<UserPlatform> Platforms { get; set; } = new List<UserPlatform>();
+    public ICollection<CurrentlyPlaying> CurrentlyPlaying { get; set; } = new List<CurrentlyPlaying>();
 }

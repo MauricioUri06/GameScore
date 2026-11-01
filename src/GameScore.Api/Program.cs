@@ -104,6 +104,7 @@ builder.Services.AddHttpClient<IGameCatalog, IgdbCatalog>((sp, http) =>
 });
 builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<RankingService>();
+builder.Services.AddScoped<MedalService>();
 builder.Services.AddSingleton<TokenService>();
 
 // Límite de intentos en registro/login (además del bloqueo de cuenta de Identity)

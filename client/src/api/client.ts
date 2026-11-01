@@ -6,6 +6,7 @@ import type {
   CurrentUser,
   GameDetail,
   GameSummary,
+  Medal,
   Genre,
   MyRating,
   PagedResult,
@@ -152,6 +153,9 @@ export const api = {
   adminUsers: () => request<AdminUser[]>('/admin/users'),
   updatePlatforms: (platformIds: number[]) =>
     request<void>('/me/platforms', { method: 'PUT', body: json({ platformIds }) }),
+  updatePlaying: (gameIds: number[]) =>
+    request<void>('/me/playing', { method: 'PUT', body: json({ gameIds }) }),
+  medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateTopGames: (gameIds: number[]) =>
     request<void>('/me/top-games', { method: 'PUT', body: json({ gameIds }) }),
   updateFavoriteGenres: (genreIds: number[]) =>

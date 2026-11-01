@@ -67,7 +67,9 @@ public record GameDetailDto(
     MyRatingDto? MyRating,
     IReadOnlyList<ReviewDto> RecentReviews,
     // Consolas donde está disponible el juego (vacío si IGDB no lo sabe: se muestran todas)
-    IReadOnlyList<PlatformDto> AvailablePlatforms);
+    IReadOnlyList<PlatformDto> AvailablePlatforms,
+    // Calificaciones que además tienen texto
+    int ReviewsCount);
 
 public record RankedGameDto(
     int Position,
@@ -106,6 +108,18 @@ public record ProfileRatingDto(
 
 public record PlatformDto(int Id, string Name, string Family);
 
+public record PlayingGameDto(int GameId, string Name, string? CoverUrl);
+
+public record MedalDto(
+    string Id,
+    string Name,
+    string Description,
+    string Icon,
+    string Category,
+    int Progress,
+    int Target,
+    bool Earned);
+
 public record ProfileDto(
     string UserName,
     string? AvatarUrl,
@@ -115,7 +129,14 @@ public record ProfileDto(
     IReadOnlyList<TopGameDto> TopGames,
     IReadOnlyList<GenreDto> FavoriteGenres,
     IReadOnlyList<PlatformDto> Platforms,
-    IReadOnlyList<ProfileRatingDto> RecentRatings);
+    IReadOnlyList<ProfileRatingDto> RecentRatings,
+    IReadOnlyList<PlayingGameDto> Playing,
+    // Solo las medallas obtenidas; MedalsTotal = cuántas existen en total
+    IReadOnlyList<MedalDto> Medals,
+    int MedalsTotal,
+    int ReviewsCount);
+
+public record UpdatePlayingRequest(List<int> GameIds);
 
 public record UpdatePlatformsRequest(List<int> PlatformIds);
 

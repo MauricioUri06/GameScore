@@ -134,6 +134,8 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
                     : r.Votes.Where(v => v.UserId == currentUserId).Select(v => v.Value).FirstOrDefault()))
             .ToListAsync(ct);
 
+        var reviewsCount = await db.Ratings.CountAsync(r => r.GameId == game.Id && r.Review != null, ct);
+
         // Consolas donde salió el juego, según IGDB (si no hay datos, el frontend muestra todas)
         var gamePlatformIds = game.PlatformIgdbIds ?? [];
         var available = (await db.Platforms.AsNoTracking().OrderBy(p => p.SortOrder).ToListAsync(ct))
@@ -155,7 +157,8 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             distribution,
             myRating,
             recentReviews,
-            available);
+            available,
+            reviewsCount);
     }
 
     /// <summary>

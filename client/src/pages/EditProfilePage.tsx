@@ -19,6 +19,7 @@ interface PickedGame {
 /** Lo que se guarda con el botón "Guardar cambios" (sin la foto, que se maneja aparte). */
 interface Draft {
   games: PickedGame[]
+  playing: PickedGame[]
   platformIds: number[]
   genreIds: number[]
 }
@@ -50,6 +51,7 @@ export function EditProfilePage() {
 function draftFrom(profile: Profile): Draft {
   return {
     games: profile.topGames.map((t) => ({ gameId: t.gameId, name: t.name, coverUrl: t.coverUrl })),
+    playing: profile.playing.map((p) => ({ gameId: p.gameId, name: p.name, coverUrl: p.coverUrl })),
     platformIds: profile.platforms.map((p) => p.id),
     genreIds: profile.favoriteGenres.map((g) => g.id),
   }
@@ -58,8 +60,10 @@ function draftFrom(profile: Profile): Draft {
 /** Compara dos borradores (el orden del top 5 importa; el de plataformas y géneros no). */
 function sameDraft(a: Draft, b: Draft) {
   const sorted = (xs: number[]) => [...xs].sort((x, y) => x - y).join(',')
+  const ids = (gs: PickedGame[]) => gs.map((g) => g.gameId).join(',')
   return (
-    a.games.map((g) => g.gameId).join(',') === b.games.map((g) => g.gameId).join(',') &&
+    ids(a.games) === ids(b.games) &&
+    ids(a.playing) === ids(b.playing) &&
     sorted(a.platformIds) === sorted(b.platformIds) &&
     sorted(a.genreIds) === sorted(b.genreIds)
   )
@@ -105,6 +109,9 @@ function ProfileEditor({
 
       const changedGames = draft.games.map((g) => g.gameId).join(',') !== saved.games.map((g) => g.gameId).join(',')
       if (changedGames) await api.updateTopGames(draft.games.map((g) => g.gameId))
+      const changedPlaying =
+        draft.playing.map((g) => g.gameId).join(',') !== saved.playing.map((g) => g.gameId).join(',')
+      if (changedPlaying) await api.updatePlaying(draft.playing.map((g) => g.gameId))
       await Promise.all([api.updatePlatforms(draft.platformIds), api.updateFavoriteGenres(draft.genreIds)])
 
       if (avatar.kind !== 'none') await refresh()
@@ -151,7 +158,21 @@ function ProfileEditor({
           setJustSaved(false)
         }}
       />
-      <TopGamesSection games={draft.games} onChange={(games) => update({ games })} />
+      <GameListSection
+        title="Jugando ahora"
+        hint="Los juegos que estás jugando en este momento (hasta 10)."
+        max={10}
+        numbered={false}
+        games={draft.playing}
+        onChange={(playing) => update({ playing })}
+      />
+      <GameListSection
+        title="Tu top 5"
+        hint="Busca y agrega hasta 5 juegos. Usa las flechas para ordenarlos."
+        max={5}
+        games={draft.games}
+        onChange={(games) => update({ games })}
+      />
       <PlatformsSection
         all={allPlatforms}
         selected={draft.platformIds}
@@ -252,7 +273,22 @@ function AvatarSection({
   )
 }
 
-function TopGamesSection({ games, onChange }: { games: PickedGame[]; onChange: (games: PickedGame[]) => void }) {
+/** Lista editable de juegos (top 5, jugando ahora): buscar, agregar, ordenar y quitar. */
+function GameListSection({
+  title,
+  hint,
+  max,
+  numbered = true,
+  games,
+  onChange,
+}: {
+  title: string
+  hint: string
+  max: number
+  numbered?: boolean
+  games: PickedGame[]
+  onChange: (games: PickedGame[]) => void
+}) {
   const move = (index: number, delta: number) => {
     const next = [...games]
     const [item] = next.splice(index, 1)
@@ -261,21 +297,21 @@ function TopGamesSection({ games, onChange }: { games: PickedGame[]; onChange: (
   }
 
   const add = (game: PickedGame) => {
-    if (games.length >= 5 || games.some((g) => g.gameId === game.gameId)) return
+    if (games.length >= max || games.some((g) => g.gameId === game.gameId)) return
     onChange([...games, game])
   }
 
   return (
     <div className="card section">
-      <h2>Tu top 5</h2>
+      <h2>{title}</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Busca y agrega hasta 5 juegos. Usa las flechas para ordenarlos.
+        {hint}
       </p>
 
       <div className="top5-editor">
         {games.map((g, i) => (
           <div key={g.gameId} className="top5-editor-row">
-            <strong style={{ width: 24 }}>#{i + 1}</strong>
+            {numbered && <strong style={{ width: 24 }}>#{i + 1}</strong>}
             {g.coverUrl ? (
               <img className="picker-thumb" src={igdbSize(g.coverUrl, 'cover_small')} alt="" />
             ) : (
@@ -306,7 +342,7 @@ function TopGamesSection({ games, onChange }: { games: PickedGame[]; onChange: (
         ))}
       </div>
 
-      {games.length < 5 && <GamePicker onPick={add} exclude={games.map((g) => g.gameId)} />}
+      {games.length < max && <GamePicker onPick={add} exclude={games.map((g) => g.gameId)} />}
     </div>
   )
 }
