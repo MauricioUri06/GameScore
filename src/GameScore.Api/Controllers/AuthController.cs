@@ -13,7 +13,10 @@ namespace GameScore.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/auth")]
-public class AuthController(UserManager<AppUser> userManager, TokenService tokenService) : ControllerBase
+public class AuthController(
+    UserManager<AppUser> userManager,
+    TokenService tokenService,
+    ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
@@ -39,15 +42,27 @@ public class AuthController(UserManager<AppUser> userManager, TokenService token
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var user = await userManager.FindByNameAsync(request.UserName.Trim());
+        var userName = request.UserName.Trim();
+        var pin = new string(request.Pin.Where(char.IsDigit).ToArray());
+
+        var user = await userManager.FindByNameAsync(userName);
         if (user is null)
+        {
+            logger.LogInformation("Login fallido: no existe el nickname '{UserName}'", userName);
             return Unauthorized(new ProblemDetails { Title = "Nickname o clave incorrectos." });
+        }
 
         if (await userManager.IsLockedOutAsync(user))
-            return LockedOut(user);
-
-        if (!await userManager.CheckPasswordAsync(user, request.Pin))
         {
+            logger.LogInformation("Login rechazado: la cuenta '{UserName}' está bloqueada", userName);
+            return LockedOut(user);
+        }
+
+        if (!await userManager.CheckPasswordAsync(user, pin))
+        {
+            logger.LogInformation("Login fallido: clave incorrecta para '{UserName}' (recibidos {Digits} dígitos)",
+                userName, pin.Length);
+
             // Cuenta el intento fallido; al llegar al máximo, Identity bloquea la cuenta un rato
             await userManager.AccessFailedAsync(user);
             if (await userManager.IsLockedOutAsync(user))

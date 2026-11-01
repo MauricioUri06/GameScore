@@ -25,6 +25,7 @@ function PinInput({
   return (
     <input
       id={id}
+      name={id}
       className="input pin-input"
       type="password"
       inputMode="numeric"
@@ -48,12 +49,27 @@ export function LoginPage() {
   const [error, setError] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // Leemos los valores directamente del formulario: si el navegador autocompletó
+    // el nickname o la clave, puede que React no se haya enterado todavía.
+    const form = new FormData(e.currentTarget)
+    const name = String(form.get('userName') ?? userName).trim()
+    const digits = String(form.get('pin') ?? pin).replace(/\D/g, '')
+
+    if (!name) {
+      setError(new Error('Escribe tu nickname.'))
+      return
+    }
+    if (digits.length !== 6) {
+      setError(new Error('La clave debe tener 6 dígitos.'))
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {
-      await login(userName.trim(), pin)
+      await login(name, digits)
       redirect()
     } catch (err) {
       setError(err)
@@ -65,16 +81,16 @@ export function LoginPage() {
 
   return (
     <div className="container page">
-      <form className="card auth-card" onSubmit={submit}>
+      <form className="card auth-card" onSubmit={submit} noValidate>
         <h1>Bienvenido de vuelta</h1>
         {error ? <ErrorMessage error={error} /> : null}
         <div className="field">
           <label htmlFor="userName">Nickname</label>
           <input
             id="userName"
+            name="userName"
             className="input"
             autoComplete="username"
-            required
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
           />
@@ -83,7 +99,7 @@ export function LoginPage() {
           <label htmlFor="pin">Clave de 6 dígitos</label>
           <PinInput id="pin" value={pin} onChange={setPin} autoComplete="current-password" />
         </div>
-        <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading || pin.length !== 6}>
+        <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
           {loading ? 'Entrando…' : 'Entrar'}
         </button>
         <p className="small muted" style={{ textAlign: 'center', marginBottom: 0 }}>

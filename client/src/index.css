@@ -20,6 +20,10 @@
   --primary-light: #5fd1a4;
   --primary-soft: rgba(47, 163, 122, 0.16);
 
+  --gold: #d9a521;          /* botones */
+  --gold-hover: #ebba3a;
+  --on-gold: #1a1406;       /* texto sobre dorado */
+
   --star: #f2c14e;          /* estrellas doradas */
   --star-empty: #2a3a33;
 
@@ -262,24 +266,25 @@ img {
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--primary-strong);
-  color: #fff;
-  border-color: var(--primary);
+  background: var(--gold);
+  color: var(--on-gold);
+  border-color: var(--gold);
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: var(--glow);
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+  color: var(--on-gold);
+  box-shadow: 0 0 0 1px rgba(235, 186, 58, 0.45), 0 8px 24px -12px rgba(217, 165, 33, 0.6);
 }
 .btn-ghost {
   background: transparent;
-  color: var(--text-muted);
-  border-color: var(--border);
+  color: var(--gold);
+  border-color: rgba(217, 165, 33, 0.55);
 }
 .btn-ghost:hover:not(:disabled) {
-  color: var(--text);
-  border-color: var(--primary);
-  background: var(--primary-soft);
+  color: var(--on-gold);
+  border-color: var(--gold);
+  background: var(--gold);
 }
 .btn-danger {
   background: transparent;
