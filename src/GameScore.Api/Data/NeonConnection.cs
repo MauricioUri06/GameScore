@@ -60,7 +60,10 @@ public static class NeonConnection
             Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
             Username = Uri.UnescapeDataString(userInfo[0]),
             Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : null,
-            SslMode = SslMode.Require
+            SslMode = SslMode.Require,
+            // Neon no usa Kerberos/GSSAPI. Sin esto Npgsql intenta cargar libgssapi_krb5 en Linux
+            // y deja un error en el log del hosting (inofensivo, pero confunde).
+            GssEncryptionMode = GssEncryptionMode.Disable
         };
 
         foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
