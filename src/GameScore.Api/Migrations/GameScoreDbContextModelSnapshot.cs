@@ -107,6 +107,65 @@ namespace GameScore.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.CoverQuizRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CoverUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("Finished")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("GameName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("Round")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("RoundOver")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("RoundStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<int[]>("UsedGameIds")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.HasIndex("UserId", "Score");
+
+                    b.ToTable("CoverQuizRuns", (string)null);
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.CurrentlyPlaying", b =>
                 {
                     b.Property<string>("UserId")
@@ -267,6 +326,9 @@ namespace GameScore.Api.Migrations
 
                     b.Property<int>("LeftYear")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("QuestionShownAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RightCover")
                         .HasColumnType("text");
@@ -1003,6 +1065,16 @@ namespace GameScore.Api.Migrations
                         .HasForeignKey("GenresId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("GameScore.Api.Entities.CoverQuizRun", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GameScore.Api.Entities.CurrentlyPlaying", b =>
