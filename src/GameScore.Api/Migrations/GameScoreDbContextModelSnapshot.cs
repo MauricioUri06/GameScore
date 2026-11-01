@@ -137,6 +137,9 @@ namespace GameScore.Api.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
+                    b.PrimitiveCollection<int[]>("PlatformIgdbIds")
+                        .HasColumnType("integer[]");
+
                     b.Property<DateOnly?>("Released")
                         .HasColumnType("date");
 
@@ -197,6 +200,15 @@ namespace GameScore.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Family")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.PrimitiveCollection<int[]>("IgdbIds")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -221,51 +233,317 @@ namespace GameScore.Api.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "PC",
+                            Family = "PC",
+                            IgdbIds = new[] { 6 },
+                            Name = "PC (Windows)",
                             Slug = "pc",
                             SortOrder = 1
                         },
                         new
                         {
-                            Id = 10,
-                            Name = "PlayStation",
-                            Slug = "playstation",
+                            Id = 2,
+                            Family = "PC",
+                            IgdbIds = new[] { 14 },
+                            Name = "Mac",
+                            Slug = "mac",
                             SortOrder = 2
                         },
                         new
                         {
-                            Id = 20,
-                            Name = "Xbox",
-                            Slug = "xbox-consolas",
+                            Id = 3,
+                            Family = "PC",
+                            IgdbIds = new[] { 3 },
+                            Name = "Linux",
+                            Slug = "linux",
                             SortOrder = 3
                         },
                         new
                         {
-                            Id = 30,
-                            Name = "Nintendo",
-                            Slug = "nintendo",
+                            Id = 4,
+                            Family = "PC",
+                            IgdbIds = new[] { 6 },
+                            Name = "Steam Deck",
+                            Slug = "steam-deck",
                             SortOrder = 4
                         },
                         new
                         {
+                            Id = 10,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 167 },
+                            Name = "PlayStation 5",
+                            Slug = "ps5",
+                            SortOrder = 10
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 48 },
+                            Name = "PlayStation 4",
+                            Slug = "ps4",
+                            SortOrder = 11
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 9 },
+                            Name = "PlayStation 3",
+                            Slug = "ps3",
+                            SortOrder = 12
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 8 },
+                            Name = "PlayStation 2",
+                            Slug = "ps2",
+                            SortOrder = 13
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 7 },
+                            Name = "PlayStation",
+                            Slug = "ps1",
+                            SortOrder = 14
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 38 },
+                            Name = "PSP",
+                            Slug = "psp",
+                            SortOrder = 15
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 46 },
+                            Name = "PS Vita",
+                            Slug = "ps-vita",
+                            SortOrder = 16
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Family = "PlayStation",
+                            IgdbIds = new[] { 165, 390 },
+                            Name = "PlayStation VR / VR2",
+                            Slug = "psvr",
+                            SortOrder = 17
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Family = "Xbox",
+                            IgdbIds = new[] { 169 },
+                            Name = "Xbox Series X|S",
+                            Slug = "xbox-series",
+                            SortOrder = 20
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Family = "Xbox",
+                            IgdbIds = new[] { 49 },
+                            Name = "Xbox One",
+                            Slug = "xbox-one",
+                            SortOrder = 21
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Family = "Xbox",
+                            IgdbIds = new[] { 12 },
+                            Name = "Xbox 360",
+                            Slug = "xbox-360",
+                            SortOrder = 22
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Family = "Xbox",
+                            IgdbIds = new[] { 11 },
+                            Name = "Xbox (original)",
+                            Slug = "xbox",
+                            SortOrder = 23
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 508 },
+                            Name = "Nintendo Switch 2",
+                            Slug = "switch-2",
+                            SortOrder = 30
+                        },
+                        new
+                        {
+                            Id = 31,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 130 },
+                            Name = "Nintendo Switch",
+                            Slug = "switch",
+                            SortOrder = 31
+                        },
+                        new
+                        {
+                            Id = 32,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 41 },
+                            Name = "Wii U",
+                            Slug = "wii-u",
+                            SortOrder = 32
+                        },
+                        new
+                        {
+                            Id = 33,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 5 },
+                            Name = "Wii",
+                            Slug = "wii",
+                            SortOrder = 33
+                        },
+                        new
+                        {
+                            Id = 34,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 21 },
+                            Name = "GameCube",
+                            Slug = "gamecube",
+                            SortOrder = 34
+                        },
+                        new
+                        {
+                            Id = 35,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 4 },
+                            Name = "Nintendo 64",
+                            Slug = "n64",
+                            SortOrder = 35
+                        },
+                        new
+                        {
+                            Id = 36,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 19 },
+                            Name = "Super Nintendo",
+                            Slug = "snes",
+                            SortOrder = 36
+                        },
+                        new
+                        {
+                            Id = 37,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 18 },
+                            Name = "NES",
+                            Slug = "nes",
+                            SortOrder = 37
+                        },
+                        new
+                        {
+                            Id = 38,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 37 },
+                            Name = "Nintendo 3DS",
+                            Slug = "3ds",
+                            SortOrder = 38
+                        },
+                        new
+                        {
+                            Id = 39,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 20 },
+                            Name = "Nintendo DS",
+                            Slug = "ds",
+                            SortOrder = 39
+                        },
+                        new
+                        {
+                            Id = 40,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 24 },
+                            Name = "Game Boy Advance",
+                            Slug = "gba",
+                            SortOrder = 40
+                        },
+                        new
+                        {
+                            Id = 41,
+                            Family = "Nintendo",
+                            IgdbIds = new[] { 33, 22 },
+                            Name = "Game Boy / Color",
+                            Slug = "gameboy",
+                            SortOrder = 41
+                        },
+                        new
+                        {
                             Id = 50,
-                            Name = "Móvil",
-                            Slug = "movil",
-                            SortOrder = 5
+                            Family = "Otras",
+                            IgdbIds = new[] { 34 },
+                            Name = "Android",
+                            Slug = "android",
+                            SortOrder = 50
+                        },
+                        new
+                        {
+                            Id = 51,
+                            Family = "Otras",
+                            IgdbIds = new[] { 39 },
+                            Name = "iPhone / iPad",
+                            Slug = "ios",
+                            SortOrder = 51
                         },
                         new
                         {
                             Id = 52,
-                            Name = "Realidad virtual",
-                            Slug = "realidad-virtual",
-                            SortOrder = 6
+                            Family = "Otras",
+                            IgdbIds = new[] { 384, 385, 386, 471 },
+                            Name = "Meta Quest",
+                            Slug = "meta-quest",
+                            SortOrder = 52
+                        },
+                        new
+                        {
+                            Id = 53,
+                            Family = "Otras",
+                            IgdbIds = new[] { 23 },
+                            Name = "Sega Dreamcast",
+                            Slug = "dreamcast",
+                            SortOrder = 53
+                        },
+                        new
+                        {
+                            Id = 54,
+                            Family = "Otras",
+                            IgdbIds = new[] { 32 },
+                            Name = "Sega Saturn",
+                            Slug = "saturn",
+                            SortOrder = 54
+                        },
+                        new
+                        {
+                            Id = 55,
+                            Family = "Otras",
+                            IgdbIds = new[] { 29 },
+                            Name = "Sega Genesis / Mega Drive",
+                            Slug = "genesis",
+                            SortOrder = 55
                         },
                         new
                         {
                             Id = 56,
-                            Name = "Retro / otras",
-                            Slug = "retro-otras",
-                            SortOrder = 7
+                            Family = "Otras",
+                            IgdbIds = new[] { 52 },
+                            Name = "Arcade",
+                            Slug = "arcade",
+                            SortOrder = 56
                         });
                 });
 
@@ -312,7 +590,31 @@ namespace GameScore.Api.Migrations
 
                     b.ToTable("Ratings", t =>
                         {
-                            t.HasCheckConstraint("CK_Ratings_Score", "\"Score\" >= 0.5 AND \"Score\" <= 5");
+                            t.HasCheckConstraint("CK_Ratings_Score", "\"Score\" >= 0 AND \"Score\" <= 5");
+                        });
+                });
+
+            modelBuilder.Entity("GameScore.Api.Entities.ReviewVote", b =>
+                {
+                    b.Property<int>("RatingId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<short>("Value")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("RatingId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ReviewVotes", t =>
+                        {
+                            t.HasCheckConstraint("CK_ReviewVotes_Value", "\"Value\" IN (-1, 1)");
                         });
                 });
 
@@ -565,6 +867,25 @@ namespace GameScore.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.ReviewVote", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.Rating", "Rating")
+                        .WithMany("Votes")
+                        .HasForeignKey("RatingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rating");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.TopGame", b =>
                 {
                     b.HasOne("GameScore.Api.Entities.Game", "Game")
@@ -698,6 +1019,11 @@ namespace GameScore.Api.Migrations
             modelBuilder.Entity("GameScore.Api.Entities.Game", b =>
                 {
                     b.Navigation("Ratings");
+                });
+
+            modelBuilder.Entity("GameScore.Api.Entities.Rating", b =>
+                {
+                    b.Navigation("Votes");
                 });
 #pragma warning restore 612, 618
         }
