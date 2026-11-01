@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using GameScore.Api.Data;
 using GameScore.Api.Entities;
 using GameScore.Api.Infrastructure;
@@ -9,6 +10,7 @@ using GameScore.Api.Catalog.Igdb;
 using GameScore.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +18,11 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+// Hostings como Vercel o Render indican el puerto en la variable PORT
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // ---------- Opciones (appsettings + User Secrets) ----------
 builder.Services.Configure<JwtOptions>(config.GetSection(JwtOptions.Section));
@@ -27,8 +34,8 @@ builder.Services.Configure<RankingOptions>(config.GetSection(RankingOptions.Sect
 // La app usa la URL "pooled" de Neon; las migraciones, la directa (ver Data/NeonConnection.cs).
 var connectionString = NeonConnection.ForApp(config, builder.Environment.ContentRootPath)
     ?? throw new InvalidOperationException(
-        "No se encontró la conexión a la base de datos. Ejecuta `neon env pull` en la raíz del repo " +
-        "o define ConnectionStrings:Default en User Secrets (ver README).");
+        "No se encontró la conexión a la base de datos. En tu PC ejecuta `neon env pull` en la raíz del repo; " +
+        "en el hosting define las variables DATABASE_URL y DATABASE_URL_UNPOOLED (ver README).");
 
 builder.Services.AddDbContext<GameScoreDbContext>(options => options.UseNpgsql(connectionString));
 
@@ -56,7 +63,8 @@ builder.Services
 // ---------- Autenticación JWT ----------
 var jwt = config.GetSection(JwtOptions.Section).Get<JwtOptions>() ?? new JwtOptions();
 if (jwt.Key.Length < 32)
-    throw new InvalidOperationException("Jwt:Key debe tener al menos 32 caracteres.");
+    throw new InvalidOperationException(
+        "Falta la clave para firmar las sesiones: define la variable Jwt__Key con al menos 32 caracteres (ver README).");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -98,6 +106,20 @@ builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<RankingService>();
 builder.Services.AddSingleton<TokenService>();
 
+// Límite de intentos en registro/login (además del bloqueo de cuenta de Identity)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (ctx, ct) => new ValueTask(ctx.HttpContext.Response.WriteAsJsonAsync(new ProblemDetails
+    {
+        Status = StatusCodes.Status429TooManyRequests,
+        Title = "Demasiados intentos. Espera un minuto y vuelve a intentarlo."
+    }, ct));
+    options.AddPolicy(RateLimits.Auth, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "desconocido",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+});
+
 builder.Services.AddExceptionHandler<CatalogExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -114,25 +136,42 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Aplica las migraciones pendientes al arrancar (en tu PC y en el hosting), por la conexión directa.
+// Se puede desactivar con Database__MigrateOnStartup=false.
+if (config.GetValue("Database:MigrateOnStartup", true))
 {
-    // Documentación interactiva en /scalar
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-
-    // Aplica migraciones pendientes al iniciar (solo en desarrollo), por la conexión directa
     var migrationConnection = NeonConnection.ForMigrations(config, app.Environment.ContentRootPath)!;
     var migrationOptions = new DbContextOptionsBuilder<GameScoreDbContext>().UseNpgsql(migrationConnection).Options;
-    using (var migrationDb = new GameScoreDbContext(migrationOptions))
-        migrationDb.Database.Migrate();
+    using var migrationDb = new GameScoreDbContext(migrationOptions);
+    migrationDb.Database.Migrate();
 }
 
 app.UseExceptionHandler();
+
+// En producción la API también sirve la página React (compilada en wwwroot por el Dockerfile)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
-app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription();
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok" })).ExcludeFromDescription();
+
+if (app.Environment.IsDevelopment())
+{
+    // Documentación interactiva en /scalar (solo en tu PC)
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+    app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription();
+}
+else
+{
+    // Rutas de la página (/juegos, /u/nickname…) devuelven index.html; las de /api inexistentes, 404
+    app.MapFallback("/api/{**rest}", () => Results.NotFound());
+    app.MapFallbackToFile("index.html");
+}
 
 app.Run();

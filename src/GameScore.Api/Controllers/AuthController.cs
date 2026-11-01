@@ -6,6 +6,7 @@ using GameScore.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace GameScore.Api.Controllers;
 
@@ -21,6 +22,7 @@ public class AuthController(
     ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimits.Auth)]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
         var userName = request.UserName.Trim();
@@ -38,6 +40,7 @@ public class AuthController(
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimits.Auth)]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
         var userName = request.UserName.Trim();

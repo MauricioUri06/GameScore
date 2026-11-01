@@ -1,0 +1,20 @@
+# Nada de esto hace falta para construir la imagen (y los .env tienen secretos)
+.git
+.idea
+.vs
+.agents
+.claude
+.neon
+.env
+.env.*
+**/bin
+**/obj
+**/node_modules
+client/dist
+scripts
+node_modules
+neon.ts
+package.json
+package-lock.json
+skills-lock.json
+*.md

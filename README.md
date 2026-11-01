@@ -119,6 +119,56 @@ Las migraciones usan `DATABASE_URL_UNPOOLED` (vía `GameScoreDbContextFactory`).
 
 > Para ver la carpeta `client` dentro de Rider: clic derecho en la solución → **Add → Attach Existing Folder…** → `client`.
 
+## Publicar en internet
+
+El `Dockerfile` de la raíz arma **una sola imagen**: compila la página React y la API, y la API sirve la página. Así todo vive en un mismo dominio (sin problemas de CORS) y cada push puede publicar una versión nueva.
+
+### Variables de entorno (en el panel del hosting)
+
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | Conexión *pooled* de Neon (está en tu `.env.local`) |
+| `DATABASE_URL_UNPOOLED` | Conexión directa de Neon (está en tu `.env.local`) |
+| `Igdb__ClientId` | Client ID de tu app de Twitch |
+| `Igdb__ClientSecret` | Client Secret de tu app de Twitch |
+| `Jwt__Key` | Clave secreta nueva de 48+ caracteres (ver abajo). **Nunca** la de desarrollo |
+
+Para generar `Jwt__Key` en PowerShell:
+
+```powershell
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+```
+
+Las migraciones se aplican solas al arrancar (`Database__MigrateOnStartup=false` para desactivarlo).
+Los administradores salen de `Admin:UserNames` en `appsettings.json`.
+
+### Opción A — Vercel
+
+1. En vercel.com → **Add New → Project** → importa el repo `GameScore` de GitHub.
+2. Vercel detecta el `Dockerfile` de la raíz y usa el preset **Container**.
+3. En **Environment Variables** agrega las variables de la tabla y además `PORT` = `8080`.
+4. **Deploy**. Cada push a `main` vuelve a publicar.
+
+> Si al importar no aparece la opción de contenedores en tu plan, usa la opción B.
+
+### Opción B — Render
+
+1. En render.com → **New → Web Service** → conecta el repo.
+2. **Runtime: Docker** (usa el `Dockerfile` de la raíz). **Instance type: Free**.
+3. **Health check path:** `/healthz`.
+4. Agrega las variables de la tabla y crea el servicio.
+
+> En el plan gratis de Render la app se duerme tras 15 minutos sin visitas y tarda ~1 minuto en despertar.
+
+### Probar la imagen en tu PC (opcional, con Docker Desktop)
+
+```bash
+docker build -t gamescore .
+docker run -p 8080:8080 --env-file .env.local -e Igdb__ClientId=... -e Igdb__ClientSecret=... -e Jwt__Key=... gamescore
+```
+
+Abre http://localhost:8080.
+
 ## Endpoints principales
 
 | Método | Ruta | Descripción |
