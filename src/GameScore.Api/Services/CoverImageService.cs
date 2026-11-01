@@ -14,7 +14,7 @@ public class CoverImageService(IHttpClientFactory httpFactory, ILogger<CoverImag
     public const string HttpClientName = "covers";
 
     /// <summary>Desenfoque según los intentos fallidos (0 = el más borroso). null = nítida.</summary>
-    private static readonly float[] BlurByAttempt = [14f, 9f, 5.5f, 3f];
+    private static readonly float[] BlurByAttempt = [5.5f, 3.5f, 2f, 1f];
 
     private const int MaxCached = 200;
     private readonly ConcurrentDictionary<string, byte[]> _originals = new();

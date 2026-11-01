@@ -2503,3 +2503,99 @@ img.avatar {
     flex-direction: column;
   }
 }
+
+/* ---------- Categorías ---------- */
+.cat-goal {
+  font-size: 0.9rem;
+  color: var(--text-faint);
+}
+.cat-lives {
+  font-size: 1.3rem !important;
+  letter-spacing: 0.1em;
+}
+.cat-progress {
+  width: 100%;
+  max-width: 520px;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.cat-progress span {
+  display: block;
+  height: 100%;
+  background: var(--gold-light);
+  transition: width 0.4s;
+}
+.cat-category {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 28px;
+  border: 2px solid var(--gold-light);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: center;
+}
+.cat-category span {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.cat-category strong {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--text);
+}
+.game-picker {
+  position: relative;
+  width: 100%;
+}
+.game-picker-loading {
+  position: absolute;
+  right: 12px;
+  top: 11px;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+.game-picker-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.75);
+}
+.game-picker-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.game-picker-list li.active {
+  background: var(--primary-soft);
+}
+.game-picker-list img,
+.game-picker-list .thumb {
+  width: 30px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 2px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.game-picker-list small {
+  color: var(--text-faint);
+}

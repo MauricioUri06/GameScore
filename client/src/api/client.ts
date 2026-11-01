@@ -3,6 +3,8 @@ import type {
   AdminStats,
   AdminUser,
   AuthResponse,
+  CategoryAnswerResult,
+  CategoryState,
   CoverQuizGuessResult,
   CoverQuizState,
   CurrentUser,
@@ -183,6 +185,13 @@ export const api = {
   coverQuizSkip: (runId: string) => request<CoverQuizGuessResult>(`/cover-quiz/${runId}/skip`, { method: 'POST' }),
   coverQuizNext: (runId: string) => request<CoverQuizState>(`/cover-quiz/${runId}/next`, { method: 'POST' }),
   coverQuizLeaderboard: () => request<Leader[]>('/cover-quiz/leaderboard'),
+  categoryStart: () => request<CategoryState>('/category-game/start', { method: 'POST' }),
+  categoryAnswer: (runId: string, gameId: number) =>
+    request<CategoryAnswerResult>(`/category-game/${runId}/answer`, { method: 'POST', body: json({ gameId }) }),
+  categoryTimeout: (runId: string) =>
+    request<CategoryAnswerResult>(`/category-game/${runId}/timeout`, { method: 'POST' }),
+  categoryNext: (runId: string) => request<CategoryState>(`/category-game/${runId}/next`, { method: 'POST' }),
+  categoryLeaderboard: () => request<Leader[]>('/category-game/leaderboard'),
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),

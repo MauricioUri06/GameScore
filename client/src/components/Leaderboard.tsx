@@ -3,11 +3,19 @@ import type { Leader } from '../api/types'
 import { Avatar } from './Avatar'
 
 /** Top 10 de récords de un minijuego. */
-export function Leaderboard({ leaders }: { leaders: Leader[] | null }) {
+export function Leaderboard({
+  leaders,
+  format = String,
+  title = 'Mejores récords',
+}: {
+  leaders: Leader[] | null
+  format?: (value: number) => string
+  title?: string
+}) {
   return (
     <section className="section">
       <div className="section-header">
-        <h2>Mejores récords</h2>
+        <h2>{title}</h2>
       </div>
       {leaders === null ? null : leaders.length === 0 ? (
         <p className="muted" style={{ textAlign: 'center' }}>
@@ -22,7 +30,7 @@ export function Leaderboard({ leaders }: { leaders: Leader[] | null }) {
                 <Avatar name={l.userName} url={l.avatarUrl} />
                 {l.userName}
               </Link>
-              <strong>{l.best}</strong>
+              <strong>{format(l.best)}</strong>
             </li>
           ))}
         </ol>

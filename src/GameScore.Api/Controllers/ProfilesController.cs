@@ -99,6 +99,8 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
         var finishedCount = await db.FinishedGames.CountAsync(f => f.UserId == user.Id, ct);
         var olderNewerBest = await db.OlderNewerRuns.Where(r => r.UserId == user.Id).MaxAsync(r => (int?)r.Score, ct) ?? 0;
         var coverQuizBest = await db.CoverQuizRuns.Where(r => r.UserId == user.Id).MaxAsync(r => (int?)r.Score, ct) ?? 0;
+        var categorySeconds = await db.CategoryRuns.Where(r => r.UserId == user.Id && r.Won)
+            .MinAsync(r => (double?)r.TotalSeconds, ct);
         var allMedals = await medals.GetMedalsAsync(user.Id, ct);
         var earnedById = allMedals.Where(m => m.Earned).ToDictionary(m => m.Id);
         var showcaseIds = await db.UserShowcaseMedals
@@ -126,7 +128,8 @@ public class ProfilesController(GameScoreDbContext db, GameService games, MedalS
             reviewsCount,
             finishedCount,
             olderNewerBest,
-            coverQuizBest);
+            coverQuizBest,
+            categorySeconds is null ? null : (int)Math.Ceiling(categorySeconds.Value));
     }
 
     /// <summary>Juegos terminados de un usuario (lo más reciente primero).</summary>

@@ -6,7 +6,8 @@ namespace GameScore.Api.Services;
 /// <summary>
 /// Compara lo que escribe el jugador con el nombre real del juego, siendo tolerante:
 /// ignora mayúsculas, tildes y signos; acepta números romanos o arábigos ("II" = "2");
-/// acepta solo el subtítulo ("Breath of the Wild") y pequeños errores de escritura.
+/// acepta solo el subtítulo ("Breath of the Wild"), pequeños errores de escritura y que esté escrito
+/// al menos el 75 % del nombre (palabras seguidas del título: "Witcher 3 Wild" vale por "The Witcher 3: Wild Hunt").
 /// </summary>
 public static class TitleMatcher
 {
@@ -17,6 +18,9 @@ public static class TitleMatcher
         ["xi"] = "11", ["xii"] = "12", ["xiii"] = "13", ["xiv"] = "14", ["xv"] = "15", ["xvi"] = "16",
     };
 
+    /// <summary>Porción mínima del nombre que hay que escribir.</summary>
+    public const double MinCoverage = 0.75;
+
     public static bool Matches(string guess, string title)
     {
         var g = Normalize(guess);
@@ -25,12 +29,35 @@ public static class TitleMatcher
         foreach (var candidate in Candidates(title))
         {
             if (candidate.Length == 0) continue;
-            if (g == candidate) return true;
-            // Errores de escritura: hasta 1 letra cada 6 (mín. 1) en títulos de 5+ letras
-            if (candidate.Length >= 5 && Levenshtein(g, candidate) <= Math.Max(1, candidate.Length / 6)) return true;
+            // El nombre entero o, si no, cualquier tramo de palabras seguidas que cubra el 75 % del nombre
+            foreach (var part in Windows(candidate))
+            {
+                if (g == part) return true;
+                // Errores de escritura: hasta 1 letra cada 6 (mín. 1) en textos de 5+ letras
+                // (los números tienen que coincidir: "Halo 2" no vale por "Halo 3")
+                if (part.Length >= 5 && SameNumbers(g, part) && Levenshtein(g, part) <= Math.Max(1, part.Length / 6))
+                    return true;
+            }
         }
 
         return false;
+    }
+
+    private static bool SameNumbers(string a, string b) =>
+        a.Split(' ').Where(w => w.All(char.IsDigit)).SequenceEqual(b.Split(' ').Where(w => w.All(char.IsDigit)));
+
+    /// <summary>Tramos de palabras seguidas del nombre que cubren al menos el 75 % de sus letras.</summary>
+    private static IEnumerable<string> Windows(string normalized)
+    {
+        var words = normalized.Split(' ');
+        var minLength = normalized.Length * MinCoverage;
+        for (var start = 0; start < words.Length; start++)
+        for (var end = words.Length; end > start; end--)
+        {
+            var part = string.Join(' ', words[start..end]);
+            if (part.Length < minLength) break;
+            yield return part;
+        }
     }
 
     /// <summary>Formas válidas del título: completo, sin artículo inicial y el subtítulo tras ":" o " - ".</summary>

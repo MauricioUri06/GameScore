@@ -85,6 +85,14 @@ export function ProfilePage() {
         <Link to="/adivina-la-portada">
           🖼️ Adivina la portada: <strong>{profile.coverQuizBest}</strong>
         </Link>
+        <Link to="/categorias">
+          📚 Categorías:{' '}
+          <strong>
+            {profile.categoryBestSeconds != null
+              ? `${Math.floor(profile.categoryBestSeconds / 60)}:${String(profile.categoryBestSeconds % 60).padStart(2, '0')}`
+              : '—'}
+          </strong>
+        </Link>
       </div>
 
       <div className="profile-medals">

@@ -139,6 +139,8 @@ export interface Profile {
   finishedCount: number
   olderNewerBest: number
   coverQuizBest: number
+  /** Mejor tiempo (s) para llegar a 1000 en Categorías; null si nunca lo logró */
+  categoryBestSeconds: number | null
   reviewsCount: number
 }
 
@@ -251,6 +253,35 @@ export interface CoverQuizState {
   gameOver: boolean
   best: number | null
   pointsByAttempt: number[]
+}
+
+export interface CategoryState {
+  runId: string
+  round: number
+  score: number
+  goal: number
+  lives: number
+  maxLives: number
+  category: string
+  secondsPerRound: number
+  maxPoints: number
+  minPoints: number
+  roundOver: boolean
+  gameOver: boolean
+  won: boolean
+  totalSeconds: number
+  bestSeconds: number | null
+}
+
+export interface CategoryAnswerResult {
+  correct: boolean
+  alreadyUsed: boolean
+  timedOut: boolean
+  points: number
+  gameName: string | null
+  gameId: number | null
+  state: CategoryState
+  newRecord: boolean
 }
 
 export interface CoverQuizGuessResult {

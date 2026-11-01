@@ -22,6 +22,7 @@ public class GameScoreDbContext(DbContextOptions<GameScoreDbContext> options)
     public DbSet<FinishedGame> FinishedGames => Set<FinishedGame>();
     public DbSet<OlderNewerRun> OlderNewerRuns => Set<OlderNewerRun>();
     public DbSet<CoverQuizRun> CoverQuizRuns => Set<CoverQuizRun>();
+    public DbSet<CategoryRun> CategoryRuns => Set<CategoryRun>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

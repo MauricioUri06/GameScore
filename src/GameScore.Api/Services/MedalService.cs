@@ -20,7 +20,8 @@ public record UserStats(
     int Playing,
     int Finished,
     int OlderNewerBest,
-    int CoverQuizBest);
+    int CoverQuizBest,
+    int CategoryWins);
 
 /// <summary>
 /// Medallas: se calculan a partir de la actividad del usuario (no se guardan), así que
@@ -99,6 +100,10 @@ public class MedalService(GameScoreDbContext db)
             s => s.CoverQuizBest),
         new("cover-800", "Ojo de lince", "Consigue 800 puntos en una partida de Adivina la portada.", "👁️", "Especiales", 800,
             s => s.CoverQuizBest),
+        new("category-1", "Enciclopedia viviente", "Llega a 1000 puntos en Categorías.", "📚", "Especiales", 1,
+            s => s.CategoryWins),
+        new("category-5", "Sabelotodo", "Llega a 1000 puntos en Categorías 5 veces.", "🧠", "Especiales", 5,
+            s => s.CategoryWins),
     ];
 
     /// <summary>Todas las medallas con el progreso del usuario (obtenidas y por obtener).</summary>
@@ -150,6 +155,7 @@ public class MedalService(GameScoreDbContext db)
         var votesGiven = await db.ReviewVotes.CountAsync(v => v.UserId == userId, ct);
         var olderNewerBest = await db.OlderNewerRuns.Where(r => r.UserId == userId).MaxAsync(r => (int?)r.Score, ct) ?? 0;
         var coverQuizBest = await db.CoverQuizRuns.Where(r => r.UserId == userId).MaxAsync(r => (int?)r.Score, ct) ?? 0;
+        var categoryWins = await db.CategoryRuns.CountAsync(r => r.UserId == userId && r.Won, ct);
 
         var profileChecks = (user.HasAvatar ? 1 : 0) + (user.TopGames >= 5 ? 1 : 0)
                             + (user.FavoriteGenres > 0 ? 1 : 0) + (user.Platforms > 0 ? 1 : 0);
@@ -169,6 +175,7 @@ public class MedalService(GameScoreDbContext db)
             user.Playing,
             user.Finished,
             olderNewerBest,
-            coverQuizBest);
+            coverQuizBest,
+            categoryWins);
     }
 }

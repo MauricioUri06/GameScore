@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { Spinner } from './components/Status'
 import { AdminPage } from './pages/AdminPage'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
+import { CategoryGamePage } from './pages/CategoryGamePage'
 import { CoverQuizPage } from './pages/CoverQuizPage'
 import { EditProfilePage } from './pages/EditProfilePage'
 import { FinishedPage } from './pages/FinishedPage'
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="juegos" element={<GamesPage />} />
             <Route path="older-newer" element={<OlderNewerPage />} />
             <Route path="adivina-la-portada" element={<CoverQuizPage />} />
+            <Route path="categorias" element={<CategoryGamePage />} />
             {/* Ruta vieja */}
             <Route path="search" element={<Navigate to="/juegos" replace />} />
             <Route path="games/:gameId" element={<GamePage />} />

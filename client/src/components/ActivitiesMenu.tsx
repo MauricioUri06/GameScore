@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 const ACTIVITIES = [
   { to: '/older-newer', icon: '⏳', name: 'Older/Newer', description: '¿Salió antes o después?' },
   { to: '/adivina-la-portada', icon: '🖼️', name: 'Adivina la portada', description: 'Portadas borrosas' },
+  { to: '/categorias', icon: '📚', name: 'Categorías', description: 'Un juego de cada categoría, rápido' },
 ]
 
 /** Botón "Actividades" de la barra de arriba, con un menú desplegable de minijuegos. */

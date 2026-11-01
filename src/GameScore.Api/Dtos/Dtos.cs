@@ -143,7 +143,18 @@ public record ProfileDto(
     int ReviewsCount,
     int FinishedCount,
     int OlderNewerBest,
-    int CoverQuizBest);
+    int CoverQuizBest,
+    // Mejor tiempo (segundos) para llegar a 1000 en Categorías; null si nunca ganó
+    int? CategoryBestSeconds);
+
+// ---------- Categorías ----------
+public record CategoryStateDto(Guid RunId, int Round, int Score, int Goal, int Lives, int MaxLives, string Category,
+    int SecondsPerRound, int MaxPoints, int MinPoints, bool RoundOver, bool GameOver, bool Won, int TotalSeconds,
+    int? BestSeconds);
+public record CategoryAnswerRequest(int GameId);
+/// <summary>AlreadyUsed = ese juego ya salió en la partida (no cuenta ni castiga: se elige otro).</summary>
+public record CategoryAnswerResultDto(bool Correct, bool AlreadyUsed, bool TimedOut, int Points, string? GameName,
+    int? GameId, CategoryStateDto State, bool NewRecord = false);
 
 // ---------- Adivina la portada ----------
 public record CoverQuizStateDto(Guid RunId, int Round, int TotalRounds, int Score, int Attempts, int MaxAttempts,
