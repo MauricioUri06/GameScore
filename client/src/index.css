@@ -967,31 +967,6 @@ button.tag {
   padding-left: calc(12px + 0.6em);
 }
 
-/* ---------- Plataformas ---------- */
-.platform-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.platform-group {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-.platform-family {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  padding-top: 4px;
-}
-@media (max-width: 560px) {
-  .platform-group {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-}
-
 /* ---------- Títulos de página y filtros ---------- */
 .page-title {
   display: flex;
@@ -1061,9 +1036,6 @@ button.tag {
 .profile-box .muted {
   text-align: center;
   margin: 0;
-}
-.profile-box .platform-group {
-  grid-template-columns: 100px 1fr;
 }
 .tag-lg {
   font-size: 0.95rem;

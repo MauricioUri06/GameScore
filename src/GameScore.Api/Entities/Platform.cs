@@ -1,15 +1,11 @@
 namespace GameScore.Api.Entities;
 
-/// <summary>Consola o plataforma que un usuario puede marcar como "la tengo" en su perfil.</summary>
+/// <summary>Plataforma que un usuario puede marcar en su perfil (PC, PlayStation, Xbox, Nintendo…).</summary>
 public class Platform
 {
     public int Id { get; set; }
     public string Slug { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-
-    /// <summary>Grupo para mostrarlas juntas: PC, PlayStation, Xbox, Nintendo u Otras.</summary>
-    public string Family { get; set; } = string.Empty;
-
     public int SortOrder { get; set; }
 }
 

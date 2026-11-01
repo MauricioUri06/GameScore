@@ -14,6 +14,6 @@ public class PlatformsController(GameScoreDbContext db) : ControllerBase
     public async Task<ActionResult<List<PlatformDto>>> GetAll(CancellationToken ct) =>
         await db.Platforms
             .OrderBy(p => p.SortOrder)
-            .Select(p => new PlatformDto(p.Id, p.Name, p.Family))
+            .Select(p => new PlatformDto(p.Id, p.Name))
             .ToListAsync(ct);
 }

@@ -94,7 +94,7 @@ public record TopGameDto(int Position, int GameId, string Slug, string Name, str
 
 public record ProfileRatingDto(int GameId, string GameName, string? GameCover, decimal Score, string? Review, DateTime UpdatedAt);
 
-public record PlatformDto(int Id, string Name, string Family);
+public record PlatformDto(int Id, string Name);
 
 public record ProfileDto(
     string UserName,

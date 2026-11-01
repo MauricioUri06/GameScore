@@ -5,7 +5,6 @@ import type { Genre, Platform, Profile } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
 import { igdbSize } from '../components/GameCard'
-import { groupPlatforms } from '../components/PlatformList'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 import { toSquareJpeg } from '../lib/resizeImage'
@@ -377,26 +376,19 @@ function PlatformsSection({
     <div className="card section">
       <h2>Mis plataformas</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Marca las consolas y plataformas que tienes ({selected.length} seleccionadas).
+        Marca en qué plataformas juegas ({selected.length} seleccionadas).
       </p>
-      <div className="platform-groups">
-        {groupPlatforms(all).map(([family, items]) => (
-          <div key={family} className="platform-group">
-            <span className="platform-family">{family}</span>
-            <div className="tag-list">
-              {items.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`tag${selected.includes(p.id) ? ' selected' : ''}`}
-                  aria-pressed={selected.includes(p.id)}
-                  onClick={() => toggle(p.id)}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="tag-list tag-list-center">
+        {all.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`tag tag-lg${selected.includes(p.id) ? ' selected' : ''}`}
+            aria-pressed={selected.includes(p.id)}
+            onClick={() => toggle(p.id)}
+          >
+            {p.name}
+          </button>
         ))}
       </div>
     </div>

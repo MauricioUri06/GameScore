@@ -35,7 +35,7 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
         var platforms = await db.UserPlatforms
             .Where(up => up.UserId == user.Id)
             .OrderBy(up => up.Platform.SortOrder)
-            .Select(up => new PlatformDto(up.Platform.Id, up.Platform.Name, up.Platform.Family))
+            .Select(up => new PlatformDto(up.Platform.Id, up.Platform.Name))
             .ToListAsync(ct);
 
         var ratingsQuery = db.Ratings.Where(r => r.UserId == user.Id);

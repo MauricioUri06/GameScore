@@ -21,9 +21,8 @@ export interface Genre {
 
 export interface Platform {
   id: number
+  /** PC, PlayStation, Xbox, Nintendo… */
   name: string
-  /** PC, PlayStation, Xbox, Nintendo u Otras */
-  family: string
 }
 
 export interface GameSummary {
