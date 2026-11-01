@@ -1,6 +1,7 @@
 using GameScore.Api.Dtos;
 using GameScore.Api.Entities;
 using GameScore.Api.Extensions;
+using GameScore.Api.Infrastructure;
 using GameScore.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,7 @@ namespace GameScore.Api.Controllers;
 public class AuthController(
     UserManager<AppUser> userManager,
     TokenService tokenService,
+    AdminAccess adminAccess,
     ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
@@ -99,8 +101,9 @@ public class AuthController(
         return new AuthResponse(token, expiresAt, ToDto(user));
     }
 
-    private static CurrentUserDto ToDto(AppUser user) =>
-        new(user.Id, user.UserName!, AvatarUrls.For(user.UserName!, user.AvatarUpdatedAt));
+    private CurrentUserDto ToDto(AppUser user) =>
+        new(user.Id, user.UserName!, AvatarUrls.For(user.UserName!, user.AvatarUpdatedAt),
+            adminAccess.IsAdmin(user.UserName));
 
     private static string TranslateIdentityError(IdentityError error) => error.Code switch
     {

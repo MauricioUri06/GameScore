@@ -3,6 +3,7 @@ import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { Spinner } from './components/Status'
+import { AdminPage } from './pages/AdminPage'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { EditProfilePage } from './pages/EditProfilePage'
 import { GamePage } from './pages/GamePage'
@@ -15,6 +16,15 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation()
   if (loading) return <Spinner />
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  return children
+}
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+  if (loading) return <Spinner />
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (!user.isAdmin) return <NotFound />
   return children
 }
 
@@ -50,6 +60,14 @@ export default function App() {
                 <RequireAuth>
                   <EditProfilePage />
                 </RequireAuth>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <RequireAdmin>
+                  <AdminPage />
+                </RequireAdmin>
               }
             />
             <Route path="login" element={<LoginPage />} />

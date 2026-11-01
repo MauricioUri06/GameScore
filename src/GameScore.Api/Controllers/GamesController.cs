@@ -14,7 +14,7 @@ namespace GameScore.Api.Controllers;
 public class GamesController(GameService games, RankingService ranking, GameScoreDbContext db) : ControllerBase
 {
     /// <summary>
-    /// Todos los juegos, de 50 en 50 y del más popular al menos popular.
+    /// Todos los juegos, de 48 en 48 y del más popular al menos popular.
     /// Filtros opcionales: <c>genre</c> (slug de categoría) y <c>q</c> (nombre).
     /// </summary>
     [HttpGet]

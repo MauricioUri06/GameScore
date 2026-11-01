@@ -5,6 +5,7 @@ export interface CurrentUser {
   id: string
   userName: string
   avatarUrl: string | null
+  isAdmin: boolean
 }
 
 export interface AuthResponse {
@@ -127,4 +128,38 @@ export interface PagedResult<T> {
   pageSize: number
   totalCount: number
   totalPages: number
+}
+
+// ---------- Administración ----------
+
+export interface CountByName {
+  name: string
+  count: number
+}
+
+export interface AdminStats {
+  users: number
+  newUsersLast7Days: number
+  ratings: number
+  ratingsLast7Days: number
+  reviewsWithText: number
+  gamesInDatabase: number
+  averageScore: number | null
+  ratingsByPlatform: CountByName[]
+  usersByPlatform: CountByName[]
+}
+
+export interface AdminUser {
+  userName: string
+  avatarUrl: string | null
+  createdAt: string
+  ratings: number
+  reviewsWithText: number
+  averageScore: number | null
+  lastActivity: string | null
+  topGames: number
+  favoriteGenres: number
+  platforms: string[]
+  isLockedOut: boolean
+  failedLoginAttempts: number
 }

@@ -11,7 +11,7 @@ export function RankingPage() {
   const genre = params.get('genre') ?? ''
   const genres = useAsync(() => api.genres(), [])
   const ranking = useAsync(() => api.ranking(100, genre || undefined), [genre])
-  const popular = useAsync(() => api.popularGames(50), [])
+  const popular = useAsync(() => api.popularGames(48), [])
 
   return (
     <div className="container page">

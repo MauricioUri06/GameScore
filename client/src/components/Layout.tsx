@@ -56,6 +56,7 @@ export function Layout() {
               Ranking
             </NavLink>
             <NavLink to="/juegos">Juegos</NavLink>
+            {user?.isAdmin && <NavLink to="/admin">Admin</NavLink>}
           </nav>
           <NavSearch />
           <div className="nav-user">

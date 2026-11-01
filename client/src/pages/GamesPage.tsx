@@ -7,7 +7,7 @@ import { Pagination } from '../components/Pagination'
 import { Empty, ErrorMessage } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 
-/** Todos los juegos, de 50 en 50, con buscador y filtro de categoría (todo en la URL: ?q=&genre=&page=). */
+/** Todos los juegos, de 48 en 48, con buscador y filtro de categoría (todo en la URL: ?q=&genre=&page=). */
 export function GamesPage() {
   const [params, setParams] = useSearchParams()
   const q = (params.get('q') ?? '').trim()

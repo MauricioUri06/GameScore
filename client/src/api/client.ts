@@ -1,5 +1,7 @@
 import type {
   Activity,
+  AdminStats,
+  AdminUser,
   AuthResponse,
   CurrentUser,
   GameDetail,
@@ -106,7 +108,7 @@ export const api = {
 
   // Juegos
   searchGames: (q: string) => request<GameSummary[]>(`/games/search?q=${encodeURIComponent(q)}`),
-  /** Todos los juegos, de 50 en 50, con filtros opcionales de categoría y nombre. */
+  /** Todos los juegos, de 48 en 48, con filtros opcionales de categoría y nombre. */
   games: (params: { page: number; genre?: string; q?: string }) => {
     const qs = new URLSearchParams({ page: String(params.page) })
     if (params.genre) qs.set('genre', params.genre)
@@ -134,6 +136,10 @@ export const api = {
   },
   deleteAvatar: () => request<void>('/me/avatar', { method: 'DELETE' }),
   platforms: () => request<Platform[]>('/platforms'),
+
+  // Administración (solo admins)
+  adminStats: () => request<AdminStats>('/admin/stats'),
+  adminUsers: () => request<AdminUser[]>('/admin/users'),
   updatePlatforms: (platformIds: number[]) =>
     request<void>('/me/platforms', { method: 'PUT', body: json({ platformIds }) }),
   updateTopGames: (gameIds: number[]) =>

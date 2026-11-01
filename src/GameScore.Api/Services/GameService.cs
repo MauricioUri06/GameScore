@@ -20,11 +20,11 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
 
     private readonly CatalogOptions _catalogOptions = catalogOptions.Value;
 
-    /// <summary>Juegos por página en la sección "Juegos".</summary>
-    public const int PageSize = 50;
+    /// <summary>Juegos por página en la sección "Juegos" (48 llena filas de 2, 3, 4, 6 y 8 columnas).</summary>
+    public const int PageSize = 48;
 
     /// <summary>
-    /// Páginas máximas al recorrer el catálogo completo (200 × 50 = los 10.000 juegos más populares).
+    /// Páginas máximas al recorrer el catálogo completo (200 × 48 = los 9.600 juegos más populares).
     /// Más allá casi todo son juegos sin calificaciones; a esos se llega con el buscador.
     /// </summary>
     public const int MaxPages = 200;
@@ -37,7 +37,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
     }
 
     /// <summary>
-    /// Lista de juegos por páginas de 50, opcionalmente filtrada por categoría y/o por nombre.
+    /// Lista de juegos por páginas de 48, opcionalmente filtrada por categoría y/o por nombre.
     /// </summary>
     public async Task<PagedResultDto<GameSummaryDto>> BrowseAsync(
         int page, string? genreSlug, string? query, CancellationToken ct)

@@ -20,7 +20,7 @@ public record LoginRequest(
 
 public record AuthResponse(string Token, DateTime ExpiresAt, CurrentUserDto User);
 
-public record CurrentUserDto(string Id, string UserName, string? AvatarUrl);
+public record CurrentUserDto(string Id, string UserName, string? AvatarUrl, bool IsAdmin);
 
 // ---------- Juegos ----------
 

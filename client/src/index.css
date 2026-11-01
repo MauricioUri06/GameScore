@@ -1148,3 +1148,146 @@ img.avatar {
   font-size: 0.75rem;
   padding: 1px 8px;
 }
+
+/* ---------- Administración ---------- */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold-light);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.stat-card-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.stat-card-value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--primary-light);
+}
+.admin-breakdowns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.breakdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.breakdown li {
+  display: grid;
+  grid-template-columns: 120px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.breakdown-bar {
+  height: 10px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.breakdown-bar span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+.breakdown-count {
+  text-align: right;
+  color: var(--text-muted);
+}
+.admin-toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.admin-toolbar .input {
+  max-width: 360px;
+}
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 960px;
+}
+.admin-table th,
+.admin-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.admin-table thead th {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.admin-table tbody tr:hover {
+  background: var(--surface);
+}
+.admin-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.th-sort {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.th-sort:hover {
+  color: var(--text);
+}
+.sort-arrow {
+  display: inline-block;
+  width: 1em;
+  color: var(--gold-light);
+}
+.admin-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 600;
+}
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+.status-badge.ok {
+  background: rgba(95, 209, 164, 0.12);
+  color: var(--success);
+}
+.status-badge.locked {
+  background: rgba(240, 128, 106, 0.14);
+  color: var(--danger);
+}

@@ -75,7 +75,13 @@ builder.Services
             NameClaimType = ClaimTypes.Name
         };
     });
-builder.Services.AddAuthorization();
+// Administradores: nicknames listados en Admin:UserNames (appsettings.json)
+var adminAccess = new AdminAccess(config.GetSection(AdminAccess.Section).Get<string[]>() ?? []);
+builder.Services.AddSingleton(adminAccess);
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy(AdminAccess.Policy, policy => policy
+        .RequireAuthenticatedUser()
+        .RequireAssertion(ctx => adminAccess.IsAdmin(ctx.User.Identity?.Name))));
 
 // ---------- Servicios de la app ----------
 // Catálogo de juegos: IGDB (Twitch). Para cambiar de proveedor basta con otra implementación de IGameCatalog.
