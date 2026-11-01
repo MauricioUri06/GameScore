@@ -107,6 +107,27 @@ namespace GameScore.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.CurrentlyPlaying", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "GameId");
+
+                    b.HasIndex("GameId");
+
+                    b.ToTable("CurrentlyPlaying", (string)null);
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.Game", b =>
                 {
                     b.Property<int>("Id")
@@ -841,6 +862,25 @@ namespace GameScore.Api.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GameScore.Api.Entities.CurrentlyPlaying", b =>
+                {
+                    b.HasOne("GameScore.Api.Entities.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameScore.Api.Entities.AppUser", "User")
+                        .WithMany("CurrentlyPlaying")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GameScore.Api.Entities.Rating", b =>
                 {
                     b.HasOne("GameScore.Api.Entities.Game", "Game")
@@ -1007,6 +1047,8 @@ namespace GameScore.Api.Migrations
 
             modelBuilder.Entity("GameScore.Api.Entities.AppUser", b =>
                 {
+                    b.Navigation("CurrentlyPlaying");
+
                     b.Navigation("FavoriteGenres");
 
                     b.Navigation("Platforms");
