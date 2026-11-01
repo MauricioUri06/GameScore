@@ -32,18 +32,21 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         PropertyNameCaseInsensitive = true
     };
 
+    /// <summary>Máximo de resultados que IGDB devuelve en una sola consulta.</summary>
+    public const int MaxResults = 500;
+
     private readonly IgdbOptions _options = options.Value;
 
     public async Task<List<CatalogGame>> SearchAsync(string query, int page, int pageSize, CancellationToken ct)
     {
         var text = query.Replace("\\", "").Replace("\"", "\\\"").Trim();
 
-        // IGDB no permite ordenar una búsqueda, así que pedimos varios resultados
-        // y los ordenamos nosotros: nombre exacto primero, luego los más populares.
+        // IGDB no permite ordenar una búsqueda, así que pedimos todos los resultados que deja
+        // en una consulta (máx. 500) y los ordenamos nosotros: nombre exacto primero, luego los más populares.
         var games = await QueryGamesAsync(type =>
             $"search \"{text}\"; {GameFields} " +
             $"where version_parent = null & cover != null & {type} = {AllowedTypes} " +
-            $"& themes != ({IgdbGenreNames.EroticThemeId}); limit 50;", ct);
+            $"& themes != ({IgdbGenreNames.EroticThemeId}); limit {MaxResults};", ct);
 
         return games
             .Where(IsAllowed)

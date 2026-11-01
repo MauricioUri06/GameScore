@@ -62,12 +62,12 @@ export function RankingPage() {
                 <span>
                   <strong>{g.name}</strong>
                   <span className="small muted"> {g.released?.slice(0, 4)}</span>
-                  <br />
-                  <Stars value={g.averageScore} size="0.85rem" />
                 </span>
                 <span className="ranking-score">
-                  <strong>{g.averageScore.toFixed(2)}</strong>
-                  <div className="small muted">{g.ratingsCount} votos</div>
+                  <Stars value={g.averageScore} size="1.4rem" />
+                  <div className="small muted">
+                    {g.ratingsCount} {g.ratingsCount === 1 ? 'voto' : 'votos'}
+                  </div>
                 </span>
               </Link>
             </li>

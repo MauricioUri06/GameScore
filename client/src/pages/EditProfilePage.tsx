@@ -326,7 +326,7 @@ function GamePicker({ onPick, exclude }: { onPick: (g: PickedGame) => void; excl
     }
   }, [q])
 
-  const visible = results.filter((r) => !exclude.includes(r.gameId)).slice(0, 8)
+  const visible = results.filter((r) => !exclude.includes(r.gameId))
 
   return (
     <div style={{ marginTop: 12 }}>

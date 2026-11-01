@@ -22,7 +22,9 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
 
     public async Task<List<GameSummaryDto>> SearchAsync(string query, int page, CancellationToken ct)
     {
-        var games = await catalog.SearchAsync(query, page, 20, ct);
+        // Sin límite propio: devolvemos todo lo que encuentra el catálogo (IGDB da hasta 500 por consulta)
+        const int allResults = 500;
+        var games = await catalog.SearchAsync(query, page, allResults, ct);
         return await ToSummariesAsync(games, ct);
     }
 
