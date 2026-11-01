@@ -163,8 +163,7 @@ export const api = {
   adminUsers: () => request<AdminUser[]>('/admin/users'),
   updatePlatforms: (platformIds: number[]) =>
     request<void>('/me/platforms', { method: 'PUT', body: json({ platformIds }) }),
-  updatePlaying: (gameIds: number[]) =>
-    request<void>('/me/playing', { method: 'PUT', body: json({ gameIds }) }),
+  updatePlaying: (gameIds: number[]) => request<void>('/me/playing', { method: 'PUT', body: json({ gameIds }) }),
   addPlayingHours: (gameId: number, hours: number) =>
     request<{ hoursPlayed: number }>(`/me/playing/${gameId}/hours`, { method: 'POST', body: json({ hours }) }),
   journal: (userName: string, gameId: number) =>
@@ -195,8 +194,7 @@ export const api = {
   medals: (userName: string) => request<Medal[]>(`/users/${encodeURIComponent(userName)}/medals`),
   updateShowcaseMedals: (medalIds: string[]) =>
     request<void>('/me/medals', { method: 'PUT', body: json({ medalIds }) }),
-  updateTopGames: (gameIds: number[]) =>
-    request<void>('/me/top-games', { method: 'PUT', body: json({ gameIds }) }),
+  updateTopGames: (gameIds: number[]) => request<void>('/me/top-games', { method: 'PUT', body: json({ gameIds }) }),
   updateFavoriteGenres: (genreIds: number[]) =>
     request<void>('/me/favorite-genres', { method: 'PUT', body: json({ genreIds }) }),
 }

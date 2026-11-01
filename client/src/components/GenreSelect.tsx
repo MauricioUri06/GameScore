@@ -1,4 +1,6 @@
 import type { Genre } from '../api/types'
+import { useLang } from '../i18n/LanguageContext'
+import { genreName } from '../i18n/serverText'
 
 /** Combo box de categorías (géneros y temáticas). Valor vacío = todas. */
 export function GenreSelect({
@@ -12,10 +14,11 @@ export function GenreSelect({
   onChange: (slug: string) => void
   disabled?: boolean
 }) {
+  const { t, lang } = useLang()
   return (
     <div className="filter-bar">
       <label htmlFor="genre" className="filter-label">
-        Categoría
+        {t('Categoría', 'Category')}
       </label>
       <select
         id="genre"
@@ -24,10 +27,10 @@ export function GenreSelect({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
       >
-        <option value="">Todas las categorías</option>
+        <option value="">{t('Todas las categorías', 'All categories')}</option>
         {genres?.map((g) => (
           <option key={g.id} value={g.slug}>
-            {g.name}
+            {genreName(g.name, lang)}
           </option>
         ))}
       </select>

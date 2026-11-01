@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ErrorMessage } from '../components/Status'
+import { useLang } from '../i18n/LanguageContext'
 
 function useRedirectAfterAuth() {
   const navigate = useNavigate()
@@ -22,6 +23,7 @@ function PinInput({
   onChange: (value: string) => void
   autoComplete: string
 }) {
+  const { t } = useLang()
   return (
     <input
       id={id}
@@ -31,7 +33,7 @@ function PinInput({
       inputMode="numeric"
       autoComplete={autoComplete}
       pattern="[0-9]{6}"
-      title="6 dígitos"
+      title={t('6 dígitos', '6 digits')}
       maxLength={6}
       required
       placeholder="••••••"
@@ -42,6 +44,7 @@ function PinInput({
 }
 
 export function LoginPage() {
+  const { t } = useLang()
   const { login } = useAuth()
   const redirect = useRedirectAfterAuth()
   const [userName, setUserName] = useState('')
@@ -58,11 +61,11 @@ export function LoginPage() {
     const digits = String(form.get('pin') ?? pin).replace(/\D/g, '')
 
     if (!name) {
-      setError(new Error('Escribe tu nickname.'))
+      setError(new Error(t('Escribe tu nickname.', 'Enter your nickname.')))
       return
     }
     if (digits.length !== 6) {
-      setError(new Error('La clave debe tener 6 dígitos.'))
+      setError(new Error(t('La clave debe tener 6 dígitos.', 'The PIN must have 6 digits.')))
       return
     }
 
@@ -82,7 +85,7 @@ export function LoginPage() {
   return (
     <div className="container page">
       <form className="card auth-card" onSubmit={submit} noValidate>
-        <h1>Bienvenido de vuelta</h1>
+        <h1>{t('Bienvenido de vuelta', 'Welcome back')}</h1>
         {error ? <ErrorMessage error={error} /> : null}
         <div className="field">
           <label htmlFor="userName">Nickname</label>
@@ -96,14 +99,14 @@ export function LoginPage() {
           />
         </div>
         <div className="field">
-          <label htmlFor="pin">Clave de 6 dígitos</label>
+          <label htmlFor="pin">{t('Clave de 6 dígitos', '6-digit PIN')}</label>
           <PinInput id="pin" value={pin} onChange={setPin} autoComplete="current-password" />
         </div>
         <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-          {loading ? 'Entrando…' : 'Entrar'}
+          {loading ? t('Entrando…', 'Logging in…') : t('Entrar', 'Log in')}
         </button>
         <p className="small muted" style={{ textAlign: 'center', marginBottom: 0 }}>
-          ¿No tienes cuenta? <Link to="/register">Crea una</Link>
+          {t('¿No tienes cuenta?', "Don't have an account?")} <Link to="/register">{t('Crea una', 'Create one')}</Link>
         </p>
       </form>
     </div>
@@ -111,6 +114,7 @@ export function LoginPage() {
 }
 
 export function RegisterPage() {
+  const { t } = useLang()
   const { register } = useAuth()
   const redirect = useRedirectAfterAuth()
   const [userName, setUserName] = useState('')
@@ -139,7 +143,7 @@ export function RegisterPage() {
   return (
     <div className="container page">
       <form className="card auth-card" onSubmit={submit}>
-        <h1>Crea tu cuenta</h1>
+        <h1>{t('Crea tu cuenta', 'Create your account')}</h1>
         {error ? <ErrorMessage error={error} /> : null}
         <div className="field">
           <label htmlFor="userName">Nickname</label>
@@ -151,30 +155,41 @@ export function RegisterPage() {
             minLength={3}
             maxLength={20}
             pattern="[a-zA-Z0-9_.\-]+"
-            title="Letras, números, '_', '.' y '-'"
+            title={t("Letras, números, '_', '.' y '-'", "Letters, numbers, '_', '.' and '-'")}
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
           />
-          <span className="hint">Es el nombre que verá la comunidad. Tu perfil: /u/{userName || 'nickname'}</span>
+          <span className="hint">
+            {t(
+              'Es el nombre que verá la comunidad. Tu perfil:',
+              'This is the name the community will see. Your profile:',
+            )}{' '}
+            /u/
+            {userName || 'nickname'}
+          </span>
         </div>
         <div className="field">
-          <label htmlFor="pin">Clave de 6 dígitos</label>
+          <label htmlFor="pin">{t('Clave de 6 dígitos', '6-digit PIN')}</label>
           <PinInput id="pin" value={pin} onChange={setPin} autoComplete="new-password" />
         </div>
         <div className="field">
-          <label htmlFor="pinConfirm">Repite la clave</label>
+          <label htmlFor="pinConfirm">{t('Repite la clave', 'Repeat the PIN')}</label>
           <PinInput id="pinConfirm" value={pinConfirm} onChange={setPinConfirm} autoComplete="new-password" />
-          {mismatch && <span className="hint" style={{ color: 'var(--danger)' }}>Las claves no coinciden.</span>}
+          {mismatch && (
+            <span className="hint" style={{ color: 'var(--danger)' }}>
+              {t('Las claves no coinciden.', "The PINs don't match.")}
+            </span>
+          )}
         </div>
         <button
           className="btn btn-primary"
           style={{ width: '100%' }}
           disabled={loading || pin.length !== 6 || pin !== pinConfirm}
         >
-          {loading ? 'Creando cuenta…' : 'Crear cuenta'}
+          {loading ? t('Creando cuenta…', 'Creating account…') : t('Crear cuenta', 'Create account')}
         </button>
         <p className="small muted" style={{ textAlign: 'center', marginBottom: 0 }}>
-          ¿Ya tienes cuenta? <Link to="/login">Entra</Link>
+          {t('¿Ya tienes cuenta?', 'Already have an account?')} <Link to="/login">{t('Entra', 'Log in')}</Link>
         </p>
       </form>
     </div>

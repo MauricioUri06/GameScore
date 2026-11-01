@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLang } from '../i18n/LanguageContext'
 
 /**
  * Barra de tiempo que se vacía. Se reinicia cuando cambia `resetKey` y llama a `onExpire` una sola vez
@@ -16,6 +17,7 @@ export function CountdownBar({
   onExpire: () => void
 }) {
   const [left, setLeft] = useState(seconds)
+  const { t } = useLang()
   const deadline = useRef(0)
   const expired = useRef(false)
   const onExpireRef = useRef(onExpire)
@@ -48,7 +50,7 @@ export function CountdownBar({
   const level = share > 0.5 ? 'ok' : share > 0.25 ? 'warn' : 'danger'
 
   return (
-    <div className="countdown" role="timer" aria-label={`${Math.ceil(left)} segundos`}>
+    <div className="countdown" role="timer" aria-label={t(`${Math.ceil(left)} segundos`, `${Math.ceil(left)} seconds`)}>
       <div className="countdown-track">
         <span className={`countdown-fill ${level}`} style={{ width: `${share * 100}%` }} />
       </div>

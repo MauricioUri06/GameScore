@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { api } from '../api/client'
 import type { GameSummary } from '../api/types'
 import { igdbSize } from './GameCard'
+import { useLang } from '../i18n/LanguageContext'
 
 /**
  * Buscador de juegos para elegir uno (sin navegar): escribe, aparecen sugerencias con portada
@@ -10,7 +11,7 @@ import { igdbSize } from './GameCard'
 export function GamePicker({
   onPick,
   disabled,
-  placeholder = 'Busca un juego…',
+  placeholder,
   autoFocus,
 }: {
   onPick: (game: GameSummary) => void
@@ -19,6 +20,7 @@ export function GamePicker({
   autoFocus?: boolean
 }) {
   const listId = useId()
+  const { t } = useLang()
   const [q, setQ] = useState('')
   const [items, setItems] = useState<GameSummary[]>([])
   const [active, setActive] = useState(0)
@@ -80,7 +82,7 @@ export function GamePicker({
       <input
         ref={input}
         className="input"
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('Busca un juego…', 'Search for a game…')}
         autoComplete="off"
         spellCheck={false}
         value={q}
@@ -91,7 +93,7 @@ export function GamePicker({
         aria-expanded={items.length > 0}
         aria-controls={listId}
       />
-      {loading && <span className="game-picker-loading">Buscando…</span>}
+      {loading && <span className="game-picker-loading">{t('Buscando…', 'Searching…')}</span>}
       {items.length > 0 && !disabled && (
         <ul className="game-picker-list" id={listId} role="listbox">
           {items.map((g, i) => (

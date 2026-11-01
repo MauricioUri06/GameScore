@@ -10,6 +10,8 @@ import { igdbSize } from '../components/GameCard'
 import { groupPlatforms } from '../components/PlatformList'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
+import { useLang } from '../i18n/LanguageContext'
+import { genreName, medalText, platformFamily } from '../i18n/serverText'
 
 interface PickedGame {
   gameId: number
@@ -91,6 +93,7 @@ function ProfileEditor({
   earnedMedals: Medal[]
 }) {
   const { user, refresh } = useAuth()
+  const { t } = useLang()
   const [saved, setSaved] = useState<Draft>(() => draftFrom(profile))
   const [draft, setDraft] = useState<Draft>(() => draftFrom(profile))
   const [avatar, setAvatar] = useState<AvatarChange>({ kind: 'none' })
@@ -151,9 +154,9 @@ function ProfileEditor({
   return (
     <div className="container page edit-profile" style={{ maxWidth: 760 }}>
       <div className="page-title">
-        <h1>Editar perfil</h1>
+        <h1>{t('Editar perfil', 'Edit profile')}</h1>
         <Link to={`/u/${user.userName}`} className="btn btn-ghost btn-sm">
-          Ver mi perfil
+          {t('Ver mi perfil', 'View my profile')}
         </Link>
       </div>
 
@@ -172,16 +175,22 @@ function ProfileEditor({
         }}
       />
       <GameListSection
-        title="Jugando ahora"
-        hint="Los juegos que estás jugando en este momento (hasta 10)."
+        title={t('Jugando ahora', 'Playing now')}
+        hint={t(
+          'Los juegos que estás jugando en este momento (hasta 10).',
+          "The games you're playing right now (up to 10).",
+        )}
         max={10}
         numbered={false}
         games={draft.playing}
         onChange={(playing) => update({ playing })}
       />
       <GameListSection
-        title="Tu top 5"
-        hint="Busca y agrega hasta 5 juegos. Usa las flechas para ordenarlos."
+        title={t('Tu top 5', 'Your top 5')}
+        hint={t(
+          'Busca y agrega hasta 5 juegos. Usa las flechas para ordenarlos.',
+          'Search and add up to 5 games. Use the arrows to order them.',
+        )}
         max={5}
         games={draft.games}
         onChange={(games) => update({ games })}
@@ -200,22 +209,23 @@ function ProfileEditor({
             <ErrorMessage error={error} />
           ) : justSaved ? (
             <span className="save-ok">
-              Cambios guardados. <Link to={`/u/${user.userName}`}>Ver mi perfil</Link>
+              {t('Cambios guardados.', 'Changes saved.')}{' '}
+              <Link to={`/u/${user.userName}`}>{t('Ver mi perfil', 'View my profile')}</Link>
             </span>
           ) : dirty ? (
-            <span className="muted">Tienes cambios sin guardar.</span>
+            <span className="muted">{t('Tienes cambios sin guardar.', 'You have unsaved changes.')}</span>
           ) : (
-            <span className="faint">Sin cambios.</span>
+            <span className="faint">{t('Sin cambios.', 'No changes.')}</span>
           )}
         </div>
         <div className="row">
           {dirty && (
             <button type="button" className="btn btn-ghost" onClick={discard} disabled={saving}>
-              Descartar
+              {t('Descartar', 'Discard')}
             </button>
           )}
           <button type="button" className="btn btn-primary" onClick={saveAll} disabled={saving || !dirty}>
-            {saving ? 'Guardando…' : 'Guardar cambios'}
+            {saving ? t('Guardando…', 'Saving…') : t('Guardar cambios', 'Save changes')}
           </button>
         </div>
       </div>
@@ -238,6 +248,7 @@ function AvatarSection({
   onPick: (image: Blob, preview: string) => void
   onRemove: () => void
 }) {
+  const { t } = useLang()
   const fileInput = useRef<HTMLInputElement>(null)
   const [cropping, setCropping] = useState<File | null>(null)
 
@@ -249,7 +260,7 @@ function AvatarSection({
 
   return (
     <div className="card section avatar-editor">
-      <h2>Foto de perfil</h2>
+      <h2>{t('Foto de perfil', 'Profile picture')}</h2>
       {cropping ? (
         <AvatarCropper
           file={cropping}
@@ -263,7 +274,10 @@ function AvatarSection({
         <>
           <Avatar name={userName} url={url} large />
           <p className="muted small" style={{ margin: 0 }}>
-            JPG, PNG o WebP. Después de elegirla podrás encuadrarla y hacer zoom.
+            {t(
+              'JPG, PNG o WebP. Después de elegirla podrás encuadrarla y hacer zoom.',
+              "JPG, PNG or WebP. After choosing it you'll be able to frame it and zoom.",
+            )}
           </p>
           <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onFile} />
           <div className="row" style={{ justifyContent: 'center' }}>
@@ -273,11 +287,11 @@ function AvatarSection({
               disabled={disabled}
               onClick={() => fileInput.current?.click()}
             >
-              {hasPhoto ? 'Cambiar foto' : 'Elegir foto'}
+              {hasPhoto ? t('Cambiar foto', 'Change photo') : t('Elegir foto', 'Choose photo')}
             </button>
             {hasPhoto && (
               <button type="button" className="btn btn-danger" disabled={disabled} onClick={onRemove}>
-                Quitar foto
+                {t('Quitar foto', 'Remove photo')}
               </button>
             )}
           </div>
@@ -303,6 +317,7 @@ function GameListSection({
   games: PickedGame[]
   onChange: (games: PickedGame[]) => void
 }) {
+  const { t } = useLang()
   const move = (index: number, delta: number) => {
     const next = [...games]
     const [item] = next.splice(index, 1)
@@ -332,7 +347,13 @@ function GameListSection({
               <span className="picker-thumb" />
             )}
             <span className="grow">{g.name}</span>
-            <button type="button" className="icon-btn" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Subir">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => move(i, -1)}
+              disabled={i === 0}
+              aria-label={t('Subir', 'Move up')}
+            >
               ↑
             </button>
             <button
@@ -340,7 +361,7 @@ function GameListSection({
               className="icon-btn"
               onClick={() => move(i, 1)}
               disabled={i === games.length - 1}
-              aria-label="Bajar"
+              aria-label={t('Bajar', 'Move down')}
             >
               ↓
             </button>
@@ -348,7 +369,7 @@ function GameListSection({
               type="button"
               className="icon-btn"
               onClick={() => onChange(games.filter((x) => x.gameId !== g.gameId))}
-              aria-label="Quitar"
+              aria-label={t('Quitar', 'Remove')}
             >
               ✕
             </button>
@@ -362,6 +383,7 @@ function GameListSection({
 }
 
 function GamePicker({ onPick, exclude }: { onPick: (g: PickedGame) => void; exclude: number[] }) {
+  const { t } = useLang()
   const [q, setQ] = useState('')
   const [results, setResults] = useState<PickedGame[]>([])
   const [loading, setLoading] = useState(false)
@@ -394,11 +416,11 @@ function GamePicker({ onPick, exclude }: { onPick: (g: PickedGame) => void; excl
       <input
         className="input"
         type="search"
-        placeholder="Buscar un juego para agregar…"
+        placeholder={t('Buscar un juego para agregar…', 'Search for a game to add…')}
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />
-      {loading && <p className="small muted">Buscando…</p>}
+      {loading && <p className="small muted">{t('Buscando…', 'Searching…')}</p>}
       {visible.length > 0 && (
         <div className="picker-results">
           {visible.map((g) => (
@@ -412,7 +434,11 @@ function GamePicker({ onPick, exclude }: { onPick: (g: PickedGame) => void; excl
                 setResults([])
               }}
             >
-              {g.coverUrl ? <img src={igdbSize(g.coverUrl, 'cover_small')} alt="" /> : <span className="picker-thumb" />}
+              {g.coverUrl ? (
+                <img src={igdbSize(g.coverUrl, 'cover_small')} alt="" />
+              ) : (
+                <span className="picker-thumb" />
+              )}
               <span>{g.name}</span>
             </button>
           ))}
@@ -431,18 +457,22 @@ function PlatformsSection({
   selected: number[]
   onChange: (ids: number[]) => void
 }) {
+  const { t, lang } = useLang()
   const toggle = (id: number) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
 
   return (
     <div className="card section">
-      <h2>Mis plataformas</h2>
+      <h2>{t('Mis plataformas', 'My platforms')}</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Marca las consolas que tienes ({selected.length} seleccionadas).
+        {t(
+          `Marca las consolas que tienes (${selected.length} seleccionadas).`,
+          `Check the consoles you own (${selected.length} selected).`,
+        )}
       </p>
       <div className="platform-groups">
         {groupPlatforms(all).map(([family, items]) => (
           <div key={family} className="platform-group">
-            <span className="platform-family">{family}</span>
+            <span className="platform-family">{platformFamily(family, lang)}</span>
             <div className="tag-list">
               {items.map((p) => (
                 <button
@@ -472,14 +502,17 @@ function GenresSection({
   selected: number[]
   onChange: (ids: number[]) => void
 }) {
-  const toggle = (id: number) =>
-    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
+  const { t, lang } = useLang()
+  const toggle = (id: number) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
 
   return (
     <div className="card section">
-      <h2>Géneros favoritos</h2>
+      <h2>{t('Géneros favoritos', 'Favorite genres')}</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Elige todas las que quieras ({selected.length} seleccionadas).
+        {t(
+          `Elige todas las que quieras (${selected.length} seleccionadas).`,
+          `Pick as many as you like (${selected.length} selected).`,
+        )}
       </p>
       <div className="tag-list tag-list-center">
         {all.map((g) => (
@@ -490,7 +523,7 @@ function GenresSection({
             aria-pressed={selected.includes(g.id)}
             onClick={() => toggle(g.id)}
           >
-            {g.name}
+            {genreName(g.name, lang)}
           </button>
         ))}
       </div>
@@ -507,6 +540,7 @@ function MedalsSection({
   selected: string[]
   onChange: (ids: string[]) => void
 }) {
+  const { t, lang } = useLang()
   const max = 10
   const toggle = (id: string) => {
     if (selected.includes(id)) onChange(selected.filter((x) => x !== id))
@@ -515,14 +549,19 @@ function MedalsSection({
 
   return (
     <div className="card section">
-      <h2>Medallas en tu perfil</h2>
+      <h2>{t('Medallas en tu perfil', 'Medals on your profile')}</h2>
       <p className="muted small" style={{ marginTop: 0, textAlign: 'center' }}>
-        Elige hasta {max} de tus medallas para mostrar ({selected.length}/{max}). Se muestran en el orden en que las
-        marques.
+        {t(
+          `Elige hasta ${max} de tus medallas para mostrar (${selected.length}/${max}). Se muestran en el orden en que las marques.`,
+          `Choose up to ${max} of your medals to show (${selected.length}/${max}). They appear in the order you select them.`,
+        )}
       </p>
       {earned.length === 0 ? (
         <p className="faint small" style={{ textAlign: 'center', margin: 0 }}>
-          Todavía no tienes medallas. ¡Califica juegos y escribe reseñas para ganarlas!
+          {t(
+            'Todavía no tienes medallas. ¡Califica juegos y escribe reseñas para ganarlas!',
+            "You don't have any medals yet. Rate games and write reviews to earn them!",
+          )}
         </p>
       ) : (
         <div className="medal-picker">
@@ -539,7 +578,7 @@ function MedalsSection({
                 onClick={() => toggle(m.id)}
               >
                 <MedalCircle medal={m} />
-                <span className="medal-pick-name">{m.name}</span>
+                <span className="medal-pick-name">{medalText(m, lang).name}</span>
                 {isSelected && <span className="medal-pick-order">{index + 1}</span>}
               </button>
             )

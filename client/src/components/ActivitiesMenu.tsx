@@ -1,15 +1,32 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useLang } from '../i18n/LanguageContext'
 
 const ACTIVITIES = [
-  { to: '/older-newer', icon: '⏳', name: 'Older/Newer', description: '¿Salió antes o después?' },
-  { to: '/adivina-la-portada', icon: '🖼️', name: 'Adivina la portada', description: 'Portadas borrosas' },
-  { to: '/categorias', icon: '📚', name: 'Categorías', description: 'Un juego de cada categoría, rápido' },
-]
+  {
+    to: '/older-newer',
+    icon: '⏳',
+    name: ['Older/Newer', 'Older/Newer'],
+    description: ['¿Salió antes o después?', 'Released before or after?'],
+  },
+  {
+    to: '/adivina-la-portada',
+    icon: '🖼️',
+    name: ['Adivina la portada', 'Guess the Cover'],
+    description: ['Portadas borrosas', 'Blurry covers'],
+  },
+  {
+    to: '/categorias',
+    icon: '📚',
+    name: ['Categorías', 'Categories'],
+    description: ['Un juego de cada categoría, rápido', 'A game for each category, fast'],
+  },
+] as const
 
 /** Botón "Actividades" de la barra de arriba, con un menú desplegable de minijuegos. */
 export function ActivitiesMenu() {
   const [open, setOpen] = useState(false)
+  const { t } = useLang()
   const ref = useRef<HTMLDivElement>(null)
   const location = useLocation()
   const active = ACTIVITIES.some((a) => location.pathname.startsWith(a.to))
@@ -38,7 +55,7 @@ export function ActivitiesMenu() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        Actividades <span aria-hidden="true">▾</span>
+        {t('Actividades', 'Activities')} <span aria-hidden="true">▾</span>
       </button>
       {open && (
         <div className="activities-panel" role="menu">
@@ -48,8 +65,8 @@ export function ActivitiesMenu() {
                 {a.icon}
               </span>
               <span>
-                <strong>{a.name}</strong>
-                <small>{a.description}</small>
+                <strong>{t(a.name[0], a.name[1])}</strong>
+                <small>{t(a.description[0], a.description[1])}</small>
               </span>
             </Link>
           ))}

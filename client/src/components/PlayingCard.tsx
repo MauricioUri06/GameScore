@@ -4,8 +4,8 @@ import { api } from '../api/client'
 import type { JournalEntry, PlayingGame } from '../api/types'
 import { GameCover } from './GameCard'
 import { ErrorMessage } from './Status'
+import { useLang } from '../i18n/LanguageContext'
 
-const dateFmt = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' })
 const formatHours = (h: number) => `${Number.isInteger(h) ? h : h.toFixed(1)} h`
 const round1 = (n: number) => Math.round(n * 10) / 10
 
@@ -25,6 +25,8 @@ export function PlayingCard({
   onFinished?: (gameId: number) => void
 }) {
   const [hours, setHours] = useState(game.hoursPlayed)
+  const { t, locale } = useLang()
+  const dateFmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })
   const [lastEntry, setLastEntry] = useState<JournalEntry | null>(game.lastEntry)
   const [count, setCount] = useState(game.journalCount)
   const [history, setHistory] = useState<JournalEntry[] | null>(null)
@@ -150,9 +152,9 @@ export function PlayingCard({
           {isMe &&
             (confirmFinish ? (
               <span className="playing-finish-confirm">
-                <span className="small muted">¿Lo terminaste?</span>
+                <span className="small muted">{t('¿Lo terminaste?', 'Did you finish it?')}</span>
                 <button type="button" className="btn btn-primary btn-sm" onClick={finish} disabled={finishing}>
-                  {finishing ? 'Moviendo…' : 'Sí, terminado'}
+                  {finishing ? t('Moviendo…', 'Moving…') : t('Sí, terminado', 'Yes, finished')}
                 </button>
                 <button
                   type="button"
@@ -160,12 +162,12 @@ export function PlayingCard({
                   onClick={() => setConfirmFinish(false)}
                   disabled={finishing}
                 >
-                  Cancelar
+                  {t('Cancelar', 'Cancel')}
                 </button>
               </span>
             ) : (
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmFinish(true)}>
-                🏁 Marcar como terminado
+                🏁 {t('Marcar como terminado', 'Mark as finished')}
               </button>
             ))}
         </div>
@@ -174,19 +176,19 @@ export function PlayingCard({
             <p className={`playing-description${expanded ? ' expanded' : ''}`}>{game.description}</p>
             {game.description.length > 260 && (
               <button type="button" className="link-button small" onClick={() => setExpanded(!expanded)}>
-                {expanded ? 'Ver menos' : 'Ver más'}
+                {expanded ? t('Ver menos', 'Show less') : t('Ver más', 'Show more')}
               </button>
             )}
           </>
         ) : (
-          <p className="faint small">Sin descripción.</p>
+          <p className="faint small">{t('Sin descripción.', 'No description.')}</p>
         )}
 
         {error ? <ErrorMessage error={error} /> : null}
 
         <div className="playing-tracker">
           <div className="playing-journal">
-            <h3>Diario</h3>
+            <h3>{t('Diario', 'Journal')}</h3>
             {lastEntry ? (
               <div className="journal-entry latest">
                 <span className="journal-date">{dateFmt.format(new Date(lastEntry.createdAt))}</span>
@@ -194,7 +196,9 @@ export function PlayingCard({
               </div>
             ) : (
               <p className="faint small" style={{ margin: 0 }}>
-                {isMe ? '¿Qué hiciste en tu última partida?' : 'Todavía no escribió nada.'}
+                {isMe
+                  ? t('¿Qué hiciste en tu última partida?', 'What did you do in your last session?')
+                  : t('Todavía no escribió nada.', "Hasn't written anything yet.")}
               </p>
             )}
 
@@ -203,14 +207,17 @@ export function PlayingCard({
                 <textarea
                   className="textarea"
                   maxLength={500}
-                  placeholder="Ej.: Derroté al jefe del capítulo 3 y desbloqueé el doble salto."
+                  placeholder={t(
+                    'Ej.: Derroté al jefe del capítulo 3 y desbloqueé el doble salto.',
+                    'E.g.: Beat the chapter 3 boss and unlocked the double jump.',
+                  )}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                 />
                 <div className="journal-form-actions">
                   <span className="faint small">{text.length}/500</span>
                   <button className="btn btn-primary btn-sm" disabled={busy || !text.trim()}>
-                    {busy ? 'Guardando…' : 'Anotar'}
+                    {busy ? t('Guardando…', 'Saving…') : t('Anotar', 'Add entry')}
                   </button>
                 </div>
               </form>
@@ -218,7 +225,9 @@ export function PlayingCard({
 
             {count > 1 && (
               <button type="button" className="link-button small" onClick={toggleHistory}>
-                {showHistory ? 'Ocultar diario' : `Ver diario completo (${count})`}
+                {showHistory
+                  ? t('Ocultar diario', 'Hide journal')
+                  : t(`Ver diario completo (${count})`, `See full journal (${count})`)}
               </button>
             )}
             {showHistory && history && (
@@ -231,8 +240,8 @@ export function PlayingCard({
                       <button
                         type="button"
                         className="journal-delete"
-                        aria-label="Borrar entrada"
-                        title="Borrar entrada"
+                        aria-label={t('Borrar entrada', 'Delete entry')}
+                        title={t('Borrar entrada', 'Delete entry')}
                         onClick={() => removeEntry(entry.id)}
                       >
                         ×
@@ -245,7 +254,7 @@ export function PlayingCard({
           </div>
 
           <div className="playing-hours">
-            <span className="playing-hours-label">Horas jugadas</span>
+            <span className="playing-hours-label">{t('Horas jugadas', 'Hours played')}</span>
             <strong className="playing-hours-value">{formatHours(hours)}</strong>
             {isMe && (
               <div className="playing-hours-actions">
@@ -257,7 +266,7 @@ export function PlayingCard({
                   className="btn btn-ghost btn-sm"
                   onClick={() => addHours(-1)}
                   disabled={hours <= 0}
-                  title="Restar una hora (para corregir)"
+                  title={t('Restar una hora (para corregir)', 'Subtract an hour (to fix mistakes)')}
                 >
                   −1
                 </button>

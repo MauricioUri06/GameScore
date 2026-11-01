@@ -7,6 +7,7 @@ import { CountdownBar } from '../components/CountdownBar'
 import { GameCover } from '../components/GameCard'
 import { Leaderboard } from '../components/Leaderboard'
 import { ErrorMessage } from '../components/Status'
+import { useLang } from '../i18n/LanguageContext'
 
 type Phase = 'intro' | 'loading' | 'playing' | 'reveal' | 'over'
 interface Reveal {
@@ -30,6 +31,7 @@ const REVEAL_MS = 1200
  */
 export function OlderNewerPage() {
   const { user } = useAuth()
+  const { t } = useLang()
   const [phase, setPhase] = useState<Phase>('intro')
   const [run, setRun] = useState<OlderNewerState | null>(null)
   const [reveal, setReveal] = useState<Reveal | null>(null)
@@ -82,7 +84,13 @@ export function OlderNewerPage() {
         } else {
           setRun((r) =>
             r
-              ? { ...r, score: res.score, best: res.best, left: { ...r.right, year: res.rightYear }, right: res.nextRight! }
+              ? {
+                  ...r,
+                  score: res.score,
+                  best: res.best,
+                  left: { ...r.right, year: res.rightYear },
+                  right: res.nextRight!,
+                }
               : r,
           )
           setReveal(null)
@@ -99,8 +107,10 @@ export function OlderNewerPage() {
     <div className="container page">
       <h1>Older / Newer</h1>
       <p className="muted page-intro">
-        ¿El juego de la derecha salió <strong>antes</strong> o <strong>después</strong> que el de la izquierda? Cada
-        acierto suma un punto. Tienes 10 segundos por pregunta. Al primer error, se acaba.
+        {t(
+          '¿El juego de la derecha salió antes o después que el de la izquierda? Cada acierto suma un punto. Tienes 10 segundos por pregunta. Al primer error, se acaba.',
+          'Was the game on the right released before or after the one on the left? Each correct answer is a point. You have 10 seconds per question. One mistake and it’s over.',
+        )}
       </p>
 
       {error ? <ErrorMessage error={error} /> : null}
@@ -112,23 +122,25 @@ export function OlderNewerPage() {
           </div>
           {!user && (
             <p className="small muted" style={{ margin: 0 }}>
-              Puedes jugar sin cuenta, pero <Link to="/login">inicia sesión</Link> para guardar tu récord en tu perfil.
+              {t('Puedes jugar sin cuenta, pero', 'You can play without an account, but')}{' '}
+              <Link to="/login">{t('inicia sesión', 'log in')}</Link>{' '}
+              {t('para guardar tu récord', 'to save your record')} {t('en tu perfil.', 'on your profile.')}
             </p>
           )}
           <button className="btn btn-primary" onClick={start} disabled={phase === 'loading'}>
-            {phase === 'loading' ? 'Preparando partida…' : 'Jugar'}
+            {phase === 'loading' ? t('Preparando partida…', 'Getting the game ready…') : t('Jugar', 'Play')}
           </button>
         </div>
       ) : run ? (
         <>
           <div className="on-scorebar">
             <div>
-              <span>Puntos</span>
+              <span>{t('Puntos', 'Points')}</span>
               <strong>{run.score}</strong>
             </div>
             {run.best != null && (
               <div>
-                <span>Tu récord</span>
+                <span>{t('Tu récord', 'Your record')}</span>
                 <strong>{Math.max(run.best, run.score)}</strong>
               </div>
             )}
@@ -142,7 +154,7 @@ export function OlderNewerPage() {
               onExpire={() => guess('timeout')}
             />
           )}
-          {reveal?.timedOut && <p className="cq-feedback">⏰ ¡Se acabó el tiempo!</p>}
+          {reveal?.timedOut && <p className="cq-feedback">⏰ {t('¡Se acabó el tiempo!', "Time's up!")}</p>}
 
           <div className="on-board">
             <GameSide game={run.left} />
@@ -158,10 +170,10 @@ export function OlderNewerPage() {
                 <div className="on-buttons">
                   <button className="btn btn-primary" onClick={() => guess('older')}>
                     ⏪ Older
-                    <small>Salió antes</small>
+                    <small>{t('Salió antes', 'Came out earlier')}</small>
                   </button>
                   <button className="btn btn-primary" onClick={() => guess('newer')}>
-                    Newer ⏩<small>Salió después</small>
+                    Newer ⏩<small>{t('Salió después', 'Came out later')}</small>
                   </button>
                 </div>
               )}
@@ -170,18 +182,30 @@ export function OlderNewerPage() {
 
           {phase === 'over' && over && (
             <div className="card on-over">
-              <h2>{over.newRecord ? '🏆 ¡Nuevo récord!' : over.timedOut ? '⏰ Se acabó el tiempo' : 'Fin de la partida'}</h2>
+              <h2>
+                {over.newRecord
+                  ? t('🏆 ¡Nuevo récord!', '🏆 New record!')
+                  : over.timedOut
+                    ? t('⏰ Se acabó el tiempo', "⏰ Time's up")
+                    : t('Fin de la partida', 'Game over')}
+              </h2>
               <p style={{ margin: 0 }}>
-                Hiciste <strong>{over.score}</strong> {over.score === 1 ? 'punto' : 'puntos'}
-                {over.best != null && !over.newRecord && <> · Tu récord: {over.best}</>}
+                {t('Hiciste', 'You scored')} <strong>{over.score}</strong>{' '}
+                {over.score === 1 ? t('punto', 'point') : t('puntos', 'points')}
+                {over.best != null && !over.newRecord && (
+                  <>
+                    {' '}
+                    · {t('Tu récord', 'Your record')}: {over.best}
+                  </>
+                )}
               </p>
               <div className="row" style={{ justifyContent: 'center' }}>
                 <button className="btn btn-primary" onClick={start}>
-                  Jugar de nuevo
+                  {t('Jugar de nuevo', 'Play again')}
                 </button>
                 {user && (
                   <Link to={`/u/${user.userName}`} className="btn btn-ghost">
-                    Ver mi perfil
+                    {t('Ver mi perfil', 'View my profile')}
                   </Link>
                 )}
               </div>

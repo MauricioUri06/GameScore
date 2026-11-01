@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { useLang } from '../i18n/LanguageContext'
 
-const STAR_PATH =
-  'M12 2.5l2.95 6.27 6.88.78-5.1 4.68 1.4 6.77L12 17.6 5.87 21l1.4-6.77-5.1-4.68 6.88-.78z'
+const STAR_PATH = 'M12 2.5l2.95 6.27 6.88.78-5.1 4.68 1.4 6.77L12 17.6 5.87 21l1.4-6.77-5.1-4.68 6.88-.78z'
 
 function StarShape({ fill }: { fill: 0 | 0.5 | 1 }) {
   return (
@@ -27,9 +27,14 @@ function fillFor(value: number, index: number): 0 | 0.5 | 1 {
 
 /** Estrellas de solo lectura (0 a 5, admite medias). */
 export function Stars({ value, size = '1rem' }: { value: number; size?: string }) {
+  const { t } = useLang()
   const rounded = Math.round(value * 2) / 2
   return (
-    <span className="stars" style={{ fontSize: size }} aria-label={`${value.toFixed(1)} de 5 estrellas`}>
+    <span
+      className="stars"
+      style={{ fontSize: size }}
+      aria-label={t(`${value.toFixed(1)} de 5 estrellas`, `${value.toFixed(1)} out of 5 stars`)}
+    >
       {[0, 1, 2, 3, 4].map((i) => (
         <StarShape key={i} fill={fillFor(rounded, i)} />
       ))}
@@ -48,6 +53,7 @@ export function StarInput({
   disabled?: boolean
 }) {
   const [hover, setHover] = useState<number | null>(null)
+  const { t } = useLang()
   const shown = hover ?? value
 
   return (
@@ -55,7 +61,7 @@ export function StarInput({
       <button
         type="button"
         className={`star-zero${value === 0 ? ' selected' : ''}`}
-        aria-label="0 estrellas"
+        aria-label={t('0 estrellas', '0 stars')}
         aria-pressed={value === 0}
         disabled={disabled}
         onMouseEnter={() => setHover(0)}
@@ -65,7 +71,7 @@ export function StarInput({
       >
         0
       </button>
-      <span className="stars" role="radiogroup" aria-label="Tu puntaje">
+      <span className="stars" role="radiogroup" aria-label={t('Tu puntaje', 'Your score')}>
         {[0, 1, 2, 3, 4].map((i) => (
           <span key={i} className="star" style={{ position: 'relative' }}>
             <StarShape fill={fillFor(shown ?? 0, i)} />
@@ -78,7 +84,7 @@ export function StarInput({
                   className={`star-input-half ${part === 0.5 ? 'left' : 'right'}`}
                   role="radio"
                   aria-checked={value === starValue}
-                  aria-label={`${starValue} estrellas`}
+                  aria-label={t(`${starValue} estrellas`, `${starValue} stars`)}
                   disabled={disabled}
                   onMouseEnter={() => setHover(starValue)}
                   onFocus={() => setHover(starValue)}

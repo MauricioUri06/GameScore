@@ -16,6 +16,7 @@ import { MedalsPage } from './pages/MedalsPage'
 import { OlderNewerPage } from './pages/OlderNewerPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RankingPage } from './pages/RankingPage'
+import { LanguageProvider, useLang } from './i18n/LanguageContext'
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -35,12 +36,15 @@ function RequireAdmin({ children }: { children: ReactNode }) {
 }
 
 function NotFound() {
+  const { t } = useLang()
   return (
     <div className="container page" style={{ textAlign: 'center' }}>
       <h1>404</h1>
-      <p className="muted">Esta página no existe… como el Half-Life 3.</p>
+      <p className="muted">
+        {t('Esta página no existe… como el Half-Life 3.', "This page doesn't exist… just like Half-Life 3.")}
+      </p>
       <Link to="/" className="btn btn-primary">
-        Volver al inicio
+        {t('Volver al inicio', 'Back to home')}
       </Link>
     </div>
   )
@@ -49,43 +53,45 @@ function NotFound() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="ranking" element={<RankingPage />} />
-            <Route path="juegos" element={<GamesPage />} />
-            <Route path="older-newer" element={<OlderNewerPage />} />
-            <Route path="adivina-la-portada" element={<CoverQuizPage />} />
-            <Route path="categorias" element={<CategoryGamePage />} />
-            {/* Ruta vieja */}
-            <Route path="search" element={<Navigate to="/juegos" replace />} />
-            <Route path="games/:gameId" element={<GamePage />} />
-            <Route path="u/:userName" element={<ProfilePage />} />
-            <Route path="u/:userName/medallas" element={<MedalsPage />} />
-            <Route path="u/:userName/terminados" element={<FinishedPage />} />
-            <Route
-              path="settings/profile"
-              element={
-                <RequireAuth>
-                  <EditProfilePage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="admin"
-              element={
-                <RequireAdmin>
-                  <AdminPage />
-                </RequireAdmin>
-              }
-            />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="ranking" element={<RankingPage />} />
+              <Route path="juegos" element={<GamesPage />} />
+              <Route path="older-newer" element={<OlderNewerPage />} />
+              <Route path="adivina-la-portada" element={<CoverQuizPage />} />
+              <Route path="categorias" element={<CategoryGamePage />} />
+              {/* Ruta vieja */}
+              <Route path="search" element={<Navigate to="/juegos" replace />} />
+              <Route path="games/:gameId" element={<GamePage />} />
+              <Route path="u/:userName" element={<ProfilePage />} />
+              <Route path="u/:userName/medallas" element={<MedalsPage />} />
+              <Route path="u/:userName/terminados" element={<FinishedPage />} />
+              <Route
+                path="settings/profile"
+                element={
+                  <RequireAuth>
+                    <EditProfilePage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="admin"
+                element={
+                  <RequireAdmin>
+                    <AdminPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route path="login" element={<LoginPage />} />
+              <Route path="register" element={<RegisterPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   )
 }

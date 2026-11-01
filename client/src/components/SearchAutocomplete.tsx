@@ -4,6 +4,7 @@ import { api } from '../api/client'
 import type { GameSummary, UserSearchResult } from '../api/types'
 import { Avatar } from './Avatar'
 import { igdbSize } from './GameCard'
+import { useLang } from '../i18n/LanguageContext'
 
 type Suggestion = { kind: 'game'; game: GameSummary } | { kind: 'user'; user: UserSearchResult }
 
@@ -24,6 +25,7 @@ export function SearchAutocomplete({
   className?: string
   showButton?: boolean
 }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const listId = useId()
   const [q, setQ] = useState(defaultValue)
@@ -124,7 +126,9 @@ export function SearchAutocomplete({
         {showList && (
           <ul id={listId} className="autocomplete-list" role="listbox">
             {items.length === 0 ? (
-              <li className="autocomplete-empty">Sin resultados para “{q.trim()}”.</li>
+              <li className="autocomplete-empty">
+                {t(`Sin resultados para “${q.trim()}”.`, `No results for “${q.trim()}”.`)}
+              </li>
             ) : (
               items.map((item, i) => (
                 <SuggestionRow
@@ -132,7 +136,13 @@ export function SearchAutocomplete({
                   id={`${listId}-${i}`}
                   item={item}
                   active={i === active}
-                  heading={i === 0 && item.kind === 'game' ? 'Juegos' : i === firstUser ? 'Usuarios' : undefined}
+                  heading={
+                    i === 0 && item.kind === 'game'
+                      ? t('Juegos', 'Games')
+                      : i === firstUser
+                        ? t('Usuarios', 'Users')
+                        : undefined
+                  }
                   onHover={() => setActive(i)}
                   onPick={() => pick(item)}
                 />
@@ -143,7 +153,7 @@ export function SearchAutocomplete({
       </div>
       {showButton && (
         <button className="btn btn-primary" type="submit">
-          Buscar
+          {t('Buscar', 'Search')}
         </button>
       )}
     </form>
@@ -165,6 +175,7 @@ function SuggestionRow({
   onHover: () => void
   onPick: () => void
 }) {
+  const { t } = useLang()
   return (
     <>
       {heading && (
@@ -196,7 +207,8 @@ function SuggestionRow({
             <Avatar name={item.user.userName} url={item.user.avatarUrl} />
             <span className="autocomplete-name">{item.user.userName}</span>
             <span className="small faint">
-              {item.user.ratings} {item.user.ratings === 1 ? 'calificación' : 'calificaciones'}
+              {item.user.ratings}{' '}
+              {item.user.ratings === 1 ? t('calificación', 'rating') : t('calificaciones', 'ratings')}
             </span>
           </>
         )}

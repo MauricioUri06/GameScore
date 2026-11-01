@@ -7,9 +7,11 @@ import { Pagination } from '../components/Pagination'
 import { SearchAutocomplete } from '../components/SearchAutocomplete'
 import { Empty, ErrorMessage } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
+import { useLang } from '../i18n/LanguageContext'
 
 /** Todos los juegos, de 48 en 48, con buscador y filtro de categoría (todo en la URL: ?q=&genre=&page=). */
 export function GamesPage() {
+  const { t, locale } = useLang()
   const [params, setParams] = useSearchParams()
   const q = (params.get('q') ?? '').trim()
   const genre = params.get('genre') ?? ''
@@ -43,26 +45,26 @@ export function GamesPage() {
 
   return (
     <div className="container page">
-      <h1>Juegos</h1>
+      <h1>{t('Juegos', 'Games')}</h1>
       <div className="row search-row">
         <SearchAutocomplete
           key={q}
           className="games-search"
-          placeholder="Busca un juego o un usuario…"
+          placeholder={t('Busca un juego o un usuario…', 'Search for a game or a user…')}
           defaultValue={q}
           onSearch={(text) => update({ q: text })}
           showButton
         />
         {q && (
           <button className="btn btn-ghost" type="button" onClick={() => update({ q: '' })}>
-            Quitar búsqueda
+            {t('Quitar búsqueda', 'Clear search')}
           </button>
         )}
       </div>
 
       {q && users.data && users.data.length > 0 && (
         <div className="user-results">
-          <span className="filter-label">Usuarios</span>
+          <span className="filter-label">{t('Usuarios', 'Users')}</span>
           <div className="tag-list tag-list-center">
             {users.data.map((u) => (
               <Link key={u.userName} to={`/u/${u.userName}`} className="user-chip">
@@ -83,8 +85,8 @@ export function GamesPage() {
 
       {data && data.totalCount > 0 && (
         <p className="muted small results-info">
-          {q ? `Resultados para “${q}”` : 'Orden alfabético'} · {first}–{last} de{' '}
-          {data.totalCount.toLocaleString('es')}
+          {q ? t(`Resultados para “${q}”`, `Results for “${q}”`) : t('Orden alfabético', 'Alphabetical order')} ·{' '}
+          {first}–{last} {t('de', 'of')} {data.totalCount.toLocaleString(locale)}
         </p>
       )}
 
@@ -93,7 +95,11 @@ export function GamesPage() {
       ) : result.loading ? (
         <GameGridSkeleton count={20} />
       ) : !data?.items.length ? (
-        <Empty>{q ? `No encontramos juegos para “${q}”.` : 'No hay juegos en esta categoría.'}</Empty>
+        <Empty>
+          {q
+            ? t(`No encontramos juegos para “${q}”.`, `We couldn't find games for “${q}”.`)
+            : t('No hay juegos en esta categoría.', 'There are no games in this category.')}
+        </Empty>
       ) : (
         <>
           <div className="game-grid">

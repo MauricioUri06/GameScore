@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom'
 import type { RankedGame } from '../api/types'
 import { igdbSize } from './GameCard'
 import { Stars } from './Stars'
+import { useLang } from '../i18n/LanguageContext'
 
 /** Lista de juegos rankeados (posición, portada, nombre y estrellas). */
 export function RankingList({ games }: { games: RankedGame[] }) {
+  const { t } = useLang()
   return (
     <ol className="ranking-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
       {games.map((g) => (
@@ -23,7 +25,7 @@ export function RankingList({ games }: { games: RankedGame[] }) {
             <span className="ranking-score">
               <Stars value={g.averageScore} size="1.4rem" />
               <div className="small muted">
-                {g.ratingsCount} {g.ratingsCount === 1 ? 'voto' : 'votos'}
+                {g.ratingsCount} {g.ratingsCount === 1 ? t('voto', 'vote') : t('votos', 'votes')}
               </div>
             </span>
           </Link>

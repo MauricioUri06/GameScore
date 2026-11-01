@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useLang } from '../i18n/LanguageContext'
+import { tr } from '../i18n/lang'
 
 const VIEW = 260 // tamaño del recuadro de recorte en pantalla (px)
 const OUTPUT = 256 // tamaño final de la foto (px)
@@ -14,6 +16,7 @@ interface Props {
  * El círculo muestra lo que se verá en el perfil; se guarda como JPEG cuadrado de 256×256.
  */
 export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
+  const { t } = useLang()
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [url, setUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +38,8 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
         y: (VIEW - image.naturalHeight * base) / 2,
       })
     }
-    image.onerror = () => setError('No se pudo leer la imagen. Prueba con un JPG o PNG.')
+    image.onerror = () =>
+      setError(tr('No se pudo leer la imagen. Prueba con un JPG o PNG.', "Couldn't read the image. Try a JPG or PNG."))
     image.src = objectUrl
     return () => URL.revokeObjectURL(objectUrl)
   }, [file])
@@ -45,12 +49,12 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
       <div className="cropper">
         <div className="alert">{error}</div>
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
-          Volver
+          {t('Volver', 'Back')}
         </button>
       </div>
     )
   }
-  if (!img || !url) return <div className="cropper">Cargando imagen…</div>
+  if (!img || !url) return <div className="cropper">{t('Cargando imagen…', 'Loading image…')}</div>
 
   const base = VIEW / Math.min(img.naturalWidth, img.naturalHeight)
   const width = img.naturalWidth * base * zoom
@@ -101,7 +105,7 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
   return (
     <div className="cropper">
       <p className="muted small" style={{ margin: 0 }}>
-        Arrastra para encuadrar y usa el zoom para agrandar.
+        {t('Arrastra para encuadrar y usa el zoom para agrandar.', 'Drag to frame it and use the zoom to enlarge.')}
       </p>
       <div
         className="cropper-view"
@@ -132,10 +136,10 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
       </label>
       <div className="row" style={{ justifyContent: 'center' }}>
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
-          Cancelar
+          {t('Cancelar', 'Cancel')}
         </button>
         <button type="button" className="btn btn-primary" onClick={confirm}>
-          Usar esta foto
+          {t('Usar esta foto', 'Use this photo')}
         </button>
       </div>
     </div>

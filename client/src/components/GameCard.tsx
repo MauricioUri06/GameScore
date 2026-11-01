@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { GameSummary } from '../api/types'
+import { useLang } from '../i18n/LanguageContext'
+import { genreName } from '../i18n/serverText'
 
 /**
  * Las imágenes de IGDB llevan el tamaño en la URL (/t_cover_big/, /t_1080p/…).
@@ -12,28 +14,23 @@ export function igdbSize(url: string, size: 'cover_small' | 'cover_big' | '720p'
 }
 
 export function GameCover({ src, name }: { src: string | null; name: string }) {
-  return src ? (
-    <img src={src} alt="" loading="lazy" />
-  ) : (
-    <div className="game-cover-placeholder">{name.charAt(0)}</div>
-  )
+  return src ? <img src={src} alt="" loading="lazy" /> : <div className="game-cover-placeholder">{name.charAt(0)}</div>
 }
 
 export function GameCard({ game }: { game: GameSummary }) {
+  const { lang } = useLang()
   const year = game.released?.slice(0, 4)
   return (
     <Link to={`/games/${game.gameId}`} className="game-card">
       <div className="game-cover">
         <GameCover src={game.coverUrl} name={game.name} />
-        {game.averageScore !== null && (
-          <span className="score-pill overlay">★ {game.averageScore.toFixed(1)}</span>
-        )}
+        {game.averageScore !== null && <span className="score-pill overlay">★ {game.averageScore.toFixed(1)}</span>}
       </div>
       <div className="game-card-body">
         <span className="game-card-title">{game.name}</span>
         <span className="game-card-meta">
           <span>{year ?? '—'}</span>
-          <span>{game.genres[0] ?? ''}</span>
+          <span>{game.genres[0] ? genreName(game.genres[0], lang) : ''}</span>
         </span>
       </div>
     </Link>

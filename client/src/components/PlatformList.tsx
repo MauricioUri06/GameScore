@@ -1,4 +1,6 @@
 import type { Platform } from '../api/types'
+import { useLang } from '../i18n/LanguageContext'
+import { platformFamily } from '../i18n/serverText'
 
 const FAMILY_ORDER = ['PC', 'PlayStation', 'Xbox', 'Nintendo', 'Otras']
 
@@ -19,11 +21,12 @@ export function groupPlatforms(platforms: Platform[]): [string, Platform[]][] {
 
 /** Consolas de solo lectura, agrupadas por familia. */
 export function PlatformList({ platforms }: { platforms: Platform[] }) {
+  const { lang } = useLang()
   return (
     <div className="platform-groups">
       {groupPlatforms(platforms).map(([family, items]) => (
         <div key={family} className="platform-group">
-          <span className="platform-family">{family}</span>
+          <span className="platform-family">{platformFamily(family, lang)}</span>
           <div className="tag-list">
             {items.map((p) => (
               <span key={p.id} className="tag selected">

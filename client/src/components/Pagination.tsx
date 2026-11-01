@@ -1,3 +1,4 @@
+import { useLang } from '../i18n/LanguageContext'
 /** Números de página a mostrar: primera, última y las cercanas a la actual, con "…" entre medio. */
 function pageNumbers(page: number, totalPages: number): (number | '…')[] {
   const pages = new Set([1, totalPages, page - 2, page - 1, page, page + 1, page + 2])
@@ -20,12 +21,13 @@ export function Pagination({
   totalPages: number
   onChange: (page: number) => void
 }) {
+  const { t } = useLang()
   if (totalPages <= 1) return null
 
   return (
-    <nav className="pagination" aria-label="Páginas">
+    <nav className="pagination" aria-label={t('Páginas', 'Pages')}>
       <button type="button" className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => onChange(page - 1)}>
-        ← Anterior
+        {t('← Anterior', '← Previous')}
       </button>
       <div className="pagination-pages">
         {pageNumbers(page, totalPages).map((p, i) =>
@@ -52,7 +54,7 @@ export function Pagination({
         disabled={page >= totalPages}
         onClick={() => onChange(page + 1)}
       >
-        Siguiente →
+        {t('Siguiente →', 'Next →')}
       </button>
     </nav>
   )

@@ -7,6 +7,8 @@ import { CountdownBar } from '../components/CountdownBar'
 import { GamePicker } from '../components/GamePicker'
 import { Leaderboard } from '../components/Leaderboard'
 import { ErrorMessage } from '../components/Status'
+import { useLang } from '../i18n/LanguageContext'
+import { genreName } from '../i18n/serverText'
 
 type Phase = 'intro' | 'loading' | 'playing' | 'sending' | 'reveal' | 'over'
 
@@ -19,6 +21,7 @@ const formatSeconds = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).pad
  */
 export function CategoryGamePage() {
   const { user } = useAuth()
+  const { t, lang } = useLang()
   const [phase, setPhase] = useState<Phase>('intro')
   const [state, setState] = useState<CategoryState | null>(null)
   const [result, setResult] = useState<CategoryAnswerResult | null>(null)
@@ -82,7 +85,12 @@ export function CategoryGamePage() {
     try {
       const res = await api.categoryAnswer(state.runId, game.gameId)
       if (res.alreadyUsed) {
-        setNotice(`Ya usaste ${game.name} en esta partida. ¡Elige otro!`)
+        setNotice(
+          t(
+            `Ya usaste ${game.name} en esta partida. ¡Elige otro!`,
+            `You already used ${game.name} this game. Pick another!`,
+          ),
+        )
         setPhase('playing')
       } else {
         show(res)
@@ -125,10 +133,12 @@ export function CategoryGamePage() {
 
   return (
     <div className="container page">
-      <h1>Categorías</h1>
+      <h1>{t('Categorías', 'Categories')}</h1>
       <p className="muted page-intro">
-        Sale una categoría: elige un juego que la tenga. Cuanto más rápido respondas, más puntos. Llega a 1000 antes de
-        perder tus 3 vidas.
+        {t(
+          'Sale una categoría: elige un juego que la tenga. Cuanto más rápido respondas, más puntos. Llega a 1000 antes de perder tus 3 vidas.',
+          'A category appears: pick a game that has it. The faster you answer, the more points. Reach 1000 before losing your 3 lives.',
+        )}
       </p>
       {error ? <ErrorMessage error={error} /> : null}
 
@@ -138,36 +148,43 @@ export function CategoryGamePage() {
             📚 ⏱️
           </div>
           <p className="small muted" style={{ margin: 0 }}>
-            30 segundos por categoría · de 100 a 10 puntos según la rapidez · un juego equivocado o el tiempo agotado
-            te quita una vida · no se pueden repetir juegos.
+            {t(
+              '30 segundos por categoría · de 100 a 10 puntos según la rapidez · un juego equivocado o el tiempo agotado te quita una vida · no se pueden repetir juegos.',
+              '30 seconds per category · 100 to 10 points depending on speed · a wrong game or running out of time costs a life · no repeating games.',
+            )}
           </p>
           {!user && (
             <p className="small muted" style={{ margin: 0 }}>
-              Puedes jugar sin cuenta, pero <Link to="/login">inicia sesión</Link> para guardar tu récord.
+              {t('Puedes jugar sin cuenta, pero', 'You can play without an account, but')}{' '}
+              <Link to="/login">{t('inicia sesión', 'log in')}</Link>{' '}
+              {t('para guardar tu récord', 'to save your record')}.
             </p>
           )}
           <button className="btn btn-primary" onClick={start} disabled={phase === 'loading'}>
-            {phase === 'loading' ? 'Preparando partida…' : 'Jugar'}
+            {phase === 'loading' ? t('Preparando partida…', 'Getting the game ready…') : t('Jugar', 'Play')}
           </button>
         </div>
       ) : state && phase !== 'over' ? (
         <div className="cq-board">
           <div className="on-scorebar">
             <div>
-              <span>Puntos</span>
+              <span>{t('Puntos', 'Points')}</span>
               <strong>
                 {state.score}
                 <small className="cat-goal">/{state.goal}</small>
               </strong>
             </div>
             <div>
-              <span>Vidas</span>
-              <strong className="cat-lives" aria-label={`${state.lives} de ${state.maxLives} vidas`}>
+              <span>{t('Vidas', 'Lives')}</span>
+              <strong
+                className="cat-lives"
+                aria-label={t(`${state.lives} de ${state.maxLives} vidas`, `${state.lives} of ${state.maxLives} lives`)}
+              >
                 {Array.from({ length: state.maxLives }, (_, i) => (i < state.lives ? '❤️' : '🖤')).join('')}
               </strong>
             </div>
             <div>
-              <span>Ronda</span>
+              <span>{t('Ronda', 'Round')}</span>
               <strong>{state.round}</strong>
             </div>
           </div>
@@ -183,18 +200,18 @@ export function CategoryGamePage() {
           />
 
           <div className="cat-category">
-            <span>Un juego de…</span>
-            <strong>{state.category}</strong>
+            <span>{t('Un juego de…', 'A game of…')}</span>
+            <strong>{genreName(state.category, lang)}</strong>
           </div>
 
           {phase === 'reveal' && result ? (
             <div className="cq-result">
               <h2>
                 {result.correct
-                  ? `✅ ¡Sí! +${result.points}`
+                  ? t(`✅ ¡Sí! +${result.points}`, `✅ Yes! +${result.points}`)
                   : result.timedOut
-                    ? '⏰ Se acabó el tiempo · −1 vida'
-                    : '❌ No es de esa categoría · −1 vida'}
+                    ? t('⏰ Se acabó el tiempo · −1 vida', "⏰ Time's up · −1 life")
+                    : t('❌ No es de esa categoría · −1 vida', '❌ Not in that category · −1 life')}
               </h2>
               {result.gameName && result.gameId != null && (
                 <Link to={`/games/${result.gameId}`} target="_blank" rel="noreferrer">
@@ -202,7 +219,7 @@ export function CategoryGamePage() {
                 </Link>
               )}
               <button className="btn btn-primary" onClick={next} autoFocus>
-                {state.gameOver ? 'Ver resultado' : 'Siguiente categoría →'}
+                {state.gameOver ? t('Ver resultado', 'See result') : t('Siguiente categoría →', 'Next category →')}
               </button>
             </div>
           ) : (
@@ -213,7 +230,7 @@ export function CategoryGamePage() {
                 onPick={answer}
                 disabled={phase === 'sending'}
                 autoFocus
-                placeholder="Escribe y elige un juego…"
+                placeholder={t('Escribe y elige un juego…', 'Type and pick a game…')}
               />
             </>
           )}
@@ -224,27 +241,38 @@ export function CategoryGamePage() {
         <div className="card on-over">
           {state.won ? (
             <>
-              <h2>{result?.newRecord ? '🏆 ¡Nuevo récord!' : '📚 ¡Llegaste a 1000!'}</h2>
+              <h2>
+                {result?.newRecord
+                  ? t('🏆 ¡Nuevo récord!', '🏆 New record!')
+                  : t('📚 ¡Llegaste a 1000!', '📚 You reached 1000!')}
+              </h2>
               <p style={{ margin: 0 }}>
-                Tiempo total: <strong>{formatSeconds(state.totalSeconds)}</strong> en {state.round} rondas
-                {state.bestSeconds != null && !result?.newRecord && <> · Tu récord: {formatSeconds(state.bestSeconds)}</>}
+                {t('Tiempo total', 'Total time')}: <strong>{formatSeconds(state.totalSeconds)}</strong>{' '}
+                {t(`en ${state.round} rondas`, `in ${state.round} rounds`)}
+                {state.bestSeconds != null && !result?.newRecord && (
+                  <>
+                    {' '}
+                    · {t('Tu récord', 'Your record')}: {formatSeconds(state.bestSeconds)}
+                  </>
+                )}
               </p>
             </>
           ) : (
             <>
-              <h2>Sin vidas</h2>
+              <h2>{t('Sin vidas', 'Out of lives')}</h2>
               <p style={{ margin: 0 }}>
-                Llegaste a <strong>{state.score}</strong> de {state.goal} puntos.
+                {t('Llegaste a', 'You reached')} <strong>{state.score}</strong> {t('de', 'of')} {state.goal}{' '}
+                {t('puntos', 'points')}.
               </p>
             </>
           )}
           <div className="row" style={{ justifyContent: 'center' }}>
             <button className="btn btn-primary" onClick={start}>
-              Jugar de nuevo
+              {t('Jugar de nuevo', 'Play again')}
             </button>
             {user && (
               <Link to={`/u/${user.userName}`} className="btn btn-ghost">
-                Ver mi perfil
+                {t('Ver mi perfil', 'View my profile')}
               </Link>
             )}
           </div>
@@ -252,7 +280,11 @@ export function CategoryGamePage() {
       )}
 
       {(phase === 'intro' || phase === 'over') && (
-        <Leaderboard leaders={leaders} format={formatSeconds} title="Mejores tiempos para llegar a 1000" />
+        <Leaderboard
+          leaders={leaders}
+          format={formatSeconds}
+          title={t('Mejores tiempos para llegar a 1000', 'Fastest times to reach 1000')}
+        />
       )}
     </div>
   )

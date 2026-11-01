@@ -3,6 +3,8 @@ import { useAuth } from '../auth/AuthContext'
 import { ActivitiesMenu } from './ActivitiesMenu'
 import { UserMenu } from './UserMenu'
 import { SearchAutocomplete } from './SearchAutocomplete'
+import { useLang } from '../i18n/LanguageContext'
+import { LanguageSwitcher } from '../i18n/LanguageSwitcher'
 
 function Logo() {
   return (
@@ -17,23 +19,26 @@ function Logo() {
 }
 
 function NavSearch() {
+  const { t } = useLang()
   const navigate = useNavigate()
   return (
     <SearchAutocomplete
       className="nav-search"
-      placeholder="Buscar juegos o usuarios…"
+      placeholder={t('Buscar juegos o usuarios…', 'Search games or users…')}
       onSearch={(q) => q.length >= 2 && navigate(`/juegos?q=${encodeURIComponent(q)}`)}
     />
   )
 }
 
 export function Layout() {
+  const { t } = useLang()
   const { user } = useAuth()
 
   return (
     <>
       <header className="navbar">
         <div className="container navbar-inner">
+          <LanguageSwitcher />
           <Link to="/" className="brand">
             <Logo />
             <span>
@@ -42,10 +47,10 @@ export function Layout() {
           </Link>
           <nav className="nav-links">
             <NavLink to="/" end>
-              Inicio
+              {t('Inicio', 'Home')}
             </NavLink>
             <NavLink to="/ranking">Ranking</NavLink>
-            <NavLink to="/juegos">Juegos</NavLink>
+            <NavLink to="/juegos">{t('Juegos', 'Games')}</NavLink>
             <ActivitiesMenu />
           </nav>
           <NavSearch />
@@ -55,10 +60,10 @@ export function Layout() {
             ) : (
               <>
                 <Link to="/login" className="btn btn-ghost btn-sm">
-                  Entrar
+                  {t('Entrar', 'Log in')}
                 </Link>
                 <Link to="/register" className="btn btn-primary btn-sm">
-                  Crear cuenta
+                  {t('Crear cuenta', 'Sign up')}
                 </Link>
               </>
             )}
@@ -72,9 +77,11 @@ export function Layout() {
 
       <footer className="footer">
         <div className="container">
-          <span>GameScore — califica, rankea y comparte tus juegos.</span>
           <span>
-            Datos de juegos por{' '}
+            {t('GameScore — califica, rankea y comparte tus juegos.', 'GameScore — rate, rank and share your games.')}
+          </span>
+          <span>
+            {t('Datos de juegos por', 'Game data by')}{' '}
             <a href="https://www.igdb.com" target="_blank" rel="noreferrer">
               IGDB
             </a>

@@ -6,6 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 import { CountdownBar } from '../components/CountdownBar'
 import { Leaderboard } from '../components/Leaderboard'
 import { ErrorMessage } from '../components/Status'
+import { useLang } from '../i18n/LanguageContext'
 
 type Phase = 'intro' | 'loading' | 'playing' | 'sending' | 'reveal' | 'over'
 
@@ -15,6 +16,7 @@ type Phase = 'intro' | 'loading' | 'playing' | 'sending' | 'reveal' | 'over'
  */
 export function CoverQuizPage() {
   const { user } = useAuth()
+  const { t } = useLang()
   const [phase, setPhase] = useState<Phase>('intro')
   const [state, setState] = useState<CoverQuizState | null>(null)
   const [result, setResult] = useState<CoverQuizGuessResult | null>(null)
@@ -62,7 +64,12 @@ export function CoverQuizPage() {
       setFeedback(null)
       setPhase('reveal')
     } else {
-      setFeedback(`"${text.trim()}" no es. ¡La portada se aclara un poco!`)
+      setFeedback(
+        t(
+          `"${text.trim()}" no es. ¡La portada se aclara un poco!`,
+          `"${text.trim()}" is not it. The cover gets a bit clearer!`,
+        ),
+      )
       setText('')
       setPhase('playing')
     }
@@ -111,10 +118,12 @@ export function CoverQuizPage() {
 
   return (
     <div className="container page">
-      <h1>Adivina la portada</h1>
+      <h1>{t('Adivina la portada', 'Guess the Cover')}</h1>
       <p className="muted page-intro">
-        Escribe el nombre del juego. Cada error aclara la portada y revela letras, pero vale menos puntos. Tienes{' '}
-        {state?.secondsPerRound ?? 30} segundos por portada.
+        {t(
+          `Escribe el nombre del juego. Cada error aclara la portada y revela letras, pero vale menos puntos. Tienes ${state?.secondsPerRound ?? 30} segundos por portada.`,
+          `Type the game's name. Each mistake makes the cover clearer and reveals letters, but it's worth fewer points. You have ${state?.secondsPerRound ?? 30} seconds per cover.`,
+        )}
       </p>
       {error ? <ErrorMessage error={error} /> : null}
 
@@ -124,33 +133,38 @@ export function CoverQuizPage() {
             🖼️ ❓
           </div>
           <p className="small muted" style={{ margin: 0 }}>
-            10 portadas · 4 intentos cada una · 100, 70, 40 o 20 puntos según el intento.
+            {t(
+              '10 portadas · 4 intentos cada una · 100, 70, 40 o 20 puntos según el intento.',
+              '10 covers · 4 tries each · 100, 70, 40 or 20 points depending on the try.',
+            )}
           </p>
           {!user && (
             <p className="small muted" style={{ margin: 0 }}>
-              Puedes jugar sin cuenta, pero <Link to="/login">inicia sesión</Link> para guardar tu récord.
+              {t('Puedes jugar sin cuenta, pero', 'You can play without an account, but')}{' '}
+              <Link to="/login">{t('inicia sesión', 'log in')}</Link>{' '}
+              {t('para guardar tu récord', 'to save your record')}.
             </p>
           )}
           <button className="btn btn-primary" onClick={start} disabled={phase === 'loading'}>
-            {phase === 'loading' ? 'Preparando partida…' : 'Jugar'}
+            {phase === 'loading' ? t('Preparando partida…', 'Getting the game ready…') : t('Jugar', 'Play')}
           </button>
         </div>
       ) : state && phase !== 'over' ? (
         <div className="cq-board">
           <div className="on-scorebar">
             <div>
-              <span>Portada</span>
+              <span>{t('Portada', 'Cover')}</span>
               <strong>
                 {state.round}/{state.totalRounds}
               </strong>
             </div>
             <div>
-              <span>Puntos</span>
+              <span>{t('Puntos', 'Points')}</span>
               <strong>{state.score}</strong>
             </div>
             {state.best != null && (
               <div>
-                <span>Tu récord</span>
+                <span>{t('Tu récord', 'Your record')}</span>
                 <strong>{Math.max(state.best, state.score)}</strong>
               </div>
             )}
@@ -164,10 +178,10 @@ export function CoverQuizPage() {
           />
 
           <div className={`cq-cover${phase === 'reveal' ? (result?.correct ? ' correct' : ' wrong') : ''}`}>
-            <img src={state.imageUrl} alt="Portada a adivinar" draggable={false} />
+            <img src={state.imageUrl} alt={t('Portada a adivinar', 'Cover to guess')} draggable={false} />
           </div>
 
-          <p className="cq-hint" aria-label="Pista del título">
+          <p className="cq-hint" aria-label={t('Pista del título', 'Title hint')}>
             {state.hint}
           </p>
 
@@ -175,10 +189,10 @@ export function CoverQuizPage() {
             <div className="cq-result">
               <h2>
                 {result.correct
-                  ? `✅ ¡Correcto! +${result.points}`
+                  ? t(`✅ ¡Correcto! +${result.points}`, `✅ Correct! +${result.points}`)
                   : result.timedOut
-                    ? '⏰ Se acabó el tiempo'
-                    : 'Era…'}
+                    ? t('⏰ Se acabó el tiempo', "⏰ Time's up")
+                    : t('Era…', 'It was…')}
               </h2>
               {result.answerGameId != null && (
                 <Link to={`/games/${result.answerGameId}`} target="_blank" rel="noreferrer">
@@ -186,12 +200,18 @@ export function CoverQuizPage() {
                 </Link>
               )}
               <button className="btn btn-primary" onClick={next} autoFocus>
-                {state.gameOver ? 'Ver resultado' : 'Siguiente portada →'}
+                {state.gameOver ? t('Ver resultado', 'See result') : t('Siguiente portada →', 'Next cover →')}
               </button>
             </div>
           ) : (
             <>
-              <div className="cq-attempts" aria-label={`Intento ${state.attempts + 1} de ${state.maxAttempts}`}>
+              <div
+                className="cq-attempts"
+                aria-label={t(
+                  `Intento ${state.attempts + 1} de ${state.maxAttempts}`,
+                  `Try ${state.attempts + 1} of ${state.maxAttempts}`,
+                )}
+              >
                 {state.pointsByAttempt.map((p, i) => (
                   <span key={p} className={i < state.attempts ? 'used' : i === state.attempts ? 'current' : ''}>
                     {p}
@@ -203,7 +223,7 @@ export function CoverQuizPage() {
                 <input
                   ref={input}
                   className="input"
-                  placeholder="Nombre del juego…"
+                  placeholder={t('Nombre del juego…', 'Game name…')}
                   autoComplete="off"
                   spellCheck={false}
                   maxLength={200}
@@ -212,11 +232,11 @@ export function CoverQuizPage() {
                   disabled={phase === 'sending'}
                 />
                 <button className="btn btn-primary" disabled={phase === 'sending' || !text.trim()}>
-                  Adivinar ({pointsNow} pts)
+                  {t('Adivinar', 'Guess')} ({pointsNow} pts)
                 </button>
               </form>
               <button type="button" className="link-button small" onClick={skip} disabled={phase === 'sending'}>
-                Me rindo, mostrar la respuesta
+                {t('Me rindo, mostrar la respuesta', 'I give up, show the answer')}
               </button>
             </>
           )}
@@ -225,18 +245,24 @@ export function CoverQuizPage() {
 
       {phase === 'over' && state && (
         <div className="card on-over">
-          <h2>{result?.newRecord ? '🏆 ¡Nuevo récord!' : 'Fin de la partida'}</h2>
+          <h2>{result?.newRecord ? t('🏆 ¡Nuevo récord!', '🏆 New record!') : t('Fin de la partida', 'Game over')}</h2>
           <p style={{ margin: 0 }}>
-            Hiciste <strong>{state.score}</strong> de {state.totalRounds * state.pointsByAttempt[0]} puntos
-            {state.best != null && !result?.newRecord && <> · Tu récord: {Math.max(state.best, state.score)}</>}
+            {t('Hiciste', 'You scored')} <strong>{state.score}</strong> {t('de', 'of')}{' '}
+            {state.totalRounds * state.pointsByAttempt[0]} {t('puntos', 'points')}
+            {state.best != null && !result?.newRecord && (
+              <>
+                {' '}
+                · {t('Tu récord', 'Your record')}: {Math.max(state.best, state.score)}
+              </>
+            )}
           </p>
           <div className="row" style={{ justifyContent: 'center' }}>
             <button className="btn btn-primary" onClick={start}>
-              Jugar de nuevo
+              {t('Jugar de nuevo', 'Play again')}
             </button>
             {user && (
               <Link to={`/u/${user.userName}`} className="btn btn-ghost">
-                Ver mi perfil
+                {t('Ver mi perfil', 'View my profile')}
               </Link>
             )}
           </div>

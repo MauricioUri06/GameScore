@@ -5,22 +5,23 @@ import type { AdminUser, CountByName } from '../api/types'
 import { Avatar } from '../components/Avatar'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
+import { useLang } from '../i18n/LanguageContext'
 
 type SortKey = 'userName' | 'createdAt' | 'ratings' | 'reviewsWithText' | 'averageScore' | 'lastActivity'
 
-const COLUMNS: { key: SortKey; label: string }[] = [
-  { key: 'userName', label: 'Usuario' },
-  { key: 'createdAt', label: 'Registro' },
-  { key: 'ratings', label: 'Calificaciones' },
-  { key: 'reviewsWithText', label: 'Reseñas con texto' },
-  { key: 'averageScore', label: 'Promedio' },
-  { key: 'lastActivity', label: 'Última actividad' },
+const COLUMNS: { key: SortKey; label: [string, string] }[] = [
+  { key: 'userName', label: ['Usuario', 'User'] },
+  { key: 'createdAt', label: ['Registro', 'Joined'] },
+  { key: 'ratings', label: ['Calificaciones', 'Ratings'] },
+  { key: 'reviewsWithText', label: ['Reseñas con texto', 'Written reviews'] },
+  { key: 'averageScore', label: ['Promedio', 'Average'] },
+  { key: 'lastActivity', label: ['Última actividad', 'Last activity'] },
 ]
 
-const dateFmt = new Intl.DateTimeFormat('es', { day: '2-digit', month: 'short', year: 'numeric' })
-const formatDate = (iso: string | null) => (iso ? dateFmt.format(new Date(iso)) : '—')
-
 export function AdminPage() {
+  const { t, locale } = useLang()
+  const dateFmt = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' })
+  const formatDate = (iso: string | null) => (iso ? dateFmt.format(new Date(iso)) : '—')
   const stats = useAsync(() => api.adminStats(), [])
   const users = useAsync(() => api.adminUsers(), [])
   const [query, setQuery] = useState('')
@@ -47,8 +48,10 @@ export function AdminPage() {
 
   return (
     <div className="container page">
-      <h1>Administración</h1>
-      <p className="muted page-intro">Usuarios registrados y actividad de GameScore.</p>
+      <h1>{t('Administración', 'Administration')}</h1>
+      <p className="muted page-intro">
+        {t('Usuarios registrados y actividad de GameScore.', 'Registered users and GameScore activity.')}
+      </p>
 
       {stats.error ? (
         <ErrorMessage error={stats.error} />
@@ -57,34 +60,51 @@ export function AdminPage() {
       ) : (
         <>
           <div className="stat-cards">
-            <StatCard label="Usuarios" value={stats.data.users} hint={`+${stats.data.newUsersLast7Days} esta semana`} />
             <StatCard
-              label="Calificaciones"
-              value={stats.data.ratings}
-              hint={`+${stats.data.ratingsLast7Days} esta semana`}
+              label={t('Usuarios', 'Users')}
+              value={stats.data.users}
+              hint={t(`+${stats.data.newUsersLast7Days} esta semana`, `+${stats.data.newUsersLast7Days} this week`)}
             />
-            <StatCard label="Reseñas con texto" value={stats.data.reviewsWithText} />
-            <StatCard label="Promedio general" value={stats.data.averageScore?.toFixed(2) ?? '—'} hint="de 5 estrellas" />
-            <StatCard label="Juegos guardados" value={stats.data.gamesInDatabase} hint="copiados de IGDB" />
+            <StatCard
+              label={t('Calificaciones', 'Ratings')}
+              value={stats.data.ratings}
+              hint={t(`+${stats.data.ratingsLast7Days} esta semana`, `+${stats.data.ratingsLast7Days} this week`)}
+            />
+            <StatCard label={t('Reseñas con texto', 'Written reviews')} value={stats.data.reviewsWithText} />
+            <StatCard
+              label={t('Promedio general', 'Overall average')}
+              value={stats.data.averageScore?.toFixed(2) ?? '—'}
+              hint={t('de 5 estrellas', 'out of 5 stars')}
+            />
+            <StatCard
+              label={t('Juegos guardados', 'Stored games')}
+              value={stats.data.gamesInDatabase}
+              hint={t('copiados de IGDB', 'copied from IGDB')}
+            />
           </div>
 
           <div className="admin-breakdowns">
-            <Breakdown title="Calificaciones por plataforma" items={stats.data.ratingsByPlatform} />
-            <Breakdown title="Usuarios por plataforma" items={stats.data.usersByPlatform} />
+            <Breakdown
+              title={t('Calificaciones por plataforma', 'Ratings by platform')}
+              items={stats.data.ratingsByPlatform}
+            />
+            <Breakdown title={t('Usuarios por plataforma', 'Users by platform')} items={stats.data.usersByPlatform} />
           </div>
         </>
       )}
 
       <section className="section">
         <div className="section-header">
-          <h2>Usuarios ({users.data?.length ?? 0})</h2>
+          <h2>
+            {t('Usuarios', 'Users')} ({users.data?.length ?? 0})
+          </h2>
         </div>
 
         <div className="admin-toolbar">
           <input
             className="input"
             type="search"
-            placeholder="Buscar por nickname…"
+            placeholder={t('Buscar por nickname…', 'Search by nickname…')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -102,14 +122,14 @@ export function AdminPage() {
                   {COLUMNS.map((c) => (
                     <th key={c.key} aria-sort={sort.key === c.key ? (sort.desc ? 'descending' : 'ascending') : 'none'}>
                       <button type="button" className="th-sort" onClick={() => toggleSort(c.key)}>
-                        {c.label}
+                        {t(...c.label)}
                         <span className="sort-arrow">{sort.key === c.key ? (sort.desc ? '↓' : '↑') : ''}</span>
                       </button>
                     </th>
                   ))}
-                  <th>Plataformas</th>
-                  <th>Perfil</th>
-                  <th>Estado</th>
+                  <th>{t('Plataformas', 'Platforms')}</th>
+                  <th>{t('Perfil', 'Profile')}</th>
+                  <th>{t('Estado', 'Status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -128,13 +148,14 @@ export function AdminPage() {
                     <td>{formatDate(u.lastActivity)}</td>
                     <td>{u.platforms.length ? u.platforms.join(', ') : <span className="faint">—</span>}</td>
                     <td className="small">
-                      {u.avatarUrl ? 'Con foto' : 'Sin foto'} · Top {u.topGames}/5 · {u.favoriteGenres} géneros
+                      {u.avatarUrl ? t('Con foto', 'Has photo') : t('Sin foto', 'No photo')} · Top {u.topGames}/5 ·{' '}
+                      {u.favoriteGenres} {t('géneros', 'genres')}
                     </td>
                     <td>
                       {u.isLockedOut ? (
-                        <span className="status-badge locked">Bloqueado</span>
+                        <span className="status-badge locked">{t('Bloqueado', 'Locked')}</span>
                       ) : (
-                        <span className="status-badge ok">Activo</span>
+                        <span className="status-badge ok">{t('Activo', 'Active')}</span>
                       )}
                       {u.failedLoginAttempts > 0 && (
                         <div className="small faint">{u.failedLoginAttempts} intentos fallidos</div>
@@ -145,7 +166,7 @@ export function AdminPage() {
                 {rows.length === 0 && (
                   <tr>
                     <td colSpan={COLUMNS.length + 3} className="faint" style={{ textAlign: 'center' }}>
-                      No hay usuarios que coincidan.
+                      {t('No hay usuarios que coincidan.', 'No matching users.')}
                     </td>
                   </tr>
                 )}
@@ -162,20 +183,21 @@ function StatCard({ label, value, hint }: { label: string; value: number | strin
   return (
     <div className="stat-card">
       <span className="stat-card-label">{label}</span>
-      <strong className="stat-card-value">{typeof value === 'number' ? value.toLocaleString('es') : value}</strong>
+      <strong className="stat-card-value">{typeof value === 'number' ? value.toLocaleString() : value}</strong>
       {hint && <span className="small faint">{hint}</span>}
     </div>
   )
 }
 
 function Breakdown({ title, items }: { title: string; items: CountByName[] }) {
+  const { t } = useLang()
   const max = Math.max(1, ...items.map((i) => i.count))
   return (
     <div className="card breakdown">
       <h3>{title}</h3>
       {items.length === 0 ? (
         <p className="faint small" style={{ textAlign: 'center', margin: 0 }}>
-          Sin datos todavía.
+          {t('Sin datos todavía.', 'No data yet.')}
         </p>
       ) : (
         <ul>

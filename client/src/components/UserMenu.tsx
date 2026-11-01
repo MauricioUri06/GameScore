@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from './Avatar'
+import { useLang } from '../i18n/LanguageContext'
 
 /** Menú desplegable del usuario (arriba a la derecha): perfil, terminados, medallas, admin y cerrar sesión. */
 export function UserMenu() {
   const { user, logout } = useAuth()
+  const { t } = useLang()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const location = useLocation()
@@ -47,20 +49,20 @@ export function UserMenu() {
       {open && (
         <div className="user-menu-panel" role="menu">
           <Link role="menuitem" to={`/u/${user.userName}`}>
-            Mi perfil
+            {t('Mi perfil', 'My profile')}
           </Link>
           <Link role="menuitem" to="/settings/profile">
-            Editar perfil
+            {t('Editar perfil', 'Edit profile')}
           </Link>
           <Link role="menuitem" to={`/u/${user.userName}/terminados`}>
-            Juegos terminados
+            {t('Juegos terminados', 'Finished games')}
           </Link>
           <Link role="menuitem" to={`/u/${user.userName}/medallas`}>
-            Medallas
+            {t('Medallas', 'Medals')}
           </Link>
           {user.isAdmin && (
             <Link role="menuitem" to="/admin">
-              Panel de administrador
+              {t('Panel de administrador', 'Admin panel')}
             </Link>
           )}
           <hr />
@@ -73,7 +75,7 @@ export function UserMenu() {
               logout()
             }}
           >
-            Cerrar sesión
+            {t('Cerrar sesión', 'Log out')}
           </button>
         </div>
       )}

@@ -2599,3 +2599,33 @@ img.avatar {
 .game-picker-list small {
   color: var(--text-faint);
 }
+
+/* ---------- Selector de idioma (esquina superior izquierda) ---------- */
+.lang-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.lang-switch button {
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.lang-switch button + button {
+  border-left: 1px solid var(--border);
+}
+.lang-switch button:hover {
+  color: var(--text);
+}
+.lang-switch button.active {
+  background: var(--gold);
+  color: var(--on-gold);
+}

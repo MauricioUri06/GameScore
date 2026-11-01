@@ -10,10 +10,13 @@ import { PlayingCard } from '../components/PlayingCard'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
+import { useLang } from '../i18n/LanguageContext'
+import { genreName } from '../i18n/serverText'
 
 export function ProfilePage() {
   const userName = useParams().userName ?? ''
   const { user } = useAuth()
+  const { t, lang } = useLang()
   const { data: profile, error, loading } = useAsync(() => api.profile(userName), [userName])
   // Juegos que se acaban de marcar como terminados (se quitan de "Jugando ahora" sin recargar)
   const [finishedNow, setFinishedNow] = useState<number[]>([])
@@ -22,7 +25,7 @@ export function ProfilePage() {
   if (error || !profile) {
     return (
       <div className="container page">
-        <ErrorMessage error={error ?? new Error('Perfil no encontrado.')} />
+        <ErrorMessage error={error ?? new Error(t('Perfil no encontrado.', 'Profile not found.'))} />
       </div>
     )
   }
@@ -30,7 +33,7 @@ export function ProfilePage() {
   const isMe = user?.userName.toLowerCase() === profile.userName.toLowerCase()
   const playing = profile.playing.filter((g) => !finishedNow.includes(g.gameId))
   const finishedCount = profile.finishedCount + finishedNow.length
-  const slots = Array.from({ length: 5 }, (_, i) => profile.topGames.find((t) => t.position === i + 1))
+  const slots = Array.from({ length: 5 }, (_, i) => profile.topGames.find((tg) => tg.position === i + 1))
 
   return (
     <div className="container page">
@@ -41,11 +44,11 @@ export function ProfilePage() {
           {isMe && (
             <div className="row" style={{ justifyContent: 'center', marginTop: 8 }}>
               <Link to="/settings/profile" className="btn btn-ghost btn-sm">
-                Editar perfil
+                {t('Editar perfil', 'Edit profile')}
               </Link>
               {user?.isAdmin && (
                 <Link to="/admin" className="btn btn-primary btn-sm">
-                  Panel de administrador
+                  {t('Panel de administrador', 'Admin panel')}
                 </Link>
               )}
             </div>
@@ -54,39 +57,39 @@ export function ProfilePage() {
         <div className="profile-stats">
           <div className="stat">
             <strong>{profile.ratingsCount}</strong>
-            <span>Juegos</span>
+            <span>{t('Juegos', 'Games')}</span>
           </div>
           <div className="stat">
             <strong>{profile.reviewsCount}</strong>
-            <span>Reseñas</span>
+            <span>{t('Reseñas', 'Reviews')}</span>
           </div>
           <Link to={`/u/${profile.userName}/terminados`} className="stat stat-link">
             <strong>{finishedCount}</strong>
-            <span>Terminados</span>
+            <span>{t('Terminados', 'Finished')}</span>
           </Link>
           <div className="stat">
             <strong>{profile.averageGiven?.toFixed(1) ?? '–'}</strong>
-            <span>Promedio</span>
+            <span>{t('Promedio', 'Average')}</span>
           </div>
           <div className="stat">
             <strong>
               {profile.medalsEarned}/{profile.medalsTotal}
             </strong>
-            <span>Medallas</span>
+            <span>{t('Medallas', 'Medals')}</span>
           </div>
         </div>
       </header>
 
       <div className="profile-records">
-        <span className="profile-records-title">Récords</span>
+        <span className="profile-records-title">{t('Récords', 'Records')}</span>
         <Link to="/older-newer">
           ⏳ Older/Newer: <strong>{profile.olderNewerBest}</strong>
         </Link>
         <Link to="/adivina-la-portada">
-          🖼️ Adivina la portada: <strong>{profile.coverQuizBest}</strong>
+          🖼️ {t('Adivina la portada', 'Guess the Cover')}: <strong>{profile.coverQuizBest}</strong>
         </Link>
         <Link to="/categorias">
-          📚 Categorías:{' '}
+          📚 {t('Categorías', 'Categories')}:{' '}
           <strong>
             {profile.categoryBestSeconds != null
               ? `${Math.floor(profile.categoryBestSeconds / 60)}:${String(profile.categoryBestSeconds % 60).padStart(2, '0')}`
@@ -104,22 +107,23 @@ export function ProfilePage() {
           </div>
         ) : isMe && profile.medalsEarned > 0 ? (
           <span className="small faint">
-            Elige qué medallas mostrar en <Link to="/settings/profile">Editar perfil</Link>.
+            {t('Elige qué medallas mostrar en', 'Choose which medals to show in')}{' '}
+            <Link to="/settings/profile">{t('Editar perfil', 'Edit profile')}</Link>.
           </span>
         ) : null}
         <Link to={`/u/${profile.userName}/medallas`} className="small">
-          Ver todas las medallas →
+          {t('Ver todas las medallas →', 'See all medals →')}
         </Link>
       </div>
 
       <div className="profile-boxes">
         <section className="profile-box">
-          <h2>Géneros favoritos</h2>
+          <h2>{t('Géneros favoritos', 'Favorite genres')}</h2>
           {profile.favoriteGenres.length ? (
             <div className="tag-list tag-list-center">
               {profile.favoriteGenres.map((g) => (
                 <Link key={g.id} to={`/ranking?genre=${g.slug}`} className="tag tag-lg selected">
-                  {g.name}
+                  {genreName(g.name, lang)}
                 </Link>
               ))}
             </div>
@@ -127,27 +131,29 @@ export function ProfilePage() {
             <p className="muted">
               {isMe ? (
                 <>
-                  Aún no elegiste tus géneros. <Link to="/settings/profile">Elígelos</Link>.
+                  {t('Aún no elegiste tus géneros.', "You haven't picked your genres yet.")}{' '}
+                  <Link to="/settings/profile">{t('Elígelos', 'Pick them')}</Link>.
                 </>
               ) : (
-                'Sin géneros elegidos todavía.'
+                t('Sin géneros elegidos todavía.', 'No genres picked yet.')
               )}
             </p>
           )}
         </section>
 
         <section className="profile-box">
-          <h2>Plataformas</h2>
+          <h2>{t('Plataformas', 'Platforms')}</h2>
           {profile.platforms.length ? (
             <PlatformList platforms={profile.platforms} />
           ) : (
             <p className="muted">
               {isMe ? (
                 <>
-                  Aún no agregaste tus consolas. <Link to="/settings/profile">Agrégalas</Link>.
+                  {t('Aún no agregaste tus consolas.', "You haven't added your consoles yet.")}{' '}
+                  <Link to="/settings/profile">{t('Agrégalas', 'Add them')}</Link>.
                 </>
               ) : (
-                'Sin plataformas todavía.'
+                t('Sin plataformas todavía.', 'No platforms yet.')
               )}
             </p>
           )}
@@ -157,12 +163,12 @@ export function ProfilePage() {
       {(playing.length > 0 || isMe) && (
         <section className="section">
           <div className="section-header">
-            <h2>Jugando ahora</h2>
+            <h2>{t('Jugando ahora', 'Playing now')}</h2>
           </div>
           {finishedNow.length > 0 && (
             <p className="small muted" style={{ textAlign: 'center' }}>
-              🏁 ¡Bien jugado! Lo encontrarás en{' '}
-              <Link to={`/u/${profile.userName}/terminados`}>Juegos terminados</Link>.
+              🏁 {t('¡Bien jugado! Lo encontrarás en', "Well played! You'll find it in")}{' '}
+              <Link to={`/u/${profile.userName}/terminados`}>{t('Juegos terminados', 'Finished games')}</Link>.
             </p>
           )}
           {playing.length ? (
@@ -179,7 +185,8 @@ export function ProfilePage() {
             </div>
           ) : (
             <p className="muted" style={{ textAlign: 'center' }}>
-              ¿Qué estás jugando? <Link to="/settings/profile">Agrégalo</Link>.
+              {t('¿Qué estás jugando?', 'What are you playing?')}{' '}
+              <Link to="/settings/profile">{t('Agrégalo', 'Add it')}</Link>.
             </p>
           )}
         </section>
@@ -203,7 +210,7 @@ export function ProfilePage() {
               </Link>
             ) : (
               <div key={i} className="top5-slot">
-                {isMe ? <Link to="/settings/profile">+ Añadir</Link> : `#${i + 1}`}
+                {isMe ? <Link to="/settings/profile">{t('+ Añadir', '+ Add')}</Link> : `#${i + 1}`}
               </div>
             ),
           )}
@@ -212,10 +219,10 @@ export function ProfilePage() {
 
       <section className="section">
         <div className="section-header">
-          <h2>Últimas calificaciones</h2>
+          <h2>{t('Últimas calificaciones', 'Latest ratings')}</h2>
         </div>
         {profile.recentRatings.length === 0 ? (
-          <Empty>Todavía no calificó ningún juego.</Empty>
+          <Empty>{t('Todavía no calificó ningún juego.', "Hasn't rated any games yet.")}</Empty>
         ) : (
           <div className="activity-list">
             {profile.recentRatings.map((r) => (
