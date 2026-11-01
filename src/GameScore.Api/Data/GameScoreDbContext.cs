@@ -12,6 +12,8 @@ public class GameScoreDbContext(DbContextOptions<GameScoreDbContext> options)
     public DbSet<Rating> Ratings => Set<Rating>();
     public DbSet<TopGame> TopGames => Set<TopGame>();
     public DbSet<UserFavoriteGenre> UserFavoriteGenres => Set<UserFavoriteGenre>();
+    public DbSet<Platform> Platforms => Set<Platform>();
+    public DbSet<UserPlatform> UserPlatforms => Set<UserPlatform>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

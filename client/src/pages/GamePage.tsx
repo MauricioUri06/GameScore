@@ -69,7 +69,7 @@ export function GamePage() {
             <div>
               {game.recentReviews.map((r) => (
                 <article key={r.userName} className="review">
-                  <Avatar url={r.avatarUrl} name={r.displayName} />
+                  <Avatar name={r.displayName} />
                   <div>
                     <div className="review-head">
                       <Link to={`/u/${r.userName}`}>

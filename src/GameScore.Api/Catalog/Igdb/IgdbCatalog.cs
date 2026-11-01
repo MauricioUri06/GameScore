@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using GameScore.Api.Entities;
 using Microsoft.Extensions.Options;
 
 namespace GameScore.Api.Catalog.Igdb;
@@ -12,7 +13,18 @@ namespace GameScore.Api.Catalog.Igdb;
 public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<IgdbOptions> options) : IGameCatalog
 {
     private const string GameFields =
-        "fields name,slug,summary,first_release_date,cover.image_id,artworks.image_id,screenshots.image_id,genres.name,genres.slug;";
+        "fields name,slug,summary,first_release_date,total_rating_count,cover.image_id,artworks.image_id," +
+        "screenshots.image_id,genres.name,genres.slug,themes.name,themes.slug;";
+
+    /// <summary>
+    /// Tipos de juego que mostramos: juego principal (0), expansión independiente (4), remake (8),
+    /// remaster (9) y edición ampliada (10). Así quedan fuera DLCs, actualizaciones, mods, packs, etc.
+    /// </summary>
+    private const string AllowedTypes = "(0,4,8,9,10)";
+
+    // IGDB reemplazó el campo "category" por "game_type". Si la API no reconoce game_type,
+    // volvemos a "category" (mismos valores) automáticamente.
+    private static string _typeField = "game_type";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -24,10 +36,23 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
 
     public async Task<List<CatalogGame>> SearchAsync(string query, int page, int pageSize, CancellationToken ct)
     {
-        var text = query.Replace("\\", "").Replace("\"", "\\\"");
-        var body = $"search \"{text}\"; {GameFields} where version_parent = null; " +
-                   $"limit {pageSize}; offset {(page - 1) * pageSize};";
-        return (await QueryAsync<IgdbGame>("games", body, ct)).Select(ToCatalog).ToList();
+        var text = query.Replace("\\", "").Replace("\"", "\\\"").Trim();
+
+        // IGDB no permite ordenar una búsqueda, así que pedimos varios resultados
+        // y los ordenamos nosotros: nombre exacto primero, luego los más populares.
+        var games = await QueryGamesAsync(type =>
+            $"search \"{text}\"; {GameFields} " +
+            $"where version_parent = null & cover != null & {type} = {AllowedTypes} " +
+            $"& themes != ({IgdbGenreNames.EroticThemeId}); limit 50;", ct);
+
+        return games
+            .Where(IsAllowed)
+            .OrderBy(g => string.Equals(g.Name, text, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenByDescending(g => g.TotalRatingCount ?? 0)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(ToCatalog)
+            .ToList();
     }
 
     public async Task<List<CatalogGame>> GetPopularAsync(int count, CancellationToken ct)
@@ -35,9 +60,13 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         var now = DateTimeOffset.UtcNow;
         var from = now.AddYears(-2).ToUnixTimeSeconds();
         var to = now.ToUnixTimeSeconds();
-        var body = $"{GameFields} where first_release_date >= {from} & first_release_date <= {to} " +
-                   $"& cover != null & total_rating_count >= 5; sort total_rating_count desc; limit {count};";
-        return (await QueryAsync<IgdbGame>("games", body, ct)).Select(ToCatalog).ToList();
+
+        var games = await QueryGamesAsync(type =>
+            $"{GameFields} where first_release_date >= {from} & first_release_date <= {to} " +
+            $"& cover != null & total_rating_count >= 5 & {type} = {AllowedTypes} " +
+            $"& themes != ({IgdbGenreNames.EroticThemeId}); sort total_rating_count desc; limit {count};", ct);
+
+        return games.Where(IsAllowed).Select(ToCatalog).ToList();
     }
 
     public async Task<CatalogGame?> GetGameAsync(int id, CancellationToken ct)
@@ -46,10 +75,30 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         return games.Count == 0 ? null : ToCatalog(games[0]);
     }
 
+    /// <summary>Todos los géneros y temáticas de IGDB (salvo las ocultas), con nombre en español.</summary>
     public async Task<List<CatalogGenre>> GetGenresAsync(CancellationToken ct)
     {
-        var genres = await QueryAsync<IgdbGenre>("genres", "fields name,slug; sort name asc; limit 100;", ct);
-        return genres.Select(g => new CatalogGenre(g.Id, g.Name ?? "?", g.Slug ?? g.Id.ToString())).ToList();
+        var genres = await QueryAsync<IgdbGenre>("genres", "fields name,slug; limit 500;", ct);
+        var themes = await QueryAsync<IgdbGenre>("themes", "fields name,slug; limit 500;", ct);
+
+        return genres.Select(g => ToGenre(g, GenreKind.Genre))
+            .Concat(themes
+                .Where(t => !IgdbGenreNames.HiddenThemes.Contains(t.Slug ?? ""))
+                .Select(t => ToGenre(t, GenreKind.Theme)))
+            .ToList();
+    }
+
+    private async Task<List<IgdbGame>> QueryGamesAsync(Func<string, string> buildBody, CancellationToken ct)
+    {
+        try
+        {
+            return await QueryAsync<IgdbGame>("games", buildBody(_typeField), ct);
+        }
+        catch (CatalogException ex) when (ex.StatusCode == 400 && _typeField == "game_type")
+        {
+            _typeField = "category";
+            return await QueryAsync<IgdbGame>("games", buildBody(_typeField), ct);
+        }
     }
 
     private async Task<List<T>> QueryAsync<T>(string endpoint, string body, CancellationToken ct, bool retried = false)
@@ -82,9 +131,22 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         return await JsonSerializer.DeserializeAsync<List<T>>(stream, JsonOptions, ct) ?? [];
     }
 
+    /// <summary>Segundo filtro, por si IGDB deja pasar algo con temática oculta.</summary>
+    private static bool IsAllowed(IgdbGame g) =>
+        g.Themes is null || !g.Themes.Any(t => IgdbGenreNames.HiddenThemes.Contains(t.Slug ?? ""));
+
+    private static CatalogGenre ToGenre(IgdbGenre g, GenreKind kind) =>
+        new(g.Id, IgdbGenreNames.Translate(g.Slug, g.Name), g.Slug ?? $"{kind}-{g.Id}".ToLowerInvariant(), kind);
+
     private static CatalogGame ToCatalog(IgdbGame g)
     {
         var backgroundId = g.Artworks?.FirstOrDefault()?.ImageId ?? g.Screenshots?.FirstOrDefault()?.ImageId;
+
+        var genres = (g.Genres ?? []).Select(x => ToGenre(x, GenreKind.Genre))
+            .Concat((g.Themes ?? [])
+                .Where(t => !IgdbGenreNames.HiddenThemes.Contains(t.Slug ?? ""))
+                .Select(t => ToGenre(t, GenreKind.Theme)))
+            .ToList();
 
         return new CatalogGame(
             g.Id,
@@ -94,7 +156,7 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
             ImageUrl(backgroundId, "t_1080p") ?? ImageUrl(g.Cover?.ImageId, "t_cover_big"),
             g.FirstReleaseDate is { } unix ? DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime) : null,
             g.Summary,
-            (g.Genres ?? []).Select(x => new CatalogGenre(x.Id, x.Name ?? "?", x.Slug ?? x.Id.ToString())).ToList());
+            genres);
     }
 
     /// <summary>
@@ -125,9 +187,11 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
         public string? Slug { get; set; }
         public string? Summary { get; set; }
         public long? FirstReleaseDate { get; set; }
+        public int? TotalRatingCount { get; set; }
         public IgdbImage? Cover { get; set; }
         public List<IgdbImage>? Artworks { get; set; }
         public List<IgdbImage>? Screenshots { get; set; }
         public List<IgdbGenre>? Genres { get; set; }
+        public List<IgdbGenre>? Themes { get; set; }
     }
 }

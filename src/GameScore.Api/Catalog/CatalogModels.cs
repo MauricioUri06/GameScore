@@ -1,9 +1,11 @@
+using GameScore.Api.Entities;
+
 namespace GameScore.Api.Catalog;
 
 // Modelos neutrales del catálogo de juegos. El resto de la app solo conoce estos tipos,
 // así que cambiar de proveedor (IGDB, RAWG, etc.) solo afecta a la carpeta Catalog/.
 
-public record CatalogGenre(int Id, string Name, string Slug);
+public record CatalogGenre(int Id, string Name, string Slug, GenreKind Kind = GenreKind.Genre);
 
 public record CatalogGame(
     int Id,

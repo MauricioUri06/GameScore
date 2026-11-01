@@ -21,7 +21,7 @@ public record LoginRequest(
 
 public record AuthResponse(string Token, DateTime ExpiresAt, CurrentUserDto User);
 
-public record CurrentUserDto(string Id, string UserName, string DisplayName, string? AvatarUrl);
+public record CurrentUserDto(string Id, string UserName, string DisplayName);
 
 // ---------- Juegos ----------
 
@@ -40,7 +40,6 @@ public record GameSummaryDto(
 public record ReviewDto(
     string UserName,
     string DisplayName,
-    string? AvatarUrl,
     decimal Score,
     string? Review,
     DateTime UpdatedAt);
@@ -83,7 +82,6 @@ public record RateGameRequest(
 public record ActivityDto(
     string UserName,
     string DisplayName,
-    string? AvatarUrl,
     int GameId,
     string GameName,
     string? GameCover,
@@ -97,22 +95,23 @@ public record TopGameDto(int Position, int GameId, string Slug, string Name, str
 
 public record ProfileRatingDto(int GameId, string GameName, string? GameCover, decimal Score, string? Review, DateTime UpdatedAt);
 
+public record PlatformDto(int Id, string Name, string Family);
+
 public record ProfileDto(
     string UserName,
     string DisplayName,
-    string? Bio,
-    string? AvatarUrl,
     DateTime CreatedAt,
     int RatingsCount,
     double? AverageGiven,
     IReadOnlyList<TopGameDto> TopGames,
     IReadOnlyList<GenreDto> FavoriteGenres,
+    IReadOnlyList<PlatformDto> Platforms,
     IReadOnlyList<ProfileRatingDto> RecentRatings);
 
 public record UpdateProfileRequest(
-    [Required, StringLength(50, MinimumLength = 1)] string DisplayName,
-    [StringLength(300)] string? Bio,
-    [StringLength(500), Url] string? AvatarUrl);
+    [Required, StringLength(50, MinimumLength = 1)] string DisplayName);
+
+public record UpdatePlatformsRequest(List<int> PlatformIds);
 
 public record UpdateTopGamesRequest([MaxLength(5)] List<int> GameIds);
 

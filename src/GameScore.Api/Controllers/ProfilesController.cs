@@ -12,7 +12,7 @@ namespace GameScore.Api.Controllers;
 [ApiController]
 public class ProfilesController(GameScoreDbContext db, GameService games) : ControllerBase
 {
-    /// <summary>Perfil público: top 5, géneros favoritos, estadísticas y últimas calificaciones.</summary>
+    /// <summary>Perfil público: top 5, géneros favoritos, plataformas, estadísticas y últimas calificaciones.</summary>
     [HttpGet("api/users/{userName}")]
     public async Task<ActionResult<ProfileDto>> GetProfile(string userName, CancellationToken ct)
     {
@@ -32,6 +32,12 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
             .Select(f => new GenreDto(f.Genre.Id, f.Genre.Name, f.Genre.Slug))
             .ToListAsync(ct);
 
+        var platforms = await db.UserPlatforms
+            .Where(up => up.UserId == user.Id)
+            .OrderBy(up => up.Platform.SortOrder)
+            .Select(up => new PlatformDto(up.Platform.Id, up.Platform.Name, up.Platform.Family))
+            .ToListAsync(ct);
+
         var ratingsQuery = db.Ratings.Where(r => r.UserId == user.Id);
         var ratingsCount = await ratingsQuery.CountAsync(ct);
         double? averageGiven = ratingsCount == 0
@@ -48,13 +54,12 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
         return new ProfileDto(
             user.UserName!,
             user.DisplayName,
-            user.Bio,
-            user.AvatarUrl,
             user.CreatedAt,
             ratingsCount,
             averageGiven,
             topGames,
             favoriteGenres,
+            platforms,
             recent);
     }
 
@@ -67,8 +72,6 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
         if (user is null) return Unauthorized();
 
         user.DisplayName = request.DisplayName.Trim();
-        user.Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio.Trim();
-        user.AvatarUrl = string.IsNullOrWhiteSpace(request.AvatarUrl) ? null : request.AvatarUrl.Trim();
 
         await db.SaveChangesAsync(ct);
         return NoContent();
@@ -124,6 +127,22 @@ public class ProfilesController(GameScoreDbContext db, GameService games) : Cont
 
         await db.UserFavoriteGenres.Where(f => f.UserId == userId).ExecuteDeleteAsync(ct);
         db.UserFavoriteGenres.AddRange(validIds.Select(id => new UserFavoriteGenre { UserId = userId, GenreId = id }));
+        await db.SaveChangesAsync(ct);
+
+        return NoContent();
+    }
+
+    /// <summary>Reemplaza las plataformas/consolas que el usuario dice tener.</summary>
+    [Authorize]
+    [HttpPut("api/me/platforms")]
+    public async Task<IActionResult> UpdatePlatforms(UpdatePlatformsRequest request, CancellationToken ct)
+    {
+        var requested = (request.PlatformIds ?? []).Distinct().ToList();
+        var validIds = await db.Platforms.Where(p => requested.Contains(p.Id)).Select(p => p.Id).ToListAsync(ct);
+        var userId = User.GetRequiredUserId();
+
+        await db.UserPlatforms.Where(up => up.UserId == userId).ExecuteDeleteAsync(ct);
+        db.UserPlatforms.AddRange(validIds.Select(id => new UserPlatform { UserId = userId, PlatformId = id }));
         await db.SaveChangesAsync(ct);
 
         return NoContent();

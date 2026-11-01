@@ -6,6 +6,7 @@ import type {
   GameSummary,
   Genre,
   MyRating,
+  Platform,
   Profile,
   RankedGame,
 } from './types'
@@ -117,7 +118,10 @@ export const api = {
 
   // Perfiles
   profile: (userName: string) => request<Profile>(`/users/${encodeURIComponent(userName)}`),
-  updateProfile: (body: { displayName: string; bio: string | null; avatarUrl: string | null }) =>
+  platforms: () => request<Platform[]>('/platforms'),
+  updatePlatforms: (platformIds: number[]) =>
+    request<void>('/me/platforms', { method: 'PUT', body: json({ platformIds }) }),
+  updateProfile: (body: { displayName: string }) =>
     request<void>('/me/profile', { method: 'PUT', body: json(body) }),
   updateTopGames: (gameIds: number[]) =>
     request<void>('/me/top-games', { method: 'PUT', body: json({ gameIds }) }),

@@ -5,7 +5,6 @@ export interface CurrentUser {
   id: string
   userName: string
   displayName: string
-  avatarUrl: string | null
 }
 
 export interface AuthResponse {
@@ -18,6 +17,13 @@ export interface Genre {
   id: number
   name: string
   slug: string
+}
+
+export interface Platform {
+  id: number
+  name: string
+  /** PC, PlayStation, Xbox, Nintendo u Otras */
+  family: string
 }
 
 export interface GameSummary {
@@ -34,7 +40,6 @@ export interface GameSummary {
 export interface Review {
   userName: string
   displayName: string
-  avatarUrl: string | null
   score: number
   review: string | null
   updatedAt: string
@@ -77,7 +82,6 @@ export interface RankedGame {
 export interface Activity {
   userName: string
   displayName: string
-  avatarUrl: string | null
   gameId: number
   gameName: string
   gameCover: string | null
@@ -106,12 +110,11 @@ export interface ProfileRating {
 export interface Profile {
   userName: string
   displayName: string
-  bio: string | null
-  avatarUrl: string | null
   createdAt: string
   ratingsCount: number
   averageGiven: number | null
   topGames: TopGame[]
   favoriteGenres: Genre[]
+  platforms: Platform[]
   recentRatings: ProfileRating[]
 }

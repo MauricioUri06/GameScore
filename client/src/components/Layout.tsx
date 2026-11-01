@@ -62,7 +62,7 @@ export function Layout() {
             {user ? (
               <>
                 <Link to={`/u/${user.userName}`} className="row" style={{ gap: 8 }}>
-                  <Avatar url={user.avatarUrl} name={user.displayName} />
+                  <Avatar name={user.displayName} />
                 </Link>
                 <button className="btn btn-ghost btn-sm" onClick={logout}>
                   Salir

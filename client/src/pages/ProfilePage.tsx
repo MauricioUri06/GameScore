@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from '../components/Avatar'
 import { GameCover, igdbSize } from '../components/GameCard'
+import { PlatformList } from '../components/PlatformList'
 import { Stars } from '../components/Stars'
 import { Empty, ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
@@ -27,11 +28,10 @@ export function ProfilePage() {
   return (
     <div className="container page">
       <header className="profile-header">
-        <Avatar url={profile.avatarUrl} name={profile.displayName} large />
+        <Avatar name={profile.displayName} large />
         <div>
           <h1 style={{ marginBottom: 4 }}>{profile.displayName}</h1>
           <div className="muted">@{profile.userName}</div>
-          {profile.bio && <p style={{ maxWidth: 520, marginBottom: 0 }}>{profile.bio}</p>}
           {isMe && (
             <Link to="/settings/profile" className="btn btn-ghost btn-sm" style={{ marginTop: 12 }}>
               Editar perfil
@@ -73,6 +73,25 @@ export function ProfilePage() {
             ),
           )}
         </div>
+      </section>
+
+      <section className="section">
+        <div className="section-header">
+          <h2>Plataformas</h2>
+        </div>
+        {profile.platforms.length ? (
+          <PlatformList platforms={profile.platforms} />
+        ) : (
+          <p className="muted">
+            {isMe ? (
+              <>
+                Aún no agregaste tus consolas. <Link to="/settings/profile">Agrégalas</Link>.
+              </>
+            ) : (
+              'Sin plataformas todavía.'
+            )}
+          </p>
+        )}
       </section>
 
       <section className="section">

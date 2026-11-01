@@ -1,16 +1,7 @@
-export function Avatar({
-  url,
-  name,
-  large,
-}: {
-  url: string | null
-  name: string
-  large?: boolean
-}) {
-  const className = `avatar${large ? ' lg' : ''}`
-  if (url) return <img className={className} src={url} alt="" />
+/** Avatar con la inicial del nombre. */
+export function Avatar({ name, large }: { name: string; large?: boolean }) {
   return (
-    <span className={className} aria-hidden="true">
+    <span className={`avatar${large ? ' lg' : ''}`} aria-hidden="true">
       {name.charAt(0).toUpperCase()}
     </span>
   )

@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { Genre, Profile } from '../api/types'
+import type { Genre, Platform, Profile } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { igdbSize } from '../components/GameCard'
+import { groupPlatforms } from '../components/PlatformList'
 import { ErrorMessage, Spinner } from '../components/Status'
 import { useAsync } from '../hooks/useAsync'
 
@@ -17,8 +18,9 @@ export function EditProfilePage() {
   const { user } = useAuth()
   const profile = useAsync(() => api.profile(user!.userName), [user?.userName])
   const genres = useAsync(() => api.genres(), [])
+  const platforms = useAsync(() => api.platforms(), [])
 
-  if (profile.loading || genres.loading) return <Spinner />
+  if (profile.loading || genres.loading || platforms.loading) return <Spinner />
   if (profile.error || !profile.data) {
     return (
       <div className="container page">
@@ -37,6 +39,11 @@ export function EditProfilePage() {
       </div>
       <ProfileForm profile={profile.data} />
       <TopGamesEditor profile={profile.data} />
+      {platforms.error ? (
+        <ErrorMessage error={platforms.error} />
+      ) : (
+        <PlatformsEditor profile={profile.data} allPlatforms={platforms.data ?? []} />
+      )}
       {genres.error ? (
         <ErrorMessage error={genres.error} />
       ) : (
@@ -79,18 +86,12 @@ function useSaveState() {
 function ProfileForm({ profile }: { profile: Profile }) {
   const { refresh } = useAuth()
   const [displayName, setDisplayName] = useState(profile.displayName)
-  const [bio, setBio] = useState(profile.bio ?? '')
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '')
   const { saving, run, feedback } = useSaveState()
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
     run(async () => {
-      await api.updateProfile({
-        displayName: displayName.trim(),
-        bio: bio.trim() || null,
-        avatarUrl: avatarUrl.trim() || null,
-      })
+      await api.updateProfile({ displayName: displayName.trim() })
       await refresh()
     })
   }
@@ -110,31 +111,8 @@ function ProfileForm({ profile }: { profile: Profile }) {
           onChange={(e) => setDisplayName(e.target.value)}
         />
       </div>
-      <div className="field">
-        <label htmlFor="bio">Bio</label>
-        <textarea
-          id="bio"
-          className="textarea"
-          maxLength={300}
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          placeholder="Cuéntale a la comunidad qué juegas…"
-        />
-        <span className="hint">{bio.length}/300</span>
-      </div>
-      <div className="field">
-        <label htmlFor="avatarUrl">URL de tu avatar</label>
-        <input
-          id="avatarUrl"
-          className="input"
-          type="url"
-          value={avatarUrl}
-          onChange={(e) => setAvatarUrl(e.target.value)}
-          placeholder="https://…"
-        />
-      </div>
       <button className="btn btn-primary" disabled={saving}>
-        {saving ? 'Guardando…' : 'Guardar datos'}
+        {saving ? 'Guardando…' : 'Guardar nombre'}
       </button>
     </form>
   )
@@ -310,6 +288,52 @@ function GenresEditor({ profile, allGenres }: { profile: Profile; allGenres: Gen
         onClick={() => run(() => api.updateFavoriteGenres(selected))}
       >
         {saving ? 'Guardando…' : 'Guardar géneros'}
+      </button>
+    </div>
+  )
+}
+
+function PlatformsEditor({ profile, allPlatforms }: { profile: Profile; allPlatforms: Platform[] }) {
+  const [selected, setSelected] = useState<number[]>(profile.platforms.map((p) => p.id))
+  const { saving, run, feedback } = useSaveState()
+
+  const toggle = (id: number) =>
+    setSelected(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
+
+  return (
+    <div className="card section">
+      <h2>Mis plataformas</h2>
+      <p className="muted small" style={{ marginTop: 0 }}>
+        Marca las consolas y plataformas que tienes ({selected.length} seleccionadas).
+      </p>
+      {feedback}
+      <div className="platform-groups">
+        {groupPlatforms(allPlatforms).map(([family, items]) => (
+          <div key={family} className="platform-group">
+            <span className="platform-family">{family}</span>
+            <div className="tag-list">
+              {items.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`tag${selected.includes(p.id) ? ' selected' : ''}`}
+                  aria-pressed={selected.includes(p.id)}
+                  onClick={() => toggle(p.id)}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <button
+        className="btn btn-primary"
+        style={{ marginTop: 16 }}
+        disabled={saving}
+        onClick={() => run(() => api.updatePlatforms(selected))}
+      >
+        {saving ? 'Guardando…' : 'Guardar plataformas'}
       </button>
     </div>
   )

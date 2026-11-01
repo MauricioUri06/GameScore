@@ -18,7 +18,6 @@ public class ActivityController(GameScoreDbContext db) : ControllerBase
             .Select(r => new ActivityDto(
                 r.User.UserName!,
                 r.User.DisplayName,
-                r.User.AvatarUrl,
                 r.Game.ExternalId,
                 r.Game.Name,
                 r.Game.CoverImage,

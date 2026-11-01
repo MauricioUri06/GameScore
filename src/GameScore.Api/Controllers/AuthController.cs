@@ -89,7 +89,7 @@ public class AuthController(UserManager<AppUser> userManager, TokenService token
     }
 
     private static CurrentUserDto ToDto(AppUser user) =>
-        new(user.Id, user.UserName!, user.DisplayName, user.AvatarUrl);
+        new(user.Id, user.UserName!, user.DisplayName);
 
     private static string TranslateIdentityError(IdentityError error) => error.Code switch
     {

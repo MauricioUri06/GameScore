@@ -13,6 +13,10 @@ namespace GameScore.Api.Services;
 /// </summary>
 public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<CatalogOptions> catalogOptions)
 {
+    // Última vez que se sincronizó la lista completa de géneros con el catálogo (compartida entre peticiones)
+    private static DateTime _genresSyncedAt = DateTime.MinValue;
+    private static readonly SemaphoreSlim GenresLock = new(1, 1);
+
     private readonly CatalogOptions _catalogOptions = catalogOptions.Value;
 
     public async Task<List<GameSummaryDto>> SearchAsync(string query, int page, CancellationToken ct)
@@ -59,7 +63,7 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
             .OrderByDescending(r => r.UpdatedAt)
             .Take(10)
             .Select(r => new ReviewDto(
-                r.User.UserName!, r.User.DisplayName, r.User.AvatarUrl, r.Score, r.Review, r.UpdatedAt))
+                r.User.UserName!, r.User.DisplayName, r.Score, r.Review, r.UpdatedAt))
             .ToListAsync(ct);
 
         return new GameDetailDto(
@@ -138,14 +142,36 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
         return game;
     }
 
-    /// <summary>Sincroniza la lista de géneros del catálogo si la tabla está vacía.</summary>
+    /// <summary>
+    /// Lista completa de géneros y temáticas. Se sincroniza con el catálogo al arrancar la API
+    /// y luego una vez al día (no basta con mirar si la tabla está vacía: al calificar juegos
+    /// se guardan solo los géneros de esos juegos).
+    /// </summary>
     public async Task<List<GenreDto>> GetGenresAsync(CancellationToken ct)
     {
-        if (!await db.Genres.AnyAsync(ct))
+        if (_genresSyncedAt < DateTime.UtcNow.AddDays(-1))
         {
-            var catalogGenres = await catalog.GetGenresAsync(ct);
-            await UpsertGenresAsync(catalogGenres, ct);
-            await db.SaveChangesAsync(ct);
+            await GenresLock.WaitAsync(ct);
+            try
+            {
+                if (_genresSyncedAt < DateTime.UtcNow.AddDays(-1))
+                {
+                    var catalogGenres = await catalog.GetGenresAsync(ct);
+                    await UpsertGenresAsync(catalogGenres, ct);
+                    await db.SaveChangesAsync(ct);
+                    _genresSyncedAt = DateTime.UtcNow;
+                }
+            }
+            catch (CatalogException)
+            {
+                // Si el catálogo falla, mostramos los géneros que ya tenemos guardados (si hay)
+                db.ChangeTracker.Clear();
+                if (!await db.Genres.AnyAsync(ct)) throw;
+            }
+            finally
+            {
+                GenresLock.Release();
+            }
         }
 
         return await db.Genres
@@ -156,20 +182,22 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
 
     private async Task<List<Genre>> UpsertGenresAsync(IEnumerable<CatalogGenre> catalogGenres, CancellationToken ct)
     {
-        var list = catalogGenres.DistinctBy(g => g.Id).ToList();
-        var ids = list.Select(g => g.Id).ToList();
+        var list = catalogGenres.DistinctBy(g => (g.Kind, g.Id)).ToList();
+        var ids = list.Select(g => g.Id).Distinct().ToList();
 
-        var existing = await db.Genres
-            .Where(g => ids.Contains(g.ExternalId))
-            .ToDictionaryAsync(g => g.ExternalId, ct);
+        var existing = (await db.Genres
+                .Where(g => ids.Contains(g.ExternalId))
+                .ToListAsync(ct))
+            .ToDictionary(g => (g.Kind, g.ExternalId));
 
         var result = new List<Genre>();
         foreach (var cg in list)
         {
-            if (!existing.TryGetValue(cg.Id, out var genre))
+            if (!existing.TryGetValue((cg.Kind, cg.Id), out var genre))
             {
-                genre = new Genre { ExternalId = cg.Id };
+                genre = new Genre { ExternalId = cg.Id, Kind = cg.Kind };
                 db.Genres.Add(genre);
+                existing[(cg.Kind, cg.Id)] = genre;
             }
 
             genre.Name = cg.Name;
