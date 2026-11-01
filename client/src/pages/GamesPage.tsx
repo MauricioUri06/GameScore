@@ -75,7 +75,7 @@ export function GamesPage() {
 
       {data && data.totalCount > 0 && (
         <p className="muted small results-info">
-          {q ? `Resultados para “${q}”` : 'Del más popular al menos popular'} · {first}–{last} de{' '}
+          {q ? `Resultados para “${q}”` : 'Orden alfabético'} · {first}–{last} de{' '}
           {data.totalCount.toLocaleString('es')}
         </p>
       )}

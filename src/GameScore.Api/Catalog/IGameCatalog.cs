@@ -9,7 +9,7 @@ public interface IGameCatalog
     /// <summary>Busca por nombre. Devuelve todos los resultados, ordenados por relevancia y popularidad.</summary>
     Task<List<CatalogGame>> SearchAsync(string query, CatalogGenreFilter? genre, CancellationToken ct);
 
-    /// <summary>Recorre el catálogo completo por páginas, del más popular al menos popular.</summary>
+    /// <summary>Recorre el catálogo por páginas, en orden alfabético.</summary>
     Task<CatalogPage> BrowseAsync(int page, int pageSize, CatalogGenreFilter? genre, CancellationToken ct);
 
     /// <summary>Juegos populares recientes.</summary>

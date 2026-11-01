@@ -54,14 +54,21 @@ public class IgdbCatalog(HttpClient http, IgdbTokenProvider tokens, IOptions<Igd
             .ToList();
     }
 
+    /// <summary>Mínimo de calificaciones en IGDB para aparecer en el listado alfabético.</summary>
+    private const int BrowseMinRatings = 5;
+
     public async Task<CatalogPage> BrowseAsync(int page, int pageSize, CatalogGenreFilter? genre, CancellationToken ct)
     {
+        // Orden alfabético. Se dejan fuera los juegos con menos de 5 calificaciones en IGDB:
+        // si no, las primeras páginas se llenan de juegos desconocidos que empiezan con símbolos y números.
+        string Where(string type) => $"{BaseFilter(type, genre)} & total_rating_count >= {BrowseMinRatings}";
+
         // Dos consultas seguidas (no en paralelo) para respetar el límite de 4 por segundo de IGDB
         var total = await WithTypeFallback(type =>
-            PostAsync<IgdbCount>("games/count", $"where {BaseFilter(type, genre)};", ct));
+            PostAsync<IgdbCount>("games/count", $"where {Where(type)};", ct));
 
         var games = await WithTypeFallback(type => QueryAsync<IgdbGame>("games",
-            $"{GameFields} where {BaseFilter(type, genre)}; sort total_rating_count desc; " +
+            $"{GameFields} where {Where(type)}; sort name asc; " +
             $"limit {pageSize}; offset {(page - 1) * pageSize};", ct));
 
         return new CatalogPage(games.Where(IsAllowed).Select(ToCatalog).ToList(), total.Count);

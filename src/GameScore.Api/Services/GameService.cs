@@ -24,10 +24,10 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
     public const int PageSize = 48;
 
     /// <summary>
-    /// Páginas máximas al recorrer el catálogo completo (200 × 48 = los 9.600 juegos más populares).
-    /// Más allá casi todo son juegos sin calificaciones; a esos se llega con el buscador.
+    /// Páginas máximas al recorrer el catálogo (1000 × 48 = 48.000 juegos).
+    /// Es un tope de seguridad; los juegos con pocas calificaciones en IGDB se encuentran con el buscador.
     /// </summary>
-    public const int MaxPages = 200;
+    public const int MaxPages = 1000;
 
     /// <summary>Busca por nombre (sin límite propio: todo lo que devuelve el catálogo).</summary>
     public async Task<List<GameSummaryDto>> SearchAsync(string query, string? genreSlug, CancellationToken ct)
@@ -47,8 +47,11 @@ public class GameService(GameScoreDbContext db, IGameCatalog catalog, IOptions<C
 
         if (!string.IsNullOrWhiteSpace(query))
         {
-            // Con búsqueda, el catálogo devuelve todos los resultados juntos: los paginamos aquí
-            var all = await catalog.SearchAsync(query.Trim(), genre, ct);
+            // Con búsqueda, el catálogo devuelve todos los resultados juntos: los ordenamos
+            // alfabéticamente (como el resto de la pestaña Juegos) y los paginamos aquí
+            var all = (await catalog.SearchAsync(query.Trim(), genre, ct))
+                .OrderBy(g => g.Name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, ignoreCase: true))
+                .ToList();
             var pageItems = all.Skip((page - 1) * PageSize).Take(PageSize).ToList();
             return Paged(await ToSummariesAsync(pageItems, ct), page, all.Count);
         }
